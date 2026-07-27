@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پیگیری سفارش | خشکشویی آنلاین</title>
+    <!-- اضافه کردن فریم‌ورک Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- اضافه کردن فونت زیبای وزیرمتن -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center pt-12 px-4">
+
+    <!-- کادر اصلی فرم جستجو -->
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-lg p-8 mb-8">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-gray-800">پیگیری وضعیت سفارش</h2>
+            <p class="text-gray-500 text-sm mt-2">شماره موبایل خود را وارد کنید</p>
+        </div>
+        
+        <form method="GET" class="flex flex-col gap-4">
+            <input type="text" name="phone" placeholder="مثال: 09123456789" required
+                   class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-lg tracking-widest text-gray-700">
+            <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
+                جستجوی سفارش
+            </button>
+        </form>
+    </div>
+
+    <!-- بخش نمایش نتایج -->
+    {% if orders %}
+        <div class="w-full max-w-md space-y-4">
+            <h3 class="text-gray-600 font-semibold mb-2">نتایج یافت شده برای: <span class="text-gray-900 dir-ltr inline-block">{{ phone }}</span></h3>
+            
+            {% for order in orders %}
+                <div class="bg-white rounded-xl shadow p-6 border-r-4 {% if order.status == 'ready' %}border-green-500{% elif order.status == 'delivered' %}border-gray-400{% else %}border-yellow-400{% endif %}">
+                    
+                    <div class="flex justify-between items-center mb-4 border-b pb-3">
+                        <span class="text-gray-500 text-sm">فاکتور #{{ order.id }}</span>
+                        <span class="text-gray-500 text-sm">{{ order.created_at|date:"Y-m-d" }}</span>
+                    </div>
+
+                    <div class="mb-4 text-center">
+                        <span class="text-lg font-bold px-4 py-1 rounded-full 
+                            {% if order.status == 'ready' %}bg-green-100 text-green-700
+                            {% elif order.status == 'delivered' %}bg-gray-100 text-gray-700
+                            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-700 mb-2">لیست اقلام:</h4>
+                        <ul class="space-y-2 mb-4">
+                            {% for item in order.orderitem_set.all %}
+                                <li class="flex justify-between text-gray-600 bg-gray-50 p-2 rounded">
+                                    <span>{{ item.item_name }}</span>
+                                    <span class="font-semibold">{{ item.quantity }} عدد</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        
+                        <!-- بخش جدید برای نمایش مبلغ کل -->
+                        <div class="flex justify-between items-center border-t pt-3">
+                            <span class="text-gray-800 font-bold text-sm">جمع کل:</span>
+                            <span class="text-blue-600 font-bold">{{ order.total_price }} تومان</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+    {% elif phone %}
+        <!-- پیام خطا در صورت پیدا نشدن سفارش -->
+        <div class="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg w-full max-w-md text-center">
+            هیچ سفارشی با این شماره موبایل در سیستم ثبت نشده است.
+        </div>
+    {% endif %}
+
+</body>
+</html>
