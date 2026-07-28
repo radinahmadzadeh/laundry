@@ -12,7 +12,6 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ('customer__name', 'customer__phone') 
     inlines = [OrderItemInline] 
 
-    # تغییر استایل دکمه به یک دیزاین بسیار مدرن و جذاب
     def print_button_html(self, obj):
         return format_html(
             '<a class="button" href="/receipt/{}" target="_blank" style="background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 8px; padding: 8px 16px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4); transition: all 0.3s ease; display: inline-block;">فیش لاکچری</a>', 

@@ -9,7 +9,6 @@
     <style>
         body { font-family: 'Vazirmatn', sans-serif; }
         
-        /* افکت شیشه‌ای بسیار جذاب (Glassmorphism) */
         .glass-card {
             background: rgba(255, 255, 255, 0.03);
             backdrop-filter: blur(16px);
@@ -18,7 +17,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* انیمیشن نرم برای پس‌زمینه */
         .bg-animate {
             background-size: 300% 300%;
             animation: gradientMove 8s ease infinite;
@@ -33,7 +31,6 @@
 </head>
 <body class="bg-gray-900 bg-gradient-to-br from-indigo-950 via-purple-900 to-black bg-animate min-h-screen flex flex-col items-center pt-12 px-4 text-gray-100">
 
-    <!-- هدر و فرم جستجو -->
     <div class="glass-card w-full max-w-lg rounded-3xl p-10 mb-10 transform transition-all hover:scale-[1.01]">
         <div class="text-center mb-8">
             <div class="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-purple-500/30">
@@ -55,14 +52,12 @@
         </form>
     </div>
 
-    <!-- بخش نمایش نتایج -->
     {% if orders %}
         <div class="w-full max-w-lg space-y-6 pb-12">
             <h3 class="text-gray-300 font-medium mb-4 text-center">نتایج یافت شده برای: <span class="text-white dir-ltr inline-block tracking-wider">{{ phone }}</span></h3>
             
             {% for order in orders %}
                 <div class="glass-card rounded-2xl p-7 relative overflow-hidden group">
-                    <!-- خط رنگی کنار کارت بر اساس وضعیت -->
                     <div class="absolute right-0 top-0 bottom-0 w-1.5 
                         {% if order.status == 'ready' %}bg-green-400 shadow-[0_0_15px_rgba(74,222,128,0.7)]
                         {% elif order.status == 'delivered' %}bg-gray-500

@@ -8,7 +8,7 @@
     <style>
         body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
         .receipt-container {
-            width: 80mm; /* عرض استاندارد فیش پرینترها */
+            width: 80mm; 
             margin: 20px auto;
             background: white;
             padding: 15px;
@@ -18,7 +18,6 @@
             border-top: 2px dashed #cbd5e1;
             margin: 15px 0;
         }
-        /* مخفی کردن دکمه پرینت هنگام چاپ واقعی */
         @media print {
             body { background-color: white; }
             .receipt-container { box-shadow: none; margin: 0; padding: 0; }
@@ -29,7 +28,6 @@
 <body class="text-gray-900 text-sm">
 
     <div class="receipt-container">
-        <!-- هدر فیش -->
         <div class="text-center mb-4">
             <h1 class="text-2xl font-black mb-1">لوکس واش</h1>
             <p class="text-xs text-gray-500">خدمات خشکشویی و سفیدشویی پریمیوم</p>
@@ -38,7 +36,6 @@
 
         <div class="dotted-line"></div>
 
-        <!-- اطلاعات مشتری -->
         <div class="space-y-2 mb-4 text-xs font-semibold">
             <div class="flex justify-between">
                 <span>شماره فاکتور:</span>
@@ -60,7 +57,6 @@
 
         <div class="dotted-line"></div>
 
-        <!-- جدول اقلام -->
         <table class="w-full text-xs mb-4">
             <thead>
                 <tr class="text-gray-500 border-b border-gray-200">
@@ -82,7 +78,6 @@
 
         <div class="dotted-line"></div>
 
-        <!-- جمع کل -->
         <div class="flex justify-between items-center text-sm font-black mb-6">
             <span>مبلغ قابل پرداخت:</span>
             <span>{{ order.total_price }} تومان</span>
@@ -93,7 +88,6 @@
             <p class="mt-1">کد پیگیری در سایت: {{ order.customer.phone }}</p>
         </div>
 
-        <!-- دکمه پرینت (در نسخه چاپ مخفی می‌شود) -->
         <button onclick="window.print()" class="no-print w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition">
             🖨️ چاپ این فیش
         </button>

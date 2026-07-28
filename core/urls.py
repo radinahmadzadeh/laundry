@@ -1,7 +1,7 @@
 from django.contrib import admin
-from django.urls import path, include # کلمه include اینجا اضافه شد
+from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('orders.urls')), # این خط اضافه شد تا جنگو مسیرهای جدید را بشناسد
+    path('', include('orders.urls')),
 ]
