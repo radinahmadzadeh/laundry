@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>فیش سفارش #{{ order.id }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
+        .receipt-container {
+            width: 80mm; /* عرض استاندارد فیش پرینترها */
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .dotted-line {
+            border-top: 2px dashed #cbd5e1;
+            margin: 15px 0;
+        }
+        /* مخفی کردن دکمه پرینت هنگام چاپ واقعی */
+        @media print {
+            body { background-color: white; }
+            .receipt-container { box-shadow: none; margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="text-gray-900 text-sm">
+
+    <div class="receipt-container">
+        <!-- هدر فیش -->
+        <div class="text-center mb-4">
+            <h1 class="text-2xl font-black mb-1">لوکس واش</h1>
+            <p class="text-xs text-gray-500">خدمات خشکشویی و سفیدشویی پریمیوم</p>
+            <p class="text-xs text-gray-500 mt-1">تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</p>
+        </div>
+
+        <div class="dotted-line"></div>
+
+        <!-- اطلاعات مشتری -->
+        <div class="space-y-2 mb-4 text-xs font-semibold">
+            <div class="flex justify-between">
+                <span>شماره فاکتور:</span>
+                <span>#{{ order.id }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>تاریخ ثبت:</span>
+                <span>{{ order.created_at|date:"Y/m/d - H:i" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>مشتری:</span>
+                <span>{{ order.customer.name }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span>شماره تماس:</span>
+                <span class="dir-ltr">{{ order.customer.phone }}</span>
+            </div>
+        </div>
+
+        <div class="dotted-line"></div>
+
+        <!-- جدول اقلام -->
+        <table class="w-full text-xs mb-4">
+            <thead>
+                <tr class="text-gray-500 border-b border-gray-200">
+                    <th class="text-right pb-2 font-normal">شرح خدمات</th>
+                    <th class="text-center pb-2 font-normal">تعداد</th>
+                    <th class="text-left pb-2 font-normal">فی (ت)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.orderitem_set.all %}
+                <tr>
+                    <td class="py-2 text-right font-bold">{{ item.item_name }}</td>
+                    <td class="py-2 text-center">{{ item.quantity }}</td>
+                    <td class="py-2 text-left">{{ item.price }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="dotted-line"></div>
+
+        <!-- جمع کل -->
+        <div class="flex justify-between items-center text-sm font-black mb-6">
+            <span>مبلغ قابل پرداخت:</span>
+            <span>{{ order.total_price }} تومان</span>
+        </div>
+
+        <div class="text-center text-xs text-gray-500 mb-6">
+            <p>از اعتماد شما سپاسگزاریم.</p>
+            <p class="mt-1">کد پیگیری در سایت: {{ order.customer.phone }}</p>
+        </div>
+
+        <!-- دکمه پرینت (در نسخه چاپ مخفی می‌شود) -->
+        <button onclick="window.print()" class="no-print w-full bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition">
+            🖨️ چاپ این فیش
+        </button>
+    </div>
+
+</body>
+</html>python manage.py runserver

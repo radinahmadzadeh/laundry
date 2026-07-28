@@ -1,10 +1,30 @@
 from django.db import models
+import requests
 
-def send_fake_sms(phone_number, customer_name):
-    print("*" * 30)
-    print(f"ارسال پیامک به شماره: {phone_number}")
-    print(f"متن پیام: {customer_name} عزیز، سفارش خشکشویی شما آماده تحویل است.")
-    print("*" * 30)
+def send_real_sms(phone_number, customer_name):
+    # شما باید این کلید را از پنل پیامکی خود (مثل کاوه‌نگار) دریافت کنید و اینجا بگذارید
+    api_key = "YOUR_API_KEY_HERE" 
+    
+    # آدرس وب‌سرویس پنل پیامکی
+    url = f"https://api.kavenegar.com/v1/{api_key}/sms/send.json"
+    
+    # متنی که می‌خواهیم ارسال شود
+    payload = {
+        'receptor': phone_number,
+        'message': f"{customer_name} عزیز، سفارش خشکشویی شما آماده تحویل است. \nبرای پیگیری وضعیت می‌توانید به سایت مراجعه کنید."
+    }
+    
+    try:
+        # اگر هنوز کلید واقعی را وارد نکرده‌ای، برنامه کرش نکند و فقط چاپ کند
+        if api_key == "YOUR_API_KEY_HERE":
+            print(f"[شبیه‌ساز پیامک] پیام آماده ارسال به {phone_number} است. لطفاً API Key را وارد کنید.")
+        else:
+            # ارسال درخواست واقعی به مخابرات
+            response = requests.post(url, data=payload, timeout=5)
+            print(f"[سیستم پیامکی] وضعیت ارسال: {response.status_code}")
+            
+    except Exception as e:
+        print(f"خطا در ارتباط با سرور پیامک: {e}")
 
 class Customer(models.Model):
     name = models.CharField(max_length=100, verbose_name="نام مشتری")
@@ -35,13 +55,14 @@ class Order(models.Model):
         return f"فاکتور {self.id} - {self.customer.name}"
 
     def save(self, *args, **kwargs):
-        if self.pk: 
-            old_order = Order.objects.get(pk=self.pk)
+            if self.pk: 
+                old_order = Order.objects.get(pk=self.pk)
+                
+                if old_order.status != 'ready' and self.status == 'ready':
+                    # تغییر نام تابع در اینجا انجام شد
+                    send_real_sms(self.customer.phone, self.customer.name)
             
-            if old_order.status != 'ready' and self.status == 'ready':
-                send_fake_sms(self.customer.phone, self.customer.name)
-        
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, verbose_name="فاکتور")
     item_name = models.CharField(max_length=50, verbose_name="نام لباس (مثل پیراهن)")

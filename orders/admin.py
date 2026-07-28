@@ -1,25 +1,28 @@
 from django.contrib import admin
+from django.utils.html import format_html 
 from .models import Customer, Order, OrderItem
 
-# ۱. این کلاس باعث می‌شود بتوانیم لباس‌ها را داخل خود فرم فاکتور اضافه کنیم
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    extra = 1 # یک ردیف خالی همیشه برای اضافه کردن لباس جدید آماده می‌گذارد
+    extra = 1
 
-# ۲. تنظیمات پیشرفته برای نمایش جدول فاکتورها
 class OrderAdmin(admin.ModelAdmin):
-    # کلمه total_price به انتهای این لیست اضافه شد
-    list_display = ('id', 'customer', 'status', 'created_at', 'total_price') 
-    
+    list_display = ('id', 'customer', 'status', 'created_at', 'total_price', 'print_button_html') 
     list_filter = ('status', 'created_at') 
     search_fields = ('customer__name', 'customer__phone') 
-    inlines = [OrderItemInline]
-# ۳. تنظیمات برای نمایش جدول مشتریان
+    inlines = [OrderItemInline] 
+
+    # تغییر استایل دکمه به یک دیزاین بسیار مدرن و جذاب
+    def print_button_html(self, obj):
+        return format_html(
+            '<a class="button" href="/receipt/{}" target="_blank" style="background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 8px; padding: 8px 16px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4); transition: all 0.3s ease; display: inline-block;">فیش لاکچری</a>', 
+            obj.id
+        )
+    print_button_html.short_description = "عملیات"
+
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('name', 'phone')
     search_fields = ('name', 'phone')
 
-# ۴. ثبت نهایی در پنل ادمین
 admin.site.register(Customer, CustomerAdmin)
 admin.site.register(Order, OrderAdmin)
-# توجه: OrderItem را دیگر جداگانه ثبت نمی‌کنیم چون داخل خود فاکتور قرار گرفت
