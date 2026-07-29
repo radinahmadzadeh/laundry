@@ -7,140 +7,290 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
-        body { font-family: 'Vazirmatn', sans-serif; }
-        
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        :root{
+            --ink:#eaf3f4;
+            --bg-deep:#070b12;
+            --bg-panel:#0d1420;
+            --line:rgba(234,243,244,0.10);
+            --cyan:#49e0d6;
+            --violet:#9b8cfb;
+            --amber:#ffc266;
+        }
+        *{ font-family:'Vazirmatn', sans-serif; }
+
+        body{
+            background-color:var(--bg-deep);
+            background-image:
+                radial-gradient(circle at 12% 15%, rgba(73,224,214,0.10), transparent 40%),
+                radial-gradient(circle at 85% 10%, rgba(155,140,251,0.10), transparent 45%),
+                radial-gradient(circle at 50% 100%, rgba(255,194,102,0.06), transparent 50%);
         }
 
-        .bg-animate {
-            background-size: 300% 300%;
-            animation: gradientMove 8s ease infinite;
+        .weave{
+            position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.05;
+            background-image:
+                repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 6px),
+                repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 6px);
         }
 
-        @keyframes gradientMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        .suds span{
+            position:absolute; border-radius:50%;
+            background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0.02) 70%);
+            filter:blur(0.5px);
+            animation:rise linear infinite;
         }
+        @keyframes rise{
+            0%{ transform:translateY(0) translateX(0); opacity:0; }
+            10%{ opacity:0.5; }
+            90%{ opacity:0.35; }
+            100%{ transform:translateY(-115vh) translateX(var(--drift,20px)); opacity:0; }
+        }
+
+        .panel{
+            position:relative; z-index:10;
+            background:rgba(13,20,32,0.55);
+            backdrop-filter:blur(20px);
+            -webkit-backdrop-filter:blur(20px);
+            border:1px solid var(--line);
+            box-shadow:0 30px 60px -20px rgba(0,0,0,0.65);
+        }
+
+        .perf{
+            height:16px;
+            -webkit-mask-image:radial-gradient(circle at 10px 0, transparent 8px, #000 8.5px);
+            mask-image:radial-gradient(circle at 10px 0, transparent 8px, #000 8.5px);
+            -webkit-mask-repeat:repeat-x; mask-repeat:repeat-x;
+            -webkit-mask-size:20px 16px; mask-size:20px 16px;
+            background:rgba(13,20,32,0.55);
+            border-bottom:1px dashed var(--line);
+        }
+
+        .drum{
+            animation:spin 6s linear infinite;
+            transform-origin:50% 50%;
+        }
+        @keyframes spin{ to{ transform:rotate(360deg);} }
+
+        .fab-input:focus{ box-shadow:0 0 0 3px rgba(73,224,214,0.35); }
+
+        .clothesline{
+            background-image:repeating-linear-gradient(to left, var(--line) 0 8px, transparent 8px 14px);
+        }
+
+        .barcode{
+            background-image:repeating-linear-gradient(to left, rgba(234,243,244,0.35) 0 2px, transparent 2px 5px, rgba(234,243,244,0.15) 5px 6px, transparent 6px 10px);
+            height:22px;
+        }
+
+        ::placeholder{ color:rgba(234,243,244,0.35); }
+
+        @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px); } to{ opacity:1; transform:translateY(0); } }
+        .enter{ animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) both; }
+
+        .card-hover{ transition:transform .35s ease, box-shadow .35s ease; }
+        .card-hover:hover{ transform:translateY(-6px); box-shadow:0 35px 70px -25px rgba(0,0,0,0.75); }
+
+        .btn-motion{ position:relative; overflow:hidden; transition:transform .25s ease, box-shadow .25s ease, filter .25s ease; }
+        .btn-motion::after{
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%);
+            transform:translateX(-130%);
+            transition:transform .7s ease;
+        }
+        .btn-motion:hover::after{ transform:translateX(130%); }
+        .btn-motion:hover{ transform:translateY(-2px) scale(1.015); }
+        .btn-motion:active{ transform:translateY(0) scale(0.97); }
+
+        @keyframes breathe{
+            0%,100%{ box-shadow:0 0 0 0 rgba(73,224,214,0.35); }
+            50%{ box-shadow:0 0 0 10px rgba(73,224,214,0); }
+        }
+        .breathe{ animation:breathe 2.6s ease-in-out infinite; }
+
+        @keyframes nodePulse{
+            0%,100%{ transform:scale(1); }
+            50%{ transform:scale(1.2); }
+        }
+        .node-active{ animation:nodePulse 1.6s ease-in-out infinite; }
+
+        .node{ transition:transform .3s ease, color .3s ease; }
+        .node:hover{ transform:scale(1.25); }
+
+        .fab-input{ transition:transform .2s ease, box-shadow .2s ease; }
+        .fab-input:focus{ box-shadow:0 0 0 3px rgba(73,224,214,0.35); transform:scale(1.01); }
     </style>
 </head>
-<body class="bg-gray-900 bg-gradient-to-br from-indigo-950 via-purple-900 to-black bg-animate min-h-screen flex flex-col items-center pt-12 px-4 text-gray-100">
+<body class="min-h-screen flex flex-col items-center pt-12 px-4 text-[var(--ink)]">
 
-    <div class="glass-card w-full max-w-lg rounded-3xl p-10 mb-10 transform transition-all hover:scale-[1.01]">
+    <div class="weave"></div>
+
+    <div class="suds fixed inset-0 overflow-hidden z-0 pointer-events-none">
+        <span style="width:14px;height:14px;left:8%;bottom:-10%;--drift:30px;animation-duration:14s;"></span>
+        <span style="width:8px;height:8px;left:22%;bottom:-10%;--drift:-20px;animation-duration:10s;animation-delay:2s;"></span>
+        <span style="width:20px;height:20px;left:40%;bottom:-10%;--drift:10px;animation-duration:18s;animation-delay:1s;"></span>
+        <span style="width:10px;height:10px;left:63%;bottom:-10%;--drift:-30px;animation-duration:12s;animation-delay:3s;"></span>
+        <span style="width:16px;height:16px;left:78%;bottom:-10%;--drift:25px;animation-duration:16s;animation-delay:5s;"></span>
+        <span style="width:9px;height:9px;left:90%;bottom:-10%;--drift:-15px;animation-duration:11s;animation-delay:4s;"></span>
+    </div>
+
+    <div class="panel enter w-full max-w-lg rounded-3xl p-10 mb-10 relative z-10">
         <div class="text-center mb-8">
-            <div class="w-16 h-16 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <div class="breathe w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[var(--cyan)] to-[var(--violet)] flex items-center justify-center shadow-lg shadow-cyan-500/20 relative overflow-hidden">
+                <svg viewBox="0 0 24 24" class="w-9 h-9 text-white/90 drum">
+                    <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                </svg>
             </div>
-            <h2 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">رهگیری سفارشات</h2>
-            <p class="text-gray-400 text-sm mt-3 font-light">شماره موبایل خود را برای بررسی وضعیت وارد کنید</p>
+            <h2 class="text-3xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">پیگیری سفارش خشکشویی</h2>
+            <p class="text-gray-400 text-sm mt-3 font-light">شماره موبایلی که هنگام سفارش ثبت کردید را وارد کنید</p>
         </div>
-        
-        <form method="GET" class="flex flex-col gap-5">
+
+        <form method="GET" class="flex flex-col gap-4">
             <div class="relative">
                 <input type="text" name="phone" placeholder="مثال: 09123456789" required
-                       class="w-full bg-black/20 px-5 py-4 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-center text-xl tracking-widest text-white placeholder-gray-500 transition-all">
+                       class="fab-input w-full bg-black/25 px-5 py-4 rounded-xl border border-white/10 focus:outline-none text-center text-xl tracking-widest text-white transition-all">
             </div>
-            <button type="submit" 
-                    class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg shadow-purple-600/30 transform hover:-translate-y-1">
+            <button type="submit"
+                    class="btn-motion group w-full bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] text-gray-950 font-extrabold py-4 rounded-xl shadow-lg shadow-cyan-500/20 hover:brightness-110 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 transition-transform duration-500 group-hover:rotate-90" viewBox="0 0 24 24" fill="none"><path d="M21 21l-5-5m2-6a8 8 0 11-16 0 8 8 0 0116 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
                 استعلام وضعیت
             </button>
         </form>
     </div>
 
     {% if orders %}
-        <div class="w-full max-w-lg space-y-6 pb-12">
-            <h3 class="text-gray-300 font-medium mb-6 text-center">
-                نتایج یافت شده برای: <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 font-black text-2xl px-2">{{ orders.0.customer.name }}</span>
+        <div class="w-full max-w-lg space-y-8 pb-14 relative z-10">
+            <h3 class="text-gray-300 font-medium text-center">
+                نتایج برای:
+                <span class="text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] font-black text-2xl px-1">{{ orders.0.customer.name }}</span>
             </h3>
-            
+
             {% for order in orders %}
-                <div class="glass-card rounded-2xl p-7 relative overflow-hidden group">
-                    
-                    <div class="flex justify-between items-center mb-4 pb-4">
-                        <span class="text-gray-400 font-light">فاکتور <strong class="text-white">#{{ order.id }}</strong></span>
-                        <span class="text-gray-300 text-sm bg-black/40 px-4 py-1.5 rounded-full border border-white/10 shadow-inner">
-                            {{ order.shamsi_date }}
-                        </span>
-                    </div>
+                <div class="panel card-hover enter rounded-2xl overflow-hidden" style="animation-delay: {{ forloop.counter0 }}00ms">
 
-                    <div class="mb-10 mt-8 px-2" dir="rtl">
-                        <div class="flex items-center justify-between relative">
-                            <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-white/10 rounded-full z-0"></div>
+                    <div class="perf"></div>
 
-                            <div class="absolute right-0 top-1/2 transform -translate-y-1/2 h-1 bg-gradient-to-l from-blue-500 to-purple-500 rounded-full z-0 transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(168,85,247,0.5)]"
-                                 style="width: {% if order.status == 'received' %}0%{% elif order.status == 'washing' %}20%{% elif order.status == 'ironing' %}40%{% elif order.status == 'packaging' %}60%{% elif order.status == 'ready' %}80%{% elif order.status == 'delivered' %}100%{% endif %}"></div>
+                    <div class="p-7">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-gray-400 font-light text-sm">فاکتور <strong class="text-white text-base tracking-wide">#{{ order.id }}</strong></span>
+                            <span class="text-gray-300 text-xs bg-black/40 px-4 py-1.5 rounded-full border border-white/10">
+                                {{ order.shamsi_date }}
+                            </span>
+                        </div>
 
-                            <div class="relative z-10 flex flex-col items-center">
-                                <div class="w-4 h-4 rounded-full border-2 {% if order.status in 'received,washing,ironing,packaging,ready,delivered' %}bg-purple-500 border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]{% else %}bg-gray-800 border-gray-600{% endif %} transition-all"></div>
-                                <span class="absolute top-6 text-[10px] whitespace-nowrap {% if order.status == 'received' %}text-white font-bold{% else %}text-gray-400{% endif %}">دریافت</span>
-                            </div>
-                            
-                            <div class="relative z-10 flex flex-col items-center">
-                                <div class="w-4 h-4 rounded-full border-2 {% if order.status in 'washing,ironing,packaging,ready,delivered' %}bg-purple-500 border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]{% else %}bg-gray-800 border-gray-600{% endif %} transition-all"></div>
-                                <span class="absolute top-6 text-[10px] whitespace-nowrap {% if order.status == 'washing' %}text-white font-bold{% else %}text-gray-400{% endif %}">شستشو</span>
-                            </div>
-                            
-                            <div class="relative z-10 flex flex-col items-center">
-                                <div class="w-4 h-4 rounded-full border-2 {% if order.status in 'ironing,packaging,ready,delivered' %}bg-purple-500 border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]{% else %}bg-gray-800 border-gray-600{% endif %} transition-all"></div>
-                                <span class="absolute top-6 text-[10px] whitespace-nowrap {% if order.status == 'ironing' %}text-white font-bold{% else %}text-gray-400{% endif %}">اتوکشی</span>
-                            </div>
-                            
-                            <div class="relative z-10 flex flex-col items-center">
-                                <div class="w-4 h-4 rounded-full border-2 {% if order.status in 'packaging,ready,delivered' %}bg-purple-500 border-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]{% else %}bg-gray-800 border-gray-600{% endif %} transition-all"></div>
-                                <span class="absolute top-6 text-[10px] whitespace-nowrap {% if order.status == 'packaging' %}text-white font-bold{% else %}text-gray-400{% endif %}">بسته‌بندی</span>
-                            </div>
-                            
-                            <div class="relative z-10 flex flex-col items-center">
-                                <div class="w-4 h-4 rounded-full border-2 {% if order.status in 'ready,delivered' %}bg-green-500 border-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]{% else %}bg-gray-800 border-gray-600{% endif %} transition-all"></div>
-                                <span class="absolute top-6 text-[10px] whitespace-nowrap {% if order.status == 'ready' %}text-green-400 font-bold text-base{% else %}text-gray-400{% endif %}">آماده</span>
-                            </div>
-                            
-                            <div class="relative z-10 flex flex-col items-center">
-                                <div class="w-4 h-4 rounded-full border-2 {% if order.status == 'delivered' %}bg-gray-400 border-gray-300 shadow-[0_0_10px_rgba(156,163,175,0.8)]{% else %}bg-gray-800 border-gray-600{% endif %} transition-all"></div>
-                                <span class="absolute top-6 text-[10px] whitespace-nowrap {% if order.status == 'delivered' %}text-gray-200 font-bold{% else %}text-gray-400{% endif %}">تحویل</span>
+                        <div class="mb-12 mt-10 px-1" dir="rtl">
+                            <div class="flex items-center justify-between relative">
+                                <div class="absolute right-0 top-2 w-full h-[2px] clothesline z-0"></div>
+                                <div class="absolute right-0 top-2 h-[2px] bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] rounded-full z-0 transition-all duration-1000 ease-out"
+                                     style="width: {% if order.status == 'received' %}0%{% elif order.status == 'washing' %}25%{% elif order.status == 'ironing' %}50%{% elif order.status == 'ready' %}75%{% elif order.status == 'delivered' %}100%{% endif %}"></div>
+
+                                <div class="node relative z-10 flex flex-col items-center {% if order.status == 'received' %}node-active{% endif %}">
+                                    <svg class="w-4 h-4 {% if order.status in 'received,washing,ironing,ready,delivered' %}text-[var(--cyan)]{% else %}text-gray-600{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2zm1 4V4h0v2z"/></svg>
+                                    <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'received' %}bg-[var(--cyan)]/20 text-white font-bold{% else %}text-gray-500{% endif %}">دریافت</span>
+                                </div>
+
+                                <div class="node relative z-10 flex flex-col items-center {% if order.status == 'washing' %}node-active{% endif %}">
+                                    <svg class="w-4 h-4 {% if order.status in 'washing,ironing,ready,delivered' %}text-[var(--cyan)]{% else %}text-gray-600{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
+                                    <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'washing' %}bg-[var(--cyan)]/20 text-white font-bold{% else %}text-gray-500{% endif %}">شستشو</span>
+                                </div>
+
+                                <div class="node relative z-10 flex flex-col items-center {% if order.status == 'ironing' %}node-active{% endif %}">
+                                    <svg class="w-4 h-4 {% if order.status in 'ironing,ready,delivered' %}text-[var(--violet)]{% else %}text-gray-600{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
+                                    <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'ironing' %}bg-[var(--violet)]/20 text-white font-bold{% else %}text-gray-500{% endif %}">اتوکشی</span>
+                                </div>
+
+                                <div class="node relative z-10 flex flex-col items-center {% if order.status == 'ready' %}node-active{% endif %}">
+                                    <svg class="w-4 h-4 {% if order.status in 'ready,delivered' %}text-[var(--amber)]{% else %}text-gray-600{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
+                                    <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'ready' %}bg-[var(--amber)]/25 text-[var(--amber)] font-bold text-[11px]{% else %}text-gray-500{% endif %}">آماده تحویل</span>
+                                </div>
+
+                                <div class="node relative z-10 flex flex-col items-center {% if order.status == 'delivered' %}node-active{% endif %}">
+                                    <svg class="w-4 h-4 {% if order.status == 'delivered' %}text-gray-200{% else %}text-gray-600{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l4 4L19 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'delivered' %}bg-white/10 text-gray-100 font-bold{% else %}text-gray-500{% endif %}">تحویل داده شده</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    
-                    <div class="bg-black/30 rounded-xl p-5 border border-white/5">
-                        <h4 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                            لیست اقلام
-                        </h4>
-                        
-                        <ul class="space-y-3 mb-5">
-                            {% for item in order.orderitem_set.all %}
-                                <li class="flex justify-between items-center text-gray-300 text-sm border-b border-white/5 pb-3 last:border-0 last:pb-0">
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-white">{{ item.item_name }}</span>
-                                        <span class="text-xs text-gray-500 font-light hidden sm:inline-block">({{ item.price }} تومان)</span>
-                                    </div>
-                                    <div class="flex items-center gap-4">
-                                        <span class="text-xs text-purple-300 sm:hidden">{{ item.price }} تومان</span>
-                                        <span class="font-bold text-white bg-white/10 px-3 py-1 rounded-lg">{{ item.quantity }} عدد</span>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                        
-                        <div class="flex justify-between items-center border-t border-white/10 pt-5 mt-2">
-                            <span class="text-gray-400 text-sm">مبلغ قابل پرداخت:</span>
-                            <span class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">{{ order.total_price }} <span class="text-sm font-light text-gray-400">تومان</span></span>
+
+                        <div class="bg-black/30 rounded-xl p-5 border border-white/5">
+                            <h4 class="text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-[var(--cyan)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                لیست اقلام
+                            </h4>
+
+                            <ul class="space-y-3 mb-5">
+                                {% for item in order.orderitem_set.all %}
+                                    <li class="flex justify-between items-center text-gray-300 text-sm border-b border-white/5 pb-3 last:border-0 last:pb-0 transition-colors duration-200 hover:text-white">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-white">{{ item.item_name }}</span>
+                                            <span class="text-xs text-gray-500 font-light hidden sm:inline-block">({{ item.price }} تومان)</span>
+                                        </div>
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-xs text-[var(--cyan)] sm:hidden">{{ item.price }} تومان</span>
+                                            <span class="font-bold text-white bg-white/10 px-3 py-1 rounded-lg transition-transform duration-200 hover:scale-110">{{ item.quantity }} عدد</span>
+                                        </div>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+
+                            <div class="border-t border-white/10 pt-4 mt-2 space-y-3">
+                                <div class="flex justify-between items-center text-gray-400 text-sm">
+                                    <span>جمع اقلام:</span>
+                                    <span>{{ order.subtotal_amount }} تومان</span>
+                                </div>
+                                <div class="flex justify-between items-center text-gray-400 text-sm">
+                                    <span>مالیات (۱۰٪):</span>
+                                    <span>{{ order.tax_amount }} تومان</span>
+                                </div>
+                                <div class="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
+                                    <span class="text-gray-300 font-medium">مبلغ نهایی پرداخت:</span>
+                                    <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">{{ order.total_price }} <span class="text-sm font-light text-gray-400">تومان</span></span>
+                                </div>
+                            </div>
                         </div>
+
+                        {% if order.days_remaining != None %}
+                            <div class="mt-4 card-hover btn-motion relative overflow-hidden rounded-2xl p-5 flex items-center gap-4 {% if order.days_remaining > 0 %}bg-blue-500/5 border border-blue-500/20{% elif order.days_remaining == 0 %}bg-[var(--amber)]/5 border border-[var(--amber)]/25{% else %}bg-red-500/5 border border-red-500/25{% endif %}">
+                                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 {% if order.days_remaining > 0 %}bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30{% elif order.days_remaining == 0 %}bg-gradient-to-br from-[var(--amber)] to-orange-500 shadow-lg shadow-amber-500/30 breathe{% else %}bg-gradient-to-br from-red-600 to-rose-500 shadow-lg shadow-red-500/30 node-active{% endif %}">
+                                    {% if order.days_remaining > 0 %}
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {% elif order.days_remaining == 0 %}
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    {% else %}
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86l-8.14 14.1A1.5 1.5 0 003.5 20h17a1.5 1.5 0 001.35-2.04l-8.14-14.1a1.5 1.5 0 00-2.6 0z"/></svg>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-400 mb-1">زمان تحویل</p>
+                                    <p class="text-white font-black text-lg tracking-wide">{{ order.shamsi_delivery_date }}</p>
+                                </div>
+                                {% if order.days_remaining > 0 %}
+                                    <span class="text-xs font-bold bg-blue-500/15 text-blue-300 px-3 py-2 rounded-xl border border-blue-500/30 whitespace-nowrap">{{ order.days_remaining }} روز مانده</span>
+                                {% elif order.days_remaining == 0 %}
+                                    <span class="text-xs font-bold bg-[var(--amber)]/20 text-[var(--amber)] px-3 py-2 rounded-xl border border-[var(--amber)]/40 whitespace-nowrap node-active">آماده تحویل امروز</span>
+                                {% else %}
+                                    <span class="text-xs font-bold bg-red-500/20 text-red-300 px-3 py-2 rounded-xl border border-red-500/40 whitespace-nowrap">تاخیر در تحویل</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <a href="/receipt/{{ order.id }}/" target="_blank" class="mt-4 flex items-center justify-center gap-2 w-full bg-black/30 hover:bg-white/10 border border-white/5 text-gray-300 py-3.5 rounded-xl transition-all cursor-pointer hover:text-white group">
+                            <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            مشاهده و دانلود فاکتور
+                        </a>
                     </div>
+
+                    <div class="barcode opacity-40 mx-7 mb-6 rounded-sm"></div>
                 </div>
             {% endfor %}
         </div>
-        
+
     {% elif phone %}
-        <div class="glass-card border-red-500/30 text-red-200 px-6 py-5 rounded-2xl w-full max-w-lg text-center flex flex-col items-center gap-3">
-            <svg class="w-10 h-10 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            هیچ سفارشی با این شماره موبایل در سیستم یافت نشد.
+        <div class="panel enter border-red-500/20 text-red-200 px-6 py-8 rounded-2xl w-full max-w-lg text-center flex flex-col items-center gap-3 relative z-10">
+            <svg class="w-12 h-12 text-red-300/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7l8-3 8 3M4 7v10a1 1 0 001 1h14a1 1 0 001-1V7M4 7l8 4 8-4"/>
+            </svg>
+            <p class="font-medium">هیچ سفارشی با این شماره موبایل پیدا نشد.</p>
+            <p class="text-red-200/50 text-xs font-light">لطفاً شماره را بررسی و دوباره امتحان کنید.</p>
         </div>
     {% endif %}
 </body>

@@ -29,7 +29,7 @@
 
     <div class="receipt-container">
         <div class="text-center mb-4">
-            <h1 class="text-2xl font-black mb-1">لوکس واش</h1>
+            <h1 class="text-2xl font-black mb-1">خشکشویی</h1>
             <p class="text-xs text-gray-500">خدمات خشکشویی و سفیدشویی پریمیوم</p>
             <p class="text-xs text-gray-500 mt-1">تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</p>
         </div>
@@ -43,9 +43,15 @@
             </div>
             <div class="flex justify-between">
                 <span>تاریخ ثبت:</span>
-                <span>{{ order.created_at|date:"Y/m/d - H:i" }}</span>
+                <span>{{ order.shamsi_date }}</span>
             </div>
-            <div class="flex justify-between">
+            {% if order.delivery_date %}
+            <div class="flex justify-between text-blue-600">
+                <span>تاریخ تحویل:</span>
+                <span>{{ order.shamsi_delivery_date }}</span>
+            </div>
+            {% endif %}
+            <div class="flex justify-between mt-2">
                 <span>مشتری:</span>
                 <span>{{ order.customer.name }}</span>
             </div>
@@ -78,8 +84,21 @@
 
         <div class="dotted-line"></div>
 
+        <div class="space-y-2 mb-4 text-xs font-semibold text-gray-600">
+            <div class="flex justify-between items-center">
+                <span>جمع اقلام:</span>
+                <span>{{ order.subtotal_amount }} تومان</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span>مالیات (۱۰٪):</span>
+                <span>{{ order.tax_amount }} تومان</span>
+            </div>
+        </div>
+
+        <div class="dotted-line"></div>
+
         <div class="flex justify-between items-center text-sm font-black mb-6">
-            <span>مبلغ قابل پرداخت:</span>
+            <span>مبلغ نهایی پرداخت:</span>
             <span>{{ order.total_price }} تومان</span>
         </div>
 
@@ -94,4 +113,4 @@
     </div>
 
 </body>
-</html>python manage.py runserver
+</html>

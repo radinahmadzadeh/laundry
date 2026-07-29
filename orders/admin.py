@@ -1,27 +1,35 @@
 from django.contrib import admin
-from django.utils.html import format_html 
+from django.utils.html import format_html
+import urllib.parse
 from .models import Customer, Order, OrderItem
+
+@admin.register(Customer)
+class CustomerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'phone')
+    search_fields = ('name', 'phone')
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 1
 
+@admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'status', 'created_at', 'total_price', 'print_button_html') 
-    list_filter = ('status', 'created_at') 
-    search_fields = ('customer__name', 'customer__phone') 
-    inlines = [OrderItemInline] 
+    list_display = ('id', 'customer', 'status', 'shamsi_date', 'delivery_date', 'total_price', 'actions_buttons')
+    list_filter = ('status',)
+    inlines = [OrderItemInline]
+    
+    readonly_fields = ('total_price',)
 
-    def print_button_html(self, obj):
+    def actions_buttons(self, obj):
+        site_url = "radinahmadzadeh.pythonanywhere.com/track/" 
+        
+        sms_text = f"فاکتور {obj.id} به نام {obj.customer.name} با موفقیت ثبت شد. تاریخ تحویل: {obj.shamsi_date}. برای پیگیری سفارش به لینک زیر مراجعه بفرمایید:\n{site_url}"
+        
+        encoded_text = urllib.parse.quote(sms_text)
+        
         return format_html(
-            '<a class="button" href="/receipt/{}" target="_blank" style="background-image: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 8px; padding: 8px 16px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0, 242, 254, 0.4); transition: all 0.3s ease; display: inline-block;">فیش لاکچری</a>', 
-            obj.id
+            '<a class="button" style="background-color: #00bcd4; color: white; margin-left: 5px; border-radius: 4px;" href="/receipt/{0}/">فیش لاکچری</a>'
+            '<a class="button" style="background-color: #28a745; color: white; border-radius: 4px;" href="sms:{1}?body={2}">📲 پیامک</a>',
+            obj.id, obj.customer.phone, encoded_text
         )
-    print_button_html.short_description = "عملیات"
-
-class CustomerAdmin(admin.ModelAdmin):
-    list_display = ('name', 'phone')
-    search_fields = ('name', 'phone')
-
-admin.site.register(Customer, CustomerAdmin)
-admin.site.register(Order, OrderAdmin)
+    actions_buttons.short_description = "عملیات"
