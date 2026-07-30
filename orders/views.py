@@ -31,8 +31,8 @@ def send_request(request, order_id):
     amount = int(order.total_price) * 10  
     description = f"پرداخت فاکتور شماره {order.id} - باکسیت"
     
-    CallbackURL = f'http://127.0.0.1:8000/verify/?order_id={order.id}' 
-
+    callback_path = f'/verify/?order_id={order.id}'
+    CallbackURL = request.build_absolute_uri(callback_path)
     data = {
         "merchant_id": MERCHANT,
         "amount": amount,

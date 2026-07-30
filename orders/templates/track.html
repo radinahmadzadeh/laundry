@@ -263,26 +263,40 @@
                         </div>
 
                         {% if order.days_remaining != None %}
-                            <div class="mt-4 card-hover btn-motion relative overflow-hidden rounded-2xl p-5 flex items-center gap-4 {% if order.days_remaining > 0 %}bg-blue-500/5 border border-blue-500/20{% elif order.days_remaining == 0 %}bg-[var(--amber)]/5 border border-[var(--amber)]/25{% else %}bg-red-500/5 border border-red-500/25{% endif %}">
-                                <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 {% if order.days_remaining > 0 %}bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30{% elif order.days_remaining == 0 %}bg-gradient-to-br from-[var(--amber)] to-orange-500 shadow-lg shadow-amber-500/30 breathe{% else %}bg-gradient-to-br from-red-600 to-rose-500 shadow-lg shadow-red-500/30 node-active{% endif %}">
-                                    {% if order.days_remaining > 0 %}
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="mt-4 card-hover btn-motion relative overflow-hidden rounded-2xl p-4 sm:p-5 flex items-center gap-2 sm:gap-4 
+                                {% if order.status == 'delivered' %}bg-green-500/5 border border-green-500/20
+                                {% elif order.days_remaining > 0 %}bg-blue-500/5 border border-blue-500/20
+                                {% elif order.days_remaining == 0 %}bg-[var(--amber)]/5 border border-[var(--amber)]/25
+                                {% else %}bg-red-500/5 border border-red-500/25{% endif %}">
+                                
+                                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0 
+                                    {% if order.status == 'delivered' %}bg-gradient-to-br from-green-500 to-emerald-400 shadow-lg shadow-green-500/30
+                                    {% elif order.days_remaining > 0 %}bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30
+                                    {% elif order.days_remaining == 0 %}bg-gradient-to-br from-[var(--amber)] to-orange-500 shadow-lg shadow-amber-500/30 breathe
+                                    {% else %}bg-gradient-to-br from-red-600 to-rose-500 shadow-lg shadow-red-500/30 node-active{% endif %}">
+                                    {% if order.status == 'delivered' %}
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    {% elif order.days_remaining > 0 %}
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     {% elif order.days_remaining == 0 %}
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     {% else %}
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86l-8.14 14.1A1.5 1.5 0 003.5 20h17a1.5 1.5 0 001.35-2.04l-8.14-14.1a1.5 1.5 0 00-2.6 0z"/></svg>
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86l-8.14 14.1A1.5 1.5 0 003.5 20h17a1.5 1.5 0 001.35-2.04l-8.14-14.1a1.5 1.5 0 00-2.6 0z"/></svg>
                                     {% endif %}
                                 </div>
                                 <div class="flex-1">
-                                    <p class="text-xs text-gray-400 mb-1">زمان تحویل</p>
-                                    <p class="text-white font-black text-lg tracking-wide">{{ order.shamsi_delivery_date }}</p>
+                                    <p class="text-[10px] sm:text-xs text-gray-400 mb-1">زمان تحویل</p>
+                                    <p class="text-white font-black text-sm sm:text-lg tracking-wide">{{ order.shamsi_delivery_date }}</p>
                                 </div>
-                                {% if order.days_remaining > 0 %}
-                                    <span class="text-xs font-bold bg-blue-500/15 text-blue-300 px-3 py-2 rounded-xl border border-blue-500/30 whitespace-nowrap">{{ order.days_remaining }} روز مانده</span>
+                                
+                                {% if order.status == 'delivered' %}
+                                    <span class="text-[10px] sm:text-xs font-bold bg-green-500/20 text-green-400 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-green-500/40 whitespace-nowrap">تحویل داده شده</span>
+                                {% elif order.days_remaining > 0 %}
+                                    <span class="text-[10px] sm:text-xs font-bold bg-blue-500/15 text-blue-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-blue-500/30 whitespace-nowrap">{{ order.days_remaining }} روز مانده</span>
                                 {% elif order.days_remaining == 0 %}
-                                    <span class="text-xs font-bold bg-[var(--amber)]/20 text-[var(--amber)] px-3 py-2 rounded-xl border border-[var(--amber)]/40 whitespace-nowrap node-active">آماده تحویل امروز</span>
+                                    <span class="text-[10px] sm:text-xs font-bold bg-[var(--amber)]/20 text-[var(--amber)] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-[var(--amber)]/40 whitespace-nowrap node-active">آماده تحویل</span>
                                 {% else %}
-                                    <span class="text-xs font-bold bg-red-500/20 text-red-300 px-3 py-2 rounded-xl border border-red-500/40 whitespace-nowrap">تاخیر در تحویل</span>
+                                    <span class="text-[10px] sm:text-xs font-bold bg-red-500/20 text-red-300 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-red-500/40 whitespace-nowrap">تاخیر در تحویل</span>
                                 {% endif %}
                             </div>
                         {% endif %}
