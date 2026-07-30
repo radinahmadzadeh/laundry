@@ -113,6 +113,18 @@
             0%,100%{ transform:scale(1); }
             50%{ transform:scale(1.2); }
         }
+
+        @keyframes payGlow{
+            0%,100%{ box-shadow:0 0 0 0 rgba(16,185,129,0.35); }
+            50%{ box-shadow:0 0 0 10px rgba(16,185,129,0); }
+        }
+        .pay-glow{ animation:payGlow 2.2s ease-in-out infinite; }
+
+        @keyframes paidGlow{
+            0%,100%{ box-shadow:0 0 0 0 rgba(74,222,128,0.25); }
+            50%{ box-shadow:0 0 0 8px rgba(74,222,128,0); }
+        }
+        .paid-glow{ animation:paidGlow 3s ease-in-out infinite; }
         .node-active{ animation:nodePulse 1.6s ease-in-out infinite; }
 
         .node{ transition:transform .3s ease, color .3s ease; }
@@ -202,7 +214,7 @@
                                 </div>
 
                                 <div class="node relative z-10 flex flex-col items-center {% if order.status == 'ready' %}node-active{% endif %}">
-                                    <svg class="w-4 h-4 {% if order.status in 'ready,delivered' %}text-[var(--amber)]{% else %}text-gray-600{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
+                                    <svg class="w-4 h-4 {% if order.status in 'ready,delivered' %}text-[var(--amber)]{% else %}text-gray-600{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
                                     <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'ready' %}bg-[var(--amber)]/25 text-[var(--amber)] font-bold text-[11px]{% else %}text-gray-500{% endif %}">آماده تحویل</span>
                                 </div>
 
@@ -243,9 +255,9 @@
                                     <span>مالیات (۱۰٪):</span>
                                     <span>{{ order.tax_amount }} تومان</span>
                                 </div>
-                                <div class="flex justify-between items-center mt-3 pt-3 border-t border-white/5">
+                                <div class="flex justify-between items-center mt-3 pt-3 border-t border-white/5 group">
                                     <span class="text-gray-300 font-medium">مبلغ نهایی پرداخت:</span>
-                                    <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">{{ order.total_price }} <span class="text-sm font-light text-gray-400">تومان</span></span>
+                                    <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block">{{ order.total_price }} <span class="text-sm font-light text-gray-400">تومان</span></span>
                                 </div>
                             </div>
                         </div>
@@ -275,10 +287,25 @@
                             </div>
                         {% endif %}
 
-                        <a href="/receipt/{{ order.id }}/" target="_blank" class="mt-4 flex items-center justify-center gap-2 w-full bg-black/30 hover:bg-white/10 border border-white/5 text-gray-300 py-3.5 rounded-xl transition-all cursor-pointer hover:text-white group">
-                            <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            مشاهده و دانلود فاکتور
-                        </a>
+                        <div class="flex gap-3 mt-4">
+                            <a href="/receipt/{{ order.id }}/" target="_blank" class="btn-motion flex items-center justify-center gap-2 w-1/2 bg-black/30 hover:bg-white/10 border border-white/5 text-gray-300 py-3.5 rounded-xl transition-all cursor-pointer hover:text-white hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] group">
+                                <svg class="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                فاکتور
+                            </a>
+
+                            {% if not order.is_paid %}
+                                <a href="/pay/{{ order.id }}/" class="btn-motion pay-glow flex items-center justify-center gap-2 w-1/2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/30 hover:brightness-110 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
+                                    <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    پرداخت آنلاین
+                                </a>
+                            {% else %}
+                                <div class="paid-glow flex items-center justify-center gap-2 w-1/2 bg-green-500/10 border border-green-500/20 text-green-400 font-bold py-3.5 rounded-xl transition-transform duration-300 hover:scale-[1.02]">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    پرداخت شده
+                                </div>
+                            {% endif %}
+                        </div>
+
                     </div>
 
                     <div class="barcode opacity-40 mx-7 mb-6 rounded-sm"></div>

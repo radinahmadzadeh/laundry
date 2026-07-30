@@ -23,6 +23,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     delivery_date = models.DateField(null=True, blank=True, verbose_name='تاریخ تحویل')
     total_price = models.DecimalField(max_digits=10, decimal_places=0, default=0)
+    is_paid = models.BooleanField(default=False, verbose_name='پرداخت شده')
 
     @property
     def shamsi_date(self):
