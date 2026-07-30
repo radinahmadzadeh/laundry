@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'orders',
+    'pwa',
 ]
 
 MIDDLEWARE = [
@@ -96,4 +97,25 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+PWA_APP_NAME = 'Laundry tracker'
+PWA_APP_DESCRIPTION = 'پیگیری سفارشات خشکشویی'
+PWA_APP_THEME_COLOR = '#070b12'
+PWA_APP_BACKGROUND_COLOR = '#070b12'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_ORIENTATION = 'portrait'
+PWA_APP_START_URL = '/track/'
+PWA_APP_DIR = 'rtl'
+PWA_APP_LANG = 'fa'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/icon.png',
+        'sizes': '512x512',
+        'type': 'image/png'
+    }
+]
+PWA_APP_ICONS_APPLE = PWA_APP_ICONS
