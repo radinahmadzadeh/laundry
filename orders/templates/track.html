@@ -161,7 +161,11 @@
 
         <form method="GET" class="flex flex-col gap-4">
             <div class="relative">
-                <input type="text" name="phone" placeholder="مثال: 09123456789" required
+                <input type="text" name="phone" placeholder="شماره موبایل (مثال: 09123456789)" required
+                       class="fab-input w-full bg-black/25 px-5 py-4 rounded-xl border border-white/10 focus:outline-none text-center text-xl tracking-widest text-white transition-all">
+            </div>
+            <div class="relative">
+                <input type="number" name="order_id" placeholder="شماره فاکتور (مثال: 12)" required
                        class="fab-input w-full bg-black/25 px-5 py-4 rounded-xl border border-white/10 focus:outline-none text-center text-xl tracking-widest text-white transition-all">
             </div>
             <button type="submit"

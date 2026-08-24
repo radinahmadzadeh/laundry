@@ -5,13 +5,19 @@ from django.http import HttpResponse
 from .models import Order, Customer
 
 def track_order(request):
-    customer_orders = None
-    phone_number = request.GET.get('phone') 
-    
-    if phone_number:
-        customer_orders = Order.objects.filter(customer__phone=phone_number).order_by('-created_at')
+    phone_number = request.GET.get('phone')
+    order_id = request.GET.get('order_id')
+    orders = None
+
+    if phone_number and order_id:
+        orders = Order.objects.filter(customer__phone=phone_number, id=order_id)
         
-    return render(request, 'track.html', {'orders': customer_orders, 'phone': phone_number})
+    context = {
+        'orders': orders,
+        'phone': phone_number,
+    }
+    
+    return render(request, 'track.html', context)
 
 def print_receipt(request, order_id):
     order = get_object_or_404(Order, id=order_id)
