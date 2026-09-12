@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لیست قیمت خدمات | خشکشویی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        :root{
+            --ink:#eaf3f4;
+            --bg-deep:#070b12;
+            --bg-panel:#0d1420;
+            --line:rgba(234,243,244,0.10);
+            --cyan:#49e0d6;
+            --violet:#9b8cfb;
+            --amber:#ffc266;
+        }
+        *{ font-family:'Vazirmatn', sans-serif; }
+
+        body{
+            background-color:var(--bg-deep);
+            color:var(--ink);
+            background-image:
+                radial-gradient(circle at 12% 15%, rgba(73,224,214,0.10), transparent 40%),
+                radial-gradient(circle at 85% 10%, rgba(155,140,251,0.10), transparent 45%),
+                radial-gradient(circle at 50% 100%, rgba(255,194,102,0.06), transparent 50%);
+            min-height:100vh;
+        }
+
+        .weave{
+            position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.05;
+            background-image:
+                repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 6px),
+                repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 6px);
+        }
+
+        .suds span{
+            position:absolute; border-radius:50%;
+            background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0.02) 70%);
+            filter:blur(0.5px);
+            animation:rise linear infinite;
+        }
+        @keyframes rise{
+            0%{ transform:translateY(0) translateX(0); opacity:0; }
+            10%{ opacity:0.5; }
+            90%{ opacity:0.35; }
+            100%{ transform:translateY(-115vh) translateX(var(--drift,20px)); opacity:0; }
+        }
+
+        .panel{
+            position:relative; z-index:10;
+            background:rgba(13,20,32,0.55);
+            backdrop-filter:blur(20px);
+            -webkit-backdrop-filter:blur(20px);
+            border:1px solid var(--line);
+            box-shadow:0 30px 60px -20px rgba(0,0,0,0.65);
+        }
+
+        .drum{
+            animation:spin 6s linear infinite;
+            transform-origin:50% 50%;
+        }
+        @keyframes spin{ to{ transform:rotate(360deg);} }
+
+        @keyframes breathe{
+            0%,100%{ box-shadow:0 0 0 0 rgba(73,224,214,0.35); }
+            50%{ box-shadow:0 0 0 10px rgba(73,224,214,0); }
+        }
+        .breathe{ animation:breathe 2.6s ease-in-out infinite; }
+
+        @keyframes fadeUp{ from{ opacity:0; transform:translateY(18px); } to{ opacity:1; transform:translateY(0); } }
+        .enter{ animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) both; }
+
+        .card-hover{ transition:transform .35s ease, box-shadow .35s ease; }
+        .card-hover:hover{ transform:translateY(-4px); box-shadow:0 35px 70px -25px rgba(0,0,0,0.75); }
+
+        .btn-motion{ position:relative; overflow:hidden; transition:transform .25s ease, box-shadow .25s ease, filter .25s ease; }
+        .btn-motion::after{
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%);
+            transform:translateX(-130%);
+            transition:transform .7s ease;
+        }
+        .btn-motion:hover::after{ transform:translateX(130%); }
+        .btn-motion:active{ transform:scale(0.97); }
+
+        .tab-btn{
+            position:relative; z-index:1;
+            transition:color .3s ease, background .3s ease;
+        }
+        .tab-btn .tab-label{ position:relative; z-index:2; }
+        .tab-btn.active{ color:#04141a; }
+        .tab-indicator{
+            position:absolute; top:4px; bottom:4px; z-index:0;
+            border-radius:0.75rem;
+            background:linear-gradient(115deg, var(--cyan), var(--violet));
+            box-shadow:0 10px 25px -8px rgba(73,224,214,0.5);
+            transition:right .4s cubic-bezier(.2,.8,.2,1), width .4s cubic-bezier(.2,.8,.2,1);
+        }
+
+        .tab-content{ display:none; }
+        .tab-content.active{ display:block; }
+
+        table{ border-collapse:separate; border-spacing:0; }
+        tbody tr{ transition:background-color .25s ease, transform .2s ease; }
+        tbody tr:nth-child(even){ background-color:rgba(255,255,255,0.02); }
+        tbody tr:hover{ background-color:rgba(73,224,214,0.06); }
+
+        .row-enter{ animation:fadeUp .5s cubic-bezier(.2,.8,.2,1) both; }
+
+        .back-link{ transition:transform .25s ease, background .25s ease; }
+        .back-link:hover{ transform:translateY(-2px); }
+        .back-link:active{ transform:translateY(0) scale(0.96); }
+
+        ::-webkit-scrollbar{ height:6px; width:6px; }
+        ::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.15); border-radius:10px; }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8 sm:py-12">
+
+    <div class="weave"></div>
+
+    <div class="suds fixed inset-0 overflow-hidden z-0 pointer-events-none">
+        <span style="width:14px;height:14px;left:8%;bottom:-10%;--drift:30px;animation-duration:14s;"></span>
+        <span style="width:8px;height:8px;left:22%;bottom:-10%;--drift:-20px;animation-duration:10s;animation-delay:2s;"></span>
+        <span style="width:20px;height:20px;left:40%;bottom:-10%;--drift:10px;animation-duration:18s;animation-delay:1s;"></span>
+        <span style="width:10px;height:10px;left:63%;bottom:-10%;--drift:-30px;animation-duration:12s;animation-delay:3s;"></span>
+        <span style="width:16px;height:16px;left:78%;bottom:-10%;--drift:25px;animation-duration:16s;animation-delay:5s;"></span>
+        <span style="width:9px;height:9px;left:90%;bottom:-10%;--drift:-15px;animation-duration:11s;animation-delay:4s;"></span>
+    </div>
+
+    <div class="max-w-3xl mx-auto relative z-10">
+
+        <div class="panel enter rounded-2xl sm:rounded-3xl p-5 sm:p-7 mb-6">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div class="breathe w-11 h-11 sm:w-14 sm:h-14 shrink-0 rounded-full bg-gradient-to-br from-[var(--cyan)] to-[var(--violet)] flex items-center justify-center shadow-lg shadow-cyan-500/20 relative overflow-hidden">
+                        <svg viewBox="0 0 24 24" class="w-6 h-6 sm:w-8 sm:h-8 text-white/90 drum">
+                            <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <div class="min-w-0">
+                        <h1 class="text-lg sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] truncate">
+                            لیست قیمت خدمات
+                        </h1>
+                        <p class="text-gray-400 text-[11px] sm:text-sm font-light mt-0.5">خشکشویی</p>
+                    </div>
+                </div>
+                <a href="/track/" class="back-link btn-motion shrink-0 text-xs sm:text-sm bg-white/5 border border-white/10 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-white/10 flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    بازگشت
+                </a>
+            </div>
+        </div>
+
+        <div class="enter relative flex rounded-2xl overflow-hidden bg-black/40 border border-white/10 mb-6 text-xs sm:text-base font-bold p-1" style="animation-delay:100ms" id="tab-track">
+            <div class="tab-indicator" id="tab-indicator"></div>
+            <button onclick="openTab('common', this)" id="btn-common" class="tab-btn active flex-1 py-2.5 sm:py-3 text-center rounded-xl"><span class="tab-label">پرکاربردها</span></button>
+            <button onclick="openTab('men', this)" id="btn-men" class="tab-btn flex-1 py-2.5 sm:py-3 text-center rounded-xl"><span class="tab-label">مردانه</span></button>
+            <button onclick="openTab('women', this)" id="btn-women" class="tab-btn flex-1 py-2.5 sm:py-3 text-center rounded-xl"><span class="tab-label">زنانه</span></button>
+        </div>
+
+        <div id="common" class="tab-content active panel card-hover enter rounded-2xl overflow-hidden" style="animation-delay:180ms">
+            <div class="bg-teal-600/15 px-4 py-3 text-teal-300 font-bold border-b border-teal-500/20 text-center flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                خدمات پرکاربرد
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm sm:text-base min-w-[420px]">
+                    <thead class="text-gray-400 border-b border-white/10 text-xs sm:text-sm">
+                        <tr><th class="p-3">نوع لباس</th><th class="p-3 text-center">خشکشویی + اتو</th><th class="p-3 text-center">فقط اتو</th></tr>
+                    </thead>
+                    <tbody class="text-gray-200 font-medium text-xs sm:text-sm">
+                        <tr><td class="p-3">کت و شلوار</td><td class="p-3 text-center">۵۲۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۳۲۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">شلوار، پیراهن</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۳۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">مانتو معمولی</td><td class="p-3 text-center">۳۳۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۰۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">کاپشن</td><td class="p-3 text-center">۴۷۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۵۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">پتو یک نفره</td><td class="p-3 text-center">۳۰۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">پتو دو نفره</td><td class="p-3 text-center">۳۹۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">روتختی یک نفره</td><td class="p-3 text-center">۳۹۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">روتختی دو نفره</td><td class="p-3 text-center">۵۷۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">پرده (هر مترمربع)</td><td class="p-3 text-center">۵۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۴۰,۰۰۰</td></tr>
+                        <tr><td class="p-3 text-[var(--amber)]">لباس عروس</td><td class="p-3 text-center text-[var(--amber)]">۳ تا ۷ میلیون</td><td class="p-3 text-center text-[var(--amber)]/70">۱.۵ تا ۳.۵ میلیون</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="men" class="tab-content panel card-hover enter rounded-2xl overflow-hidden" style="animation-delay:180ms">
+            <div class="bg-blue-600/15 px-4 py-3 text-blue-300 font-bold border-b border-blue-500/20 text-center flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m5-3.13a4 4 0 100-8 4 4 0 000 8zm0 0v0m6 8v-2a4 4 0 00-3-3.87M9 12a4 4 0 100-8 4 4 0 000 8z"/></svg>
+                خشکشویی لباس مردانه
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm sm:text-base min-w-[420px]">
+                    <thead class="text-gray-400 border-b border-white/10 text-xs sm:text-sm">
+                        <tr><th class="p-3">نوع لباس</th><th class="p-3 text-center">خشکشویی + اتو</th><th class="p-3 text-center">فقط اتو</th></tr>
+                    </thead>
+                    <tbody class="text-gray-200 font-medium text-xs sm:text-sm">
+                        <tr><td class="p-3">کت و شلوار</td><td class="p-3 text-center">۵۲۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۳۲۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">پیراهن / شلوار</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۳۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">پیراهن / شلوار سفید</td><td class="p-3 text-center">۲۵۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۳۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">تی‌شرت / شلوارک</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۳۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">کت و شلوار و جلیقه</td><td class="p-3 text-center">۶۷۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۴۲۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">کت تک</td><td class="p-3 text-center">۳۳۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۰۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">کت جیر / چرم</td><td class="p-3 text-center">۱,۷۰۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">کاپشن</td><td class="p-3 text-center">۴۷۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۵۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">کاپشن پر</td><td class="p-3 text-center">۶۷۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">پالتو / بارانی</td><td class="p-3 text-center">۵۷۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۷۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">پالتو چرم</td><td class="p-3 text-center">۱,۹۰۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">پلیور / سویشرت / ژاکت</td><td class="p-3 text-center">۲۴۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۵۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">جلیقه کتی</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۳۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">دستکش / کلاه / شالگردن</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">کروات / پاپیون</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">روپوش</td><td class="p-3 text-center">۲۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۵۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">کیف معمولی / کوله</td><td class="p-3 text-center">۴۵۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">کفش معمولی / کتانی</td><td class="p-3 text-center">۴۵۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                        <tr><td class="p-3">نیم بوت / کفش جیر</td><td class="p-3 text-center">۶۰۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="women" class="tab-content panel card-hover enter rounded-2xl overflow-hidden" style="animation-delay:180ms">
+            <div class="bg-rose-600/15 px-4 py-3 text-rose-300 font-bold border-b border-rose-500/20 text-center flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                خشکشویی لباس زنانه
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right text-sm sm:text-base min-w-[420px]">
+                    <thead class="text-gray-400 border-b border-white/10 text-xs sm:text-sm">
+                        <tr><th class="p-3">نوع لباس</th><th class="p-3 text-center">خشکشویی + اتو</th><th class="p-3 text-center">فقط اتو</th></tr>
+                    </thead>
+                    <tbody class="text-gray-200 font-medium text-xs sm:text-sm">
+                        <tr><td class="p-3">شلوار / شلوارک</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۳۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">مانتو معمولی</td><td class="p-3 text-center">۳۳۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۰۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">مانتو مدل دار</td><td class="p-3 text-center">۴۵۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۷۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">مانتو شلوار اداری</td><td class="p-3 text-center">۵۲۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۳۲۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">کت دامن / کت و شلوار</td><td class="p-3 text-center">۵۲۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۳۲۰,۰۰۰</td></tr>
+                        <tr><td class="p-3 text-[var(--amber)]">لباس عروس</td><td class="p-3 text-center text-[var(--amber)]">۳ تا ۷ میلیون</td><td class="p-3 text-center text-[var(--amber)]/70">۱.۵ تا ۳.۵ میلیون</td></tr>
+                        <tr><td class="p-3 text-[var(--violet)]">لباس شب (مجلسی)</td><td class="p-3 text-center text-[var(--violet)]">۱ تا ۲ میلیون</td><td class="p-3 text-center text-[var(--violet)]/70">۷۰۰هزار تا ۱.۲ میلیون</td></tr>
+                        <tr><td class="p-3">دامن ساده / شومیز / تاپ</td><td class="p-3 text-center">۱۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۳۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">پالتو / بارانی</td><td class="p-3 text-center">۵۷۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۲۷۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">روسری / مقنعه</td><td class="p-3 text-center">۱۷۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۰۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">چادر عربی / آستین دار</td><td class="p-3 text-center">۲۹۰,۰۰۰</td><td class="p-3 text-center text-gray-400">۱۷۰,۰۰۰</td></tr>
+                        <tr><td class="p-3">بوت بلند</td><td class="p-3 text-center">۷۵۰,۰۰۰</td><td class="p-3 text-center text-gray-500">---</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-6 mb-4 text-center text-xs text-gray-500">تمامی قیمت‌ها به تومان می‌باشد.</div>
+    </div>
+
+    <script>
+        function positionIndicator(btn){
+            var track = document.getElementById('tab-track');
+            var indicator = document.getElementById('tab-indicator');
+            var trackRect = track.getBoundingClientRect();
+            var btnRect = btn.getBoundingClientRect();
+            indicator.style.width = btnRect.width + 'px';
+            indicator.style.right = (trackRect.right - btnRect.right) + 'px';
+        }
+
+        function animateRows(container){
+            var rows = container.querySelectorAll('tbody tr');
+            rows.forEach(function(row, i){
+                row.classList.remove('row-enter');
+                row.style.animationDelay = '';
+                void row.offsetWidth;
+                row.style.animationDelay = (i * 25) + 'ms';
+                row.classList.add('row-enter');
+            });
+        }
+
+        function openTab(tabName, btn){
+            var contents = document.getElementsByClassName('tab-content');
+            for (var i = 0; i < contents.length; i++){
+                contents[i].classList.remove('active');
+            }
+            var btns = document.getElementsByClassName('tab-btn');
+            for (var i = 0; i < btns.length; i++){
+                btns[i].classList.remove('active');
+            }
+            var target = document.getElementById(tabName);
+            target.classList.add('active');
+            btn.classList.add('active');
+            positionIndicator(btn);
+            animateRows(target);
+        }
+
+        window.addEventListener('load', function(){
+            var activeBtn = document.getElementById('btn-common');
+            positionIndicator(activeBtn);
+            animateRows(document.getElementById('common'));
+        });
+        window.addEventListener('resize', function(){
+            var activeBtn = document.querySelector('.tab-btn.active');
+            if (activeBtn) positionIndicator(activeBtn);
+        });
+    </script>
+</body>
+</html>

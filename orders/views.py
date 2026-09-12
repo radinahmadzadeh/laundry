@@ -108,3 +108,6 @@ def verify(request):
             return HttpResponse("خطای شبکه هنگام تایید تراکنش.")
     else:
         return HttpResponse("<div style='font-family:Tahoma; text-align:center; margin-top:50px; color:red;'><h1>پرداخت توسط شما لغو شد.</h1><button onclick='history.back()'>بازگشت</button></div>")
+
+def pricing_menu(request):
+    return render(request, 'pricing.html')

@@ -7,4 +7,5 @@ urlpatterns = [
 
     path('pay/<int:order_id>/', views.send_request, name='request_payment'),
     path('verify/', views.verify, name='verify_payment'),
+    path('pricing/', views.pricing_menu, name='pricing'),
 ]
