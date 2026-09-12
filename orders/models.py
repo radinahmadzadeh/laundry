@@ -24,6 +24,10 @@ class Order(models.Model):
     delivery_date = models.DateField(null=True, blank=True, verbose_name='تاریخ تحویل')
     total_price = models.DecimalField(max_digits=10, decimal_places=0, default=0)
     is_paid = models.BooleanField(default=False, verbose_name='پرداخت شده')
+    courier_requested = models.BooleanField(default=False, verbose_name='درخواست پیک')
+    latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی (Lat)')
+    longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی (Lng)')
+    postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی')
 
     @property
     def shamsi_date(self):

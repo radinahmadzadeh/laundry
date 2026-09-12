@@ -485,6 +485,7 @@
 
         function submitCourier(orderId){
             var lat = document.getElementById('lat-' + orderId).value;
+            var lng = document.getElementById('lng-' + orderId).value;
             var postal = document.getElementById('postal-' + orderId).value;
 
             if (!lat){
@@ -496,7 +497,45 @@
                 return;
             }
 
-            alert('آدرس شما ثبت شد! (در حال حاضر فرم به صورت نمایشی است)');
+            var btn = document.querySelector(`button[onclick="submitCourier('${orderId}')"]`);
+            var originalText = btn.innerHTML;
+            btn.innerHTML = 'در حال ثبت درخواست...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            fetch('/request-courier/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    order_id: orderId,
+                    lat: lat,
+                    lng: lng,
+                    postal: postal
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    alert('آدرس شما با موفقیت در سیستم ثبت شد. لباس‌های شما بین ۳ تا ۵ روز کاری ارسال خواهد شد.');
+                    
+                    btn.innerHTML = 'ثبت شد (ارسال در ۳ تا ۵ روز کاری) ✓';
+                    btn.classList.remove('bg-gradient-to-l', 'from-[var(--cyan)]', 'to-[var(--violet)]');
+                    btn.classList.add('bg-green-600', 'text-white');
+                } else {
+                    alert('خطا در ثبت اطلاعات: ' + data.message);
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                }
+            })
+            .catch(error => {
+                alert('خطا در ارتباط با سرور. لطفاً اینترنت خود را بررسی کنید.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            });
         }
 
         window.addEventListener('load', function(){

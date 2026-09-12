@@ -2,7 +2,9 @@ import json
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .models import Order, Customer
+from .models import Order
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
 def track_order(request):
     phone_number = request.GET.get('phone')
@@ -111,3 +113,26 @@ def verify(request):
 
 def pricing_menu(request):
     return render(request, 'pricing.html')
+
+@csrf_exempt
+def request_courier(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            order_id = data.get('order_id')
+            lat = data.get('lat')
+            lng = data.get('lng')
+            postal = data.get('postal')
+            order = get_object_or_404(Order, id=order_id)
+            order.courier_requested = True
+            order.latitude = lat
+            order.longitude = lng
+            order.postal_code = postal
+            order.save()
+
+            return JsonResponse({'status': 'success', 'message': 'درخواست پیک با موفقیت ثبت شد.'})
+        
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
+            
+    return JsonResponse({'status': 'failed', 'message': 'درخواست نامعتبر است.'})
