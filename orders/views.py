@@ -124,6 +124,11 @@ def request_courier(request):
             lng = data.get('lng')
             postal = data.get('postal')
             order = get_object_or_404(Order, id=order_id)
+            if order.courier_requested:
+                return JsonResponse({
+                    'status': 'error', 
+                    'message': 'درخواست پیک برای این فاکتور قبلاً ثبت شده است و امکان تغییر آدرس وجود ندارد.'
+                })
             order.courier_requested = True
             order.latitude = lat
             order.longitude = lng
