@@ -2,119 +2,237 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>فیش سفارش #{{ order.id }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
-        body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
-        .receipt-container {
-            width: 80mm; 
-            margin: 20px auto;
-            background: white;
-            padding: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        :root{
+            --brand:#0891b2;
+            --brand-dark:#0e7490;
+            --brand-soft:rgba(8,145,178,0.08);
         }
-        .dotted-line {
-            border-top: 2px dashed #cbd5e1;
-            margin: 15px 0;
+        body{
+            font-family:'Vazirmatn', sans-serif;
+            background-color:#eef1f5;
         }
-        @media print {
-            body { background-color: white; }
-            .receipt-container { box-shadow: none; margin: 0; padding: 0; }
-            .no-print { display: none !important; }
+        .receipt-container{
+            width:82mm;
+            margin:24px auto;
+            background:#fff;
+            box-shadow:0 20px 45px -20px rgba(15,23,42,0.35);
+            position:relative;
+        }
+        .receipt-body{ padding:20px 18px 18px; }
+        .zigzag{
+            height:11px;
+            background:
+                linear-gradient(-45deg, #fff 5.5px, transparent 0) 0 5.5px,
+                linear-gradient(45deg, #fff 5.5px, #eef1f5 0) 0 5.5px;
+            background-size:11px 11px;
+            background-repeat:repeat-x;
+        }
+        .zigzag.bottom{ transform:scaleY(-1); }
+        .dotted-line{ border-top:2px dashed #d1d5db; margin:14px 0; }
+
+        .brand-badge{
+            width:46px; height:46px; border-radius:9999px;
+            background:linear-gradient(135deg, var(--brand), var(--brand-dark));
+            display:flex; align-items:center; justify-content:center;
+            box-shadow:0 8px 20px -6px rgba(8,145,178,0.55);
+        }
+
+        .status-ribbon{
+            position:absolute; top:16px; left:-8px;
+            transform:rotate(-8deg);
+            font-size:10.5px; font-weight:800; letter-spacing:.3px;
+            padding:4px 14px; border-radius:4px;
+            box-shadow:0 6px 14px -6px rgba(0,0,0,0.3);
+        }
+        .status-paid{ background:#16a34a; color:#fff; }
+        .status-unpaid{ background:#f59e0b; color:#1f2937; }
+
+        .info-row{ display:flex; justify-content:space-between; align-items:center; }
+        .info-label{ color:#6b7280; }
+        .info-value{ font-weight:700; color:#111827; }
+
+        table.items{ width:100%; font-size:11.5px; border-collapse:collapse; }
+        table.items thead th{
+            color:#6b7280; font-weight:600; font-size:10.5px;
+            padding-bottom:6px; border-bottom:1px solid #e5e7eb;
+        }
+        table.items tbody tr{ border-bottom:1px dashed #eef0f2; }
+        table.items tbody tr:last-child{ border-bottom:none; }
+        table.items tbody td{ padding:7px 0; }
+
+        .delivery-card{
+            background:var(--brand-soft);
+            border:1px solid rgba(8,145,178,0.25);
+            border-radius:10px;
+            padding:10px 12px;
+        }
+
+        .total-box{
+            background:linear-gradient(135deg, var(--brand), var(--brand-dark));
+            color:#fff; border-radius:12px;
+            padding:14px 16px;
+        }
+
+        .barcode-strip{
+            height:34px;
+            background-image:repeating-linear-gradient(to left, #111827 0 2px, transparent 2px 4px, #111827 4px 5px, transparent 5px 9px, #111827 9px 12px, transparent 12px 15px);
+        }
+
+        @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
+        .enter{ animation:fadeUp .5s ease both; }
+
+        @media print{
+            body{ background-color:#fff; }
+            .receipt-container{ box-shadow:none; margin:0; width:80mm; }
+            .no-print{ display:none !important; }
+            .zigzag{ display:none !important; }
+            * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
         }
     </style>
 </head>
 <body class="text-gray-900 text-sm">
 
-    <div class="receipt-container">
-        <div class="text-center mb-4">
-            <h1 class="text-2xl font-black mb-1">خشکشویی باکسیت</h1>
-            <p class="text-xs text-gray-500">خدمات خشکشویی و سفیدشویی پریمیوم</p>
-            <p class="text-xs text-gray-500 mt-1">تلفن: ۰۲۱-۱۲۳۴۵۶۷۸</p>
-        </div>
+    <div class="receipt-container enter">
+        <div class="zigzag top"></div>
 
-        <div class="dotted-line"></div>
+        <div class="receipt-body relative overflow-hidden">
 
-        <div class="space-y-2 mb-4 text-xs font-semibold">
-            <div class="flex justify-between">
-                <span>شماره فاکتور:</span>
-                <span>#{{ order.id }}</span>
+            <span class="status-ribbon {% if order.is_paid %}status-paid{% else %}status-unpaid{% endif %}">
+                {% if order.is_paid %}پرداخت شده{% else %}در انتظار پرداخت{% endif %}
+            </span>
+
+            <div class="text-center mb-4 pt-2">
+                <div class="brand-badge mx-auto mb-2">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="7" stroke-width="1.6"/>
+                        <path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke-width="1.6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <h1 class="text-xl font-black mb-1 tracking-tight">{{ shop_name|default:"نام خشکشویی" }}</h1>
+                <p class="text-[11px] text-gray-500">{{ shop_tagline|default:"خدمات خشکشویی و سفیدشویی پریمیوم" }}</p>
+                <p class="text-[11px] text-gray-500 mt-1 dir-ltr">{{ shop_phone|default:"—" }}</p>
             </div>
-            <div class="flex justify-between">
-                <span>تاریخ ثبت:</span>
-                <span>{{ order.shamsi_date }}</span>
+
+            <div class="dotted-line"></div>
+
+            <div class="space-y-2 mb-1 text-xs">
+                <div class="info-row">
+                    <span class="info-label">شماره فاکتور:</span>
+                    <span class="info-value">#{{ order.id }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">وضعیت سفارش:</span>
+                    <span class="info-value">{{ order.get_status_display }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">تاریخ ثبت:</span>
+                    <span class="info-value">{{ order.shamsi_date }}</span>
+                </div>
+                {% if order.delivery_date %}
+                <div class="info-row">
+                    <span class="info-label">تاریخ تحویل:</span>
+                    <span class="info-value text-[var(--brand)]">{{ order.shamsi_delivery_date }}</span>
+                </div>
+                {% endif %}
             </div>
-            {% if order.delivery_date %}
-            <div class="flex justify-between text-blue-600">
-                <span>تاریخ تحویل:</span>
-                <span>{{ order.shamsi_delivery_date }}</span>
+
+            <div class="dotted-line"></div>
+
+            <div class="space-y-2 mb-1 text-xs">
+                <div class="info-row">
+                    <span class="info-label">مشتری:</span>
+                    <span class="info-value">{{ order.customer.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">شماره تماس:</span>
+                    <span class="info-value dir-ltr">{{ order.customer.phone }}</span>
+                </div>
+            </div>
+
+            <div class="dotted-line"></div>
+
+            <table class="items mb-2">
+                <thead>
+                    <tr>
+                        <th class="text-right">شرح خدمات</th>
+                        <th class="text-center">تعداد</th>
+                        <th class="text-center">فی</th>
+                        <th class="text-left">جمع</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.orderitem_set.all %}
+                    <tr>
+                        <td class="text-right font-bold">{{ item.item_name }}</td>
+                        <td class="text-center text-gray-600">{{ item.quantity }}</td>
+                        <td class="text-center text-gray-500">{{ item.price }}</td>
+                        <td class="text-left font-semibold">{% widthratio item.price 1 item.quantity %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="dotted-line"></div>
+
+            <div class="space-y-1.5 mb-3 text-xs font-semibold text-gray-600">
+                <div class="info-row">
+                    <span>جمع اقلام:</span>
+                    <span>{{ order.subtotal_amount }} تومان</span>
+                </div>
+                <div class="info-row">
+                    <span>مالیات (۱۰٪):</span>
+                    <span>{{ order.tax_amount }} تومان</span>
+                </div>
+            </div>
+
+            <div class="total-box info-row mb-4">
+                <span class="font-bold text-xs">مبلغ نهایی پرداخت</span>
+                <span class="font-black text-base">{{ order.total_price }} <span class="font-normal text-[11px] opacity-90">تومان</span></span>
+            </div>
+
+            {% if order.status == 'ready' or order.status == 'delivered' %}
+            <div class="delivery-card mb-4 text-xs">
+                <div class="info-row mb-1">
+                    <span class="text-gray-600 font-semibold">روش دریافت:</span>
+                    <span class="font-bold" style="color:var(--brand-dark);">
+                        {% if order.courier_requested %}ارسال با پیک{% else %}مراجعه حضوری{% endif %}
+                    </span>
+                </div>
+                {% if order.courier_requested and order.postal_code %}
+                <div class="info-row">
+                    <span class="text-gray-600 font-semibold">کد پستی:</span>
+                    <span class="font-bold dir-ltr">{{ order.postal_code }}</span>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
-            <div class="flex justify-between mt-2">
-                <span>مشتری:</span>
-                <span>{{ order.customer.name }}</span>
+
+            <div class="barcode-strip mb-2 opacity-80"></div>
+            <p class="text-center text-[10px] text-gray-400 tracking-widest mb-5 dir-ltr">ORDER-{{ order.id }}</p>
+
+            <div class="text-center text-[11px] text-gray-500 mb-6 leading-relaxed">
+                <p>از اعتماد شما سپاسگزاریم 🌿</p>
+                <p class="mt-1">پیگیری سفارش با شماره: <span class="dir-ltr">{{ order.customer.phone }}</span></p>
             </div>
-            <div class="flex justify-between">
-                <span>شماره تماس:</span>
-                <span class="dir-ltr">{{ order.customer.phone }}</span>
+
+            <div class="no-print flex gap-2 w-full">
+                <button onclick="window.print()" class="w-1/2 flex items-center justify-center gap-1.5 bg-gray-900 text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9V4h12v5M6 18h12v4H6v-4zM6 14h12M4 9h16a2 2 0 012 2v5a2 2 0 01-2 2h-2v-4H6v4H4a2 2 0 01-2-2v-5a2 2 0 012-2z"></path></svg>
+                    چاپ فیش
+                </button>
+                <a href="/track/?phone={{ order.customer.phone }}" class="w-1/2 bg-gray-100 text-gray-800 font-bold py-3 rounded-lg text-center flex items-center justify-center hover:bg-gray-200 transition">
+                    بازگشت
+                </a>
             </div>
+
         </div>
 
-        <div class="dotted-line"></div>
-
-        <table class="w-full text-xs mb-4">
-            <thead>
-                <tr class="text-gray-500 border-b border-gray-200">
-                    <th class="text-right pb-2 font-normal">شرح خدمات</th>
-                    <th class="text-center pb-2 font-normal">تعداد</th>
-                    <th class="text-left pb-2 font-normal">فی (ت)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in order.orderitem_set.all %}
-                <tr>
-                    <td class="py-2 text-right font-bold">{{ item.item_name }}</td>
-                    <td class="py-2 text-center">{{ item.quantity }}</td>
-                    <td class="py-2 text-left">{{ item.price }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div class="dotted-line"></div>
-
-        <div class="space-y-2 mb-4 text-xs font-semibold text-gray-600">
-            <div class="flex justify-between items-center">
-                <span>جمع اقلام:</span>
-                <span>{{ order.subtotal_amount }} تومان</span>
-            </div>
-            <div class="flex justify-between items-center">
-                <span>مالیات (۱۰٪):</span>
-                <span>{{ order.tax_amount }} تومان</span>
-            </div>
-        </div>
-
-        <div class="dotted-line"></div>
-
-        <div class="flex justify-between items-center text-sm font-black mb-6">
-            <span>مبلغ نهایی پرداخت:</span>
-            <span>{{ order.total_price }} تومان</span>
-        </div>
-
-        <div class="text-center text-xs text-gray-500 mb-6">
-            <p>از اعتماد شما سپاسگزاریم.</p>
-            <p class="mt-1">کد پیگیری در سایت: {{ order.customer.phone }}</p>
-        </div>
-
-        <div class="no-print flex gap-2 w-full">
-            <button onclick="window.print()" class="w-1/2 bg-black text-white font-bold py-3 rounded-lg hover:bg-gray-800 transition">
-                🖨️ چاپ
-            </button>
-            <a href="/track/?phone={{ order.customer.phone }}" class="w-1/2 bg-gray-200 text-gray-800 font-bold py-3 rounded-lg text-center flex items-center justify-center hover:bg-gray-300 transition">
-                بازگشت
-            </a>
-        </div>
+        <div class="zigzag bottom"></div>
     </div>
 
 </body>
