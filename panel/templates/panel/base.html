@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}پنل مدیریت{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        :root{
+            --ink:#eaf3f4;
+            --bg-deep:#070b12;
+            --line:rgba(234,243,244,0.10);
+            --cyan:#49e0d6;
+            --violet:#9b8cfb;
+            --amber:#ffc266;
+        }
+        *{ font-family:'Vazirmatn', sans-serif; }
+        body{ background-color:var(--bg-deep); color:var(--ink); min-height:100vh; }
+        .panel{
+            background:rgba(13,20,32,0.6);
+            backdrop-filter:blur(16px);
+            -webkit-backdrop-filter:blur(16px);
+            border:1px solid var(--line);
+        }
+        .nav-link{ transition:background .2s ease, color .2s ease; white-space:nowrap; }
+        .nav-link.active{ background:linear-gradient(115deg, var(--cyan), var(--violet)); color:#04141a; }
+        .nav-link:not(.active):hover{ background:rgba(255,255,255,0.06); }
+        .btn-primary{ background:linear-gradient(115deg, var(--cyan), var(--violet)); color:#04141a; font-weight:800; transition:filter .2s ease, transform .2s ease; }
+        .btn-primary:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+        input, select, textarea{ color:var(--ink); }
+        ::placeholder{ color:rgba(234,243,244,0.35); }
+        ::-webkit-scrollbar{ width:6px; height:6px; }
+        ::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.15); border-radius:10px; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="min-h-screen md:flex">
+
+<aside class="w-full md:w-60 md:shrink-0 panel border-b md:border-b-0 md:border-l border-white/10 p-4 flex md:flex-col gap-1 overflow-x-auto md:overflow-visible md:sticky md:top-0 md:h-screen">
+    <div class="mb-0 md:mb-6 px-2 shrink-0">
+        <p class="text-base md:text-lg font-black bg-clip-text text-transparent bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] whitespace-nowrap">پنل مدیریت</p>
+        <p class="text-[11px] text-gray-400 mt-1 hidden md:block">{{ request.user.username }}</p>
+    </div>
+
+    <a href="{% url 'panel_dashboard' %}" class="nav-link {% if active == 'dashboard' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">🏠 داشبورد</a>
+    <a href="{% url 'panel_orders' %}" class="nav-link {% if active == 'orders' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">📦 سفارش‌ها</a>
+    <a href="{% url 'panel_order_create' %}" class="nav-link {% if active == 'order_create' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">➕ سفارش جدید</a>
+    <a href="{% url 'panel_customers' %}" class="nav-link {% if active == 'customers' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">👤 مشتریان</a>
+    <a href="{% url 'panel_pricing' %}" class="nav-link {% if active == 'pricing' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">💰 لیست قیمت</a>
+    <a href="{% url 'panel_courier' %}" class="nav-link {% if active == 'courier' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">🛵 درخواست پیک</a>
+    <a href="{% url 'panel_settings' %}" class="nav-link {% if active == 'settings' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">⚙️ تنظیمات</a>
+
+    <div class="md:mt-auto md:pt-4 md:border-t border-white/10 shrink-0">
+        <a href="{% url 'panel_logout' %}" class="nav-link rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2 text-red-300">🚪 خروج</a>
+    </div>
+</aside>
+
+<main class="flex-1 p-5 sm:p-8">
+    {% if messages %}
+        <div class="mb-5 space-y-2">
+            {% for message in messages %}
+                <div class="px-4 py-3 rounded-xl text-sm font-bold {% if message.tags == 'error' %}bg-red-500/15 border border-red-500/30 text-red-300{% else %}bg-green-500/15 border border-green-500/30 text-green-300{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

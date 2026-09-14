@@ -1,0 +1,29 @@
+{% extends 'panel/base.html' %}
+{% block title %}مشتریان | پنل مدیریت{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-black mb-6">مشتریان</h1>
+
+<form method="get" class="mb-5">
+    <input type="text" name="q" value="{{ q }}" placeholder="جستجو با نام یا شماره تماس..."
+           class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm w-full max-w-sm focus:outline-none">
+</form>
+
+<div class="panel rounded-2xl overflow-hidden">
+    <table class="w-full text-sm text-right">
+        <thead class="text-gray-400 text-xs border-b border-white/10">
+            <tr><th class="p-3">نام</th><th class="p-3">شماره تماس</th><th class="p-3"></th></tr>
+        </thead>
+        <tbody>
+            {% for c in customers %}
+            <tr class="border-b border-white/5 hover:bg-white/5">
+                <td class="p-3">{{ c.name }}</td>
+                <td class="p-3 dir-ltr text-gray-400">{{ c.phone }}</td>
+                <td class="p-3"><a href="{% url 'panel_customer_detail' c.id %}" class="text-[var(--cyan)] text-xs font-bold hover:underline">مشاهده سفارشات</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="p-6 text-center text-gray-500">مشتری‌ای پیدا نشد.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

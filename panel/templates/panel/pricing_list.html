@@ -1,0 +1,59 @@
+{% extends 'panel/base.html' %}
+{% block title %}لیست قیمت | پنل مدیریت{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-black mb-6">مدیریت لیست قیمت</h1>
+
+<div class="panel rounded-2xl p-5 mb-6">
+    <h2 class="font-bold mb-3 text-sm">افزودن دسته‌بندی جدید</h2>
+    <form method="post" action="{% url 'panel_price_category_create' %}" class="flex gap-2">
+        {% csrf_token %}
+        <input type="text" name="name" placeholder="مثلاً: مردانه" required class="flex-1 bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-sm">
+        <button class="btn-primary px-5 rounded-lg text-sm font-bold">افزودن</button>
+    </form>
+</div>
+
+{% for category in categories %}
+<div class="panel rounded-2xl p-5 mb-5">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="font-bold text-sm">{{ category.name }}</h2>
+        <form method="post" action="{% url 'panel_price_category_delete' category.id %}" onsubmit="return confirm('این دسته و همه اقلامش حذف می‌شود. مطمئنی؟');">
+            {% csrf_token %}
+            <button class="text-red-400 text-xs hover:underline">حذف دسته</button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-12 gap-2 text-gray-500 text-[11px] font-bold px-1 mb-2">
+        <div class="col-span-4">نام</div>
+        <div class="col-span-3 text-center">خشکشویی+اتو</div>
+        <div class="col-span-3 text-center">فقط اتو</div>
+        <div class="col-span-2"></div>
+    </div>
+
+    {% for item in category.items.all %}
+    <form method="post" action="{% url 'panel_price_item_update' item.id %}" class="grid grid-cols-12 gap-2 items-center mb-2">
+        {% csrf_token %}
+        <input type="text" name="name" value="{{ item.name }}" class="col-span-4 bg-black/20 border border-white/10 rounded-lg px-2 py-1.5 text-xs">
+        <input type="text" name="dry_clean_price" value="{{ item.dry_clean_price }}" class="col-span-3 bg-black/20 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-center">
+        <input type="text" name="iron_only_price" value="{{ item.iron_only_price|default:'' }}" class="col-span-3 bg-black/20 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-center">
+        <div class="col-span-2 flex gap-3 justify-end">
+            <button type="submit" class="text-[var(--cyan)] text-xs font-bold hover:underline">ذخیره</button>
+            <button type="submit" formaction="{% url 'panel_price_item_delete' item.id %}" class="text-red-400 text-xs font-bold hover:underline">حذف</button>
+        </div>
+    </form>
+    {% empty %}
+    <p class="text-gray-500 text-xs mb-3">هنوز قیمتی در این دسته ثبت نشده.</p>
+    {% endfor %}
+
+    <form method="post" action="{% url 'panel_price_item_create' %}" class="grid grid-cols-12 gap-2 mt-3">
+        {% csrf_token %}
+        <input type="hidden" name="category_id" value="{{ category.id }}">
+        <input type="text" name="name" placeholder="نام لباس" required class="col-span-4 bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-xs">
+        <input type="text" name="dry_clean_price" placeholder="خشکشویی+اتو" required class="col-span-3 bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-xs text-center">
+        <input type="text" name="iron_only_price" placeholder="فقط اتو (اختیاری)" class="col-span-3 bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-xs text-center">
+        <button class="col-span-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold">+ افزودن</button>
+    </form>
+</div>
+{% empty %}
+<p class="text-gray-500 text-sm">هنوز دسته‌بندی‌ای ثبت نشده.</p>
+{% endfor %}
+{% endblock %}

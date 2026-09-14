@@ -1,0 +1,26 @@
+{% extends 'panel/base.html' %}
+{% block title %}تنظیمات | پنل مدیریت{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-black mb-6">تنظیمات فروشگاه</h1>
+
+<form method="post" class="panel rounded-2xl p-6 max-w-xl space-y-4">
+    {% csrf_token %}
+    <div>
+        <label class="text-xs text-gray-400 block mb-1.5">نام فروشگاه</label>
+        <input type="text" name="name" value="{{ shop.name }}" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-sm">
+    </div>
+    <div>
+        <label class="text-xs text-gray-400 block mb-1.5">تگ‌لاین</label>
+        <input type="text" name="tagline" value="{{ shop.tagline }}" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-sm">
+    </div>
+    <div>
+        <label class="text-xs text-gray-400 block mb-1.5">شماره تماس</label>
+        <input type="text" name="phone" value="{{ shop.phone }}" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-sm dir-ltr">
+    </div>
+    <div>
+        <label class="text-xs text-gray-400 block mb-1.5">آدرس</label>
+        <textarea name="address" rows="2" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2.5 text-sm">{{ shop.address }}</textarea>
+    </div>
+    <button type="submit" class="btn-primary px-6 py-3 rounded-xl text-sm">ذخیره تنظیمات</button>
+</form>
+{% endblock %}

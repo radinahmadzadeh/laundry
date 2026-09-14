@@ -1,0 +1,32 @@
+{% extends 'panel/base.html' %}
+{% block title %}درخواست پیک | پنل مدیریت{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-black mb-6">درخواست‌های پیک</h1>
+
+<div class="space-y-4">
+    {% for order in orders %}
+    <div class="panel rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <p class="font-bold text-sm mb-1">سفارش #{{ order.id }} — {{ order.customer.name }}</p>
+            <p class="text-xs text-gray-400">شماره تماس: <span class="dir-ltr">{{ order.customer.phone }}</span> · کد پستی: <span class="dir-ltr">{{ order.postal_code }}</span></p>
+        </div>
+        <div class="flex items-center gap-3">
+            {% if order.latitude and order.longitude %}
+                <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}" target="_blank"
+                   class="bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
+            {% endif %}
+            {% if order.courier_dispatched %}
+                <span class="bg-green-500/15 text-green-300 border border-green-500/30 px-4 py-2 rounded-xl text-xs font-bold">ارسال شد ✓</span>
+            {% else %}
+                <form method="post" action="{% url 'panel_courier_dispatch' order.id %}">
+                    {% csrf_token %}
+                    <button class="btn-primary px-4 py-2 rounded-xl text-xs">علامت به ارسال‌شده</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-gray-500 text-sm">درخواست پیکی ثبت نشده.</p>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به پنل مدیریت</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        :root{ --ink:#eaf3f4; --bg-deep:#070b12; --line:rgba(234,243,244,0.10); --cyan:#49e0d6; --violet:#9b8cfb; }
+        *{ font-family:'Vazirmatn', sans-serif; }
+        body{
+            background-color:var(--bg-deep); color:var(--ink);
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(73,224,214,0.12), transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(155,140,251,0.12), transparent 45%);
+        }
+        .panel{
+            background:rgba(13,20,32,0.6);
+            backdrop-filter:blur(20px);
+            border:1px solid var(--line);
+            box-shadow:0 30px 60px -20px rgba(0,0,0,0.65);
+        }
+        .fab-input:focus{ box-shadow:0 0 0 3px rgba(73,224,214,0.35); }
+        ::placeholder{ color:rgba(234,243,244,0.35); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="panel rounded-3xl p-8 w-full max-w-sm">
+        <div class="text-center mb-6">
+            <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-[var(--cyan)] to-[var(--violet)] flex items-center justify-center">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="7" stroke-width="1.6"/>
+                    <path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h1 class="text-lg font-black">ورود به پنل مدیریت</h1>
+        </div>
+
+        {% if error %}
+            <div class="bg-red-500/15 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl text-sm font-bold mb-4 text-center">{{ error }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="نام کاربری" required autofocus
+                   class="fab-input w-full bg-black/40 px-4 py-3.5 rounded-xl border border-white/10 text-sm mb-3 focus:outline-none">
+            <input type="password" name="password" placeholder="رمز عبور" required
+                   class="fab-input w-full bg-black/40 px-4 py-3.5 rounded-xl border border-white/10 text-sm mb-5 focus:outline-none">
+            <button type="submit" class="w-full bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] text-gray-950 font-extrabold py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 hover:brightness-110 transition">ورود</button>
+        </form>
+    </div>
+</body>
+</html>

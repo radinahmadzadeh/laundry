@@ -1,0 +1,73 @@
+{% extends 'panel/base.html' %}
+{% block title %}سفارش‌ها | پنل مدیریت{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <h1 class="text-2xl font-black">سفارش‌ها</h1>
+    <a href="{% url 'panel_order_create' %}" class="btn-primary px-4 py-2.5 rounded-xl text-sm">+ ثبت سفارش جدید</a>
+</div>
+
+<form method="get" class="flex flex-wrap gap-3 mb-5">
+    <input type="text" name="q" value="{{ q }}" placeholder="جستجو با نام، شماره تماس یا شماره سفارش..."
+           class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm flex-1 min-w-[200px] focus:outline-none">
+    <select name="status" class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm">
+        <option value="">همه وضعیت‌ها</option>
+        {% for code, label in status_choices %}
+            <option value="{{ code }}" {% if code == current_status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="bg-white/10 hover:bg-white/20 px-4 py-2.5 rounded-xl text-sm font-bold">اعمال فیلتر</button>
+</form>
+
+<div class="panel rounded-2xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm text-right min-w-[760px]">
+            <thead class="text-gray-400 text-xs border-b border-white/10">
+                <tr>
+                    <th class="p-3">شماره</th>
+                    <th class="p-3">مشتری</th>
+                    <th class="p-3">تماس</th>
+                    <th class="p-3">مبلغ</th>
+                    <th class="p-3">وضعیت</th>
+                    <th class="p-3">پرداخت</th>
+                    <th class="p-3"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr class="border-b border-white/5 hover:bg-white/5">
+                    <td class="p-3 font-bold">#{{ order.id }}</td>
+                    <td class="p-3">{{ order.customer.name }}</td>
+                    <td class="p-3 dir-ltr text-gray-400">{{ order.customer.phone }}</td>
+                    <td class="p-3">{{ order.total_price }}</td>
+                    <td class="p-3">
+                        <form method="post" action="{% url 'panel_order_status' order.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <select name="status" onchange="this.form.submit()" class="bg-black/30 border border-white/10 rounded-lg px-2 py-1 text-xs">
+                                {% for code, label in status_choices %}
+                                    <option value="{{ code }}" {% if code == order.status %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </form>
+                    </td>
+                    <td class="p-3">
+                        <form method="post" action="{% url 'panel_order_toggle_paid' order.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                            <button type="submit" class="text-xs font-bold px-3 py-1.5 rounded-lg {% if order.is_paid %}bg-green-500/20 text-green-300{% else %}bg-amber-500/20 text-amber-300{% endif %}">
+                                {% if order.is_paid %}پرداخت‌شده{% else %}پرداخت‌نشده{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                    <td class="p-3">
+                        <a href="{% url 'panel_order_detail' order.id %}" class="text-[var(--cyan)] hover:underline text-xs font-bold">جزئیات</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="p-6 text-center text-gray-500">سفارشی پیدا نشد.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

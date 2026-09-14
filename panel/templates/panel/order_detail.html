@@ -1,0 +1,116 @@
+{% extends 'panel/base.html' %}
+{% block title %}فاکتور #{{ order.id }} | پنل مدیریت{% endblock %}
+{% block content %}
+<div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+    <h1 class="text-2xl font-black">فاکتور #{{ order.id }}</h1>
+    <div class="flex gap-2">
+        <a href="{% url 'print_receipt' order.id %}" target="_blank" class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-sm font-bold">مشاهده فیش</a>
+        <form method="post" action="{% url 'panel_order_delete' order.id %}" onsubmit="return confirm('این سفارش برای همیشه حذف می‌شود. مطمئنی؟');">
+            {% csrf_token %}
+            <button type="submit" class="bg-red-500/15 text-red-300 border border-red-500/30 hover:bg-red-500/25 px-4 py-2 rounded-xl text-sm font-bold">حذف سفارش</button>
+        </form>
+    </div>
+</div>
+
+<div class="grid md:grid-cols-3 gap-5">
+    <div class="md:col-span-2 space-y-5">
+
+        <div class="panel rounded-2xl p-5">
+            <h2 class="font-bold mb-4 text-sm">اقلام سفارش</h2>
+            <table class="w-full text-sm mb-4">
+                <thead class="text-gray-400 text-xs border-b border-white/10">
+                    <tr><th class="p-2 text-right">شرح</th><th class="p-2 text-center">تعداد</th><th class="p-2 text-center">فی</th><th class="p-2"></th></tr>
+                </thead>
+                <tbody>
+                    {% for item in order.orderitem_set.all %}
+                    <tr class="border-b border-white/5">
+                        <td class="p-2">{{ item.item_name }}</td>
+                        <td class="p-2 text-center">{{ item.quantity }}</td>
+                        <td class="p-2 text-center">{{ item.price }}</td>
+                        <td class="p-2 text-left">
+                            <form method="post" action="{% url 'panel_order_item_delete' order.id item.id %}" onsubmit="return confirm('این قلم حذف شود؟');">
+                                {% csrf_token %}
+                                <button class="text-red-400 text-xs hover:underline">حذف</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="p-4 text-center text-gray-500 text-xs">هنوز قلمی اضافه نشده.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <form method="post" class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {% csrf_token %}
+                <select name="item_name" class="bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-xs sm:col-span-2" onchange="fillPrice(this)">
+                    <option value="">از لیست قیمت...</option>
+                    {% for pi in price_items %}
+                        <option value="{{ pi.name }}" data-price="{{ pi.dry_clean_price }}">{{ pi.category.name }} — {{ pi.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="item_name_manual" placeholder="یا نام دستی" class="bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-xs">
+                <input type="number" name="item_qty" value="1" min="1" placeholder="تعداد" class="bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-xs">
+                <input type="text" name="item_price" id="item_price_input" placeholder="فی (تومان)" class="bg-black/30 border border-white/10 rounded-lg px-2 py-2 text-xs">
+                <button type="submit" class="btn-primary rounded-lg text-xs font-bold py-2 col-span-2 sm:col-span-5">افزودن قلم</button>
+            </form>
+        </div>
+
+        {% if order.courier_requested %}
+        <div class="panel rounded-2xl p-5">
+            <h2 class="font-bold mb-3 text-sm">اطلاعات پیک</h2>
+            <p class="text-xs text-gray-400 mb-3">کد پستی: <span class="text-white font-bold dir-ltr">{{ order.postal_code }}</span></p>
+            {% if order.latitude and order.longitude %}
+                <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}" target="_blank"
+                   class="inline-block bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="space-y-5">
+        <div class="panel rounded-2xl p-5">
+            <h2 class="font-bold mb-3 text-sm">مشتری</h2>
+            <p class="text-sm mb-1">{{ order.customer.name }}</p>
+            <p class="text-xs text-gray-400 dir-ltr">{{ order.customer.phone }}</p>
+        </div>
+
+        <div class="panel rounded-2xl p-5">
+            <h2 class="font-bold mb-3 text-sm">وضعیت</h2>
+            <form method="post" action="{% url 'panel_order_status' order.id %}" class="mb-3">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <select name="status" onchange="this.form.submit()" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm">
+                    {% for code, label in status_choices %}
+                        <option value="{{ code }}" {% if code == order.status %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+            <form method="post" action="{% url 'panel_order_toggle_paid' order.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <button class="w-full text-sm font-bold px-3 py-2.5 rounded-lg {% if order.is_paid %}bg-green-500/20 text-green-300{% else %}bg-amber-500/20 text-amber-300{% endif %}">
+                    {% if order.is_paid %}پرداخت‌شده ✓{% else %}علامت‌گذاری به پرداخت‌شده{% endif %}
+                </button>
+            </form>
+        </div>
+
+        <div class="panel rounded-2xl p-5 text-xs text-gray-400 space-y-2">
+            <div class="flex justify-between"><span>تاریخ ثبت:</span><span class="text-white">{{ order.shamsi_date }}</span></div>
+            {% if order.shamsi_delivery_date %}
+            <div class="flex justify-between"><span>تاریخ تحویل:</span><span class="text-white">{{ order.shamsi_delivery_date }}</span></div>
+            {% endif %}
+            <div class="flex justify-between"><span>جمع اقلام:</span><span class="text-white">{{ order.subtotal_amount }}</span></div>
+            <div class="flex justify-between"><span>مالیات:</span><span class="text-white">{{ order.tax_amount }}</span></div>
+            <div class="flex justify-between font-bold text-sm pt-2 border-t border-white/10"><span>مبلغ نهایی:</span><span class="text-[var(--cyan)]">{{ order.total_price }}</span></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillPrice(select){
+    var opt = select.options[select.selectedIndex];
+    var price = opt.getAttribute('data-price');
+    if (price){ document.getElementById('item_price_input').value = price; }
+}
+</script>
+{% endblock %}

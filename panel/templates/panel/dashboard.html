@@ -1,0 +1,54 @@
+{% extends 'panel/base.html' %}
+{% block title %}داشبورد | پنل مدیریت{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-black mb-6">داشبورد</h1>
+
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="panel rounded-2xl p-5">
+        <p class="text-xs text-gray-400 mb-2">سفارش‌های امروز</p>
+        <p class="text-3xl font-black">{{ orders_today_count }}</p>
+    </div>
+    <div class="panel rounded-2xl p-5">
+        <p class="text-xs text-gray-400 mb-2">درآمد امروز (پرداخت‌شده)</p>
+        <p class="text-3xl font-black text-[var(--cyan)]">{{ revenue_today }} <span class="text-xs font-normal text-gray-400">ت</span></p>
+    </div>
+    <div class="panel rounded-2xl p-5">
+        <p class="text-xs text-gray-400 mb-2">آماده تحویل</p>
+        <p class="text-3xl font-black text-[var(--amber)]">{{ ready_orders.count }}</p>
+    </div>
+    <div class="panel rounded-2xl p-5">
+        <p class="text-xs text-gray-400 mb-2">درخواست پیک معلق</p>
+        <p class="text-3xl font-black text-[var(--violet)]">{{ pending_courier.count }}</p>
+    </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-4">
+    <div class="panel rounded-2xl p-5">
+        <h2 class="font-bold mb-4 text-sm">وضعیت سفارش‌ها</h2>
+        <div class="space-y-2">
+            {% for s in status_summary %}
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-300">{{ s.label }}</span>
+                    <span class="font-bold bg-white/10 px-3 py-1 rounded-lg">{{ s.count }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="panel rounded-2xl p-5">
+        <h2 class="font-bold mb-4 text-sm">سفارش‌های آماده تحویل</h2>
+        {% if ready_orders %}
+            <div class="space-y-2">
+                {% for order in ready_orders %}
+                    <a href="{% url 'panel_order_detail' order.id %}" class="flex justify-between items-center text-sm bg-black/20 hover:bg-black/40 transition px-3 py-2 rounded-lg">
+                        <span>#{{ order.id }} — {{ order.customer.name }}</span>
+                        <span class="text-gray-400 text-xs">{{ order.shamsi_delivery_date|default:"—" }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500 text-sm">سفارشی در این وضعیت نیست.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
