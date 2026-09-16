@@ -3,7 +3,7 @@ import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Order, ShopSettings, PriceCategory
+from .models import Order, OrderItem, Customer, ShopSettings, PriceCategory
 
 def home(request):
     phone_number = request.GET.get('phone')
@@ -164,3 +164,81 @@ def request_courier(request):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'failed', 'message': 'درخواست نامعتبر است.'})
+
+
+@csrf_exempt
+def place_order(request):
+    """
+    ثبت سفارش آنلاین از فرم «ثبت سفارش» در home.html.
+    ورودی JSON مورد انتظار:
+    {
+        "name": "...", "phone": "...",
+        "items": [{"name": "...", "quantity": 1, "price_numeric": 520000, "price_raw": "520,000"}, ...],
+        "delivery_method": "pickup" | "courier",
+        "lat": "...", "lng": "...", "postal": "..."   # فقط وقتی courier باشه
+    }
+    اگه مشتری با این شماره موبایل قبلاً وجود نداشته باشه، یک Customer جدید ساخته می‌شه.
+    اگه قیمت بعضی اقلام متنی/غیرعددی باشه (price_numeric خالی)، قیمت آیتم صفر ثبت می‌شه
+    تا بعداً از پنل ادمین توسط شما اصلاح بشه.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'درخواست نامعتبر است.'})
+
+    try:
+        data = json.loads(request.body)
+
+        name = (data.get('name') or '').strip()
+        phone = (data.get('phone') or '').strip()
+        items = data.get('items') or []
+        delivery_method = data.get('delivery_method')
+
+        if not name or not phone:
+            return JsonResponse({'status': 'error', 'message': 'نام و شماره موبایل الزامی است.'})
+        if not items:
+            return JsonResponse({'status': 'error', 'message': 'حداقل یک قلم لباس انتخاب کنید.'})
+
+        # پیدا کردن یا ساختن مشتری بر اساس شماره موبایل
+        customer, created = Customer.objects.get_or_create(
+            phone=phone,
+            defaults={'name': name},
+        )
+        if not created and name and customer.name != name:
+            customer.name = name
+            customer.save()
+
+        order = Order.objects.create(customer=customer)
+
+        if delivery_method == 'courier':
+            lat = data.get('lat')
+            lng = data.get('lng')
+            postal = data.get('postal')
+            if not lat or not postal or len(str(postal)) != 10:
+                order.delete()
+                return JsonResponse({'status': 'error', 'message': 'اطلاعات پیک ناقص است.'})
+            order.courier_requested = True
+            order.latitude = lat
+            order.longitude = lng
+            order.postal_code = postal
+            order.save()
+
+        for item in items:
+            quantity = int(item.get('quantity') or 1)
+            price_numeric = item.get('price_numeric')
+            price = int(price_numeric) if price_numeric not in (None, '') else 0
+            OrderItem.objects.create(
+                order=order,
+                item_name=item.get('name', '')[:100],
+                quantity=quantity,
+                price=price,
+            )
+
+        order.refresh_from_db()
+
+        return JsonResponse({
+            'status': 'success',
+            'order_id': order.id,
+            'invoice_number': order.id,
+        })
+
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})

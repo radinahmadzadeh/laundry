@@ -171,6 +171,31 @@
 
         ::-webkit-scrollbar{ width:6px; height:6px; }
         ::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:10px; }
+
+        /* --- Online ordering --- */
+        .item-card{ background:#fff; border:1px solid var(--line); border-radius:1rem; transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+        .item-card:hover{ transform:translateY(-3px); box-shadow:0 20px 40px -25px rgba(15,23,42,0.25); }
+        .item-card.selected{ border-color:var(--cyan-soft); box-shadow:0 0 0 3px rgba(73,224,214,0.18); }
+        .item-icon-wrap{
+            background:radial-gradient(circle at 30% 20%, rgba(73,224,214,0.18), rgba(155,140,251,0.14) 70%, transparent 100%);
+        }
+        .qty-btn{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:900; transition:transform .15s ease, background .15s ease; user-select:none; }
+        .qty-btn:active{ transform:scale(0.88); }
+        .qty-input{ width:34px; text-align:center; font-weight:800; background:transparent; }
+        .cart-bar{
+            position:fixed; bottom:0; left:0; right:0; z-index:40;
+            background:#ffffff; border-top:1px solid var(--line);
+            box-shadow:0 -15px 40px -20px rgba(15,23,42,0.25);
+            transform:translateY(110%); transition:transform .35s cubic-bezier(.2,.8,.2,1);
+        }
+        .cart-bar.show{ transform:translateY(0); }
+        .clothes-hero-art{ position:relative; }
+        .clothes-tag{
+            position:absolute; background:#fff; border:1px solid var(--line); border-radius:14px;
+            box-shadow:0 20px 40px -22px rgba(15,23,42,0.3); padding:10px 14px;
+            display:flex; align-items:center; gap:8px; font-size:11px; font-weight:800; color:var(--ink);
+        }
+        .step-num{ width:26px; height:26px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; color:#04141a; background:linear-gradient(115deg, var(--cyan-soft), var(--violet-soft)); }
     </style>
 </head>
 <body class="min-h-screen">
@@ -190,9 +215,14 @@
                 <a href="#services" class="nav-link">خدمات</a>
                 <a href="#faq" class="nav-link">سوالات متداول</a>
             </nav>
-            <a href="#track-section" class="btn-motion bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
-                پیگیری سفارش
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="#track-section" class="btn-motion hidden sm:inline-flex bg-white border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl">
+                    پیگیری سفارش
+                </a>
+                <a href="#order-section" class="btn-motion bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
+                    ثبت سفارش
+                </a>
+            </div>
         </div>
     </header>
 
@@ -201,32 +231,206 @@
         <div class="bubble float-blob" style="width:70px;height:70px;top:60%;right:14%;animation-delay:1.5s;"></div>
         <div class="bubble float-blob" style="width:50px;height:50px;top:25%;left:8%;animation-delay:.8s;"></div>
 
-        <div class="max-w-6xl mx-auto px-5 pt-16 pb-20 sm:pt-24 sm:pb-28 relative z-10 text-center">
+        <div class="max-w-6xl mx-auto px-5 pt-16 pb-14 sm:pt-24 sm:pb-16 relative z-10 text-center">
             <span class="enter inline-block bg-cyan-50 text-cyan-700 border border-cyan-200 text-xs font-bold px-4 py-1.5 rounded-full mb-5">
-                خشکشویی و اتوشویی با کیفیت هتلی
+                خشکشویی آنلاین با کیفیت هتلی
             </span>
             <h1 class="enter text-3xl sm:text-5xl font-black leading-tight max-w-3xl mx-auto mb-5" style="animation-delay:80ms">
-                لباس‌هاتون رو با خیال راحت بسپارید،
-                <span class="text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">تمیز و تا کرده</span>
+                لباس‌هایتان را با اطمینان بسپارید،
+                <span class="text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">تمیز، خوش‌بو و اتو شده</span>
                 تحویل بگیرید
             </h1>
             <p class="enter text-gray-500 text-sm sm:text-base max-w-xl mx-auto mb-8" style="animation-delay:150ms">
-                {{ shop_tagline|default:"شست‌وشو، خشکشویی و اتوکشی حرفه‌ای؛ مراجعه حضوری یا ارسال با پیک درب منزل." }}
+                {{ shop_tagline|default:"سفارش خود را به‌سادگی از همین سایت ثبت کنید؛ شست‌وشو، خشکشویی و اتوکشی حرفه‌ای، با مراجعه حضوری یا تحویل درب منزل." }}
             </p>
             <div class="enter flex flex-col sm:flex-row items-center justify-center gap-3" style="animation-delay:220ms">
-                <a href="#track-section" class="btn-motion w-full sm:w-auto bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-7 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+                <a href="#order-section" class="btn-motion w-full sm:w-auto bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-7 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    ثبت سفارش آنلاین
+                </a>
+                <a href="#track-section" class="btn-motion w-full sm:w-auto bg-white border border-gray-200 text-gray-700 font-bold px-7 py-3.5 rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     پیگیری سفارش من
                 </a>
-                <a href="{% url 'pricing' %}" class="btn-motion w-full sm:w-auto bg-white border border-gray-200 text-gray-700 font-bold px-7 py-3.5 rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    مشاهده لیست قیمت‌ها
-                </a>
+            </div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-5 pb-16 sm:pb-20 relative z-10">
+            <div class="clothes-hero-art enter" style="animation-delay:280ms">
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
+                    <!-- پیراهن -->
+                    <div class="item-icon-wrap rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square">
+                        <svg viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--cyan)]" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 2 4-2 4 4-3 3v11H7V10L4 7l4-4z"/></svg>
+                    </div>
+                    <!-- شلوار -->
+                    <div class="item-icon-wrap rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square">
+                        <svg viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--violet)]" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 3h12l1 8-2 10h-3l-1.5-9L11 21H8L6 11 6 3z"/></svg>
+                    </div>
+                    <!-- شورت -->
+                    <div class="item-icon-wrap rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square">
+                        <svg viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--amber)]" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16l1 6-4 2-1 8h-3l-1-7-1 7H8l-1-8-4-2 1-6z"/></svg>
+                    </div>
+                    <!-- کت / ژاکت -->
+                    <div class="item-icon-wrap rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square hidden sm:flex">
+                        <svg viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--cyan)]" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3l3 2 3-2 5 4-2 3v10a2 2 0 01-2 2H8a2 2 0 01-2-2V10L4 7l5-4zm3 2v18"/></svg>
+                    </div>
+                    <!-- لباس مجلسی -->
+                    <div class="item-icon-wrap rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square hidden sm:flex">
+                        <svg viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--violet)]" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 2h6l1 5-2 1 3 13H7L10 8l-2-1 1-5z"/></svg>
+                    </div>
+                    <!-- ملحفه / حوله -->
+                    <div class="item-icon-wrap rounded-2xl p-4 sm:p-5 flex items-center justify-center aspect-square hidden sm:flex">
+                        <svg viewBox="0 0 24 24" class="w-8 h-8 sm:w-10 sm:h-10 text-[var(--amber)]" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path stroke-linecap="round" d="M4 10h16M10 4v16"/></svg>
+                    </div>
+                </div>
+                <div class="clothes-tag hidden sm:flex" style="top:-14px; right:6%;">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span> همه نوع پارچه
+                </div>
+                <div class="clothes-tag hidden sm:flex" style="bottom:-14px; left:4%;">
+                    <span class="w-2 h-2 rounded-full bg-[var(--cyan)]"></span> آماده در ۲۴ ساعت
+                </div>
             </div>
         </div>
     </section>
 
-    <section id="track-section" class="max-w-2xl mx-auto px-5 -mt-6 mb-20 relative z-10">
+    <section id="order-section" class="max-w-5xl mx-auto px-5 mb-20 relative z-10">
+        <div class="text-center mb-8">
+            <span class="enter inline-block bg-violet-50 text-violet-700 border border-violet-200 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
+                ثبت سفارش
+            </span>
+            <h2 class="enter text-2xl sm:text-3xl font-black mb-2">اقلام خود را انتخاب و سفارش ثبت کنید</h2>
+            <p class="enter text-gray-500 text-sm">لباس، تعداد و روش دریافت را مشخص کنید؛ بقیه‌ی کار با ماست.</p>
+        </div>
+
+        <form id="order-form" class="panel enter rounded-3xl p-5 sm:p-8" onsubmit="return false;">
+            {% csrf_token %}
+
+            <!-- قدم ۱: انتخاب اقلام -->
+            <div class="flex items-center gap-2 mb-5">
+                <span class="step-num">۱</span>
+                <h3 class="font-bold text-sm sm:text-base">انتخاب اقلام لباس</h3>
+            </div>
+
+            <div id="item-grid" class="mb-2">
+                {% for category in categories %}
+                    <div class="mb-7">
+                        <h4 class="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[var(--cyan)]"></span>
+                            {{ category.name }}
+                        </h4>
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {% for item in category.items.all %}
+                                <div class="item-card p-4" id="item-card-{{ item.id }}"
+                                     data-name="{{ item.name|escapejs }}"
+                                     data-dry-price="{{ item.dry_clean_price|escapejs }}"
+                                     data-iron-price="{{ item.iron_only_price|escapejs|default:'' }}">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="item-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <svg viewBox="0 0 24 24" class="w-5 h-5 text-[var(--cyan)]" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 2 4-2 4 4-3 3v11H7V10L4 7l4-4z"/></svg>
+                                        </div>
+                                        <p class="font-bold text-sm">{{ item.name }}</p>
+                                    </div>
+
+                                    <p class="text-xs text-gray-400 mb-2" id="price-label-{{ item.id }}">{{ item.dry_clean_price }} تومان</p>
+
+                                    {% if item.iron_only_price %}
+                                    <label class="flex items-center gap-2 text-[11px] text-gray-500 mb-3 cursor-pointer select-none">
+                                        <input type="checkbox" class="w-3.5 h-3.5 accent-[var(--cyan)]" onchange="toggleIronOnly('{{ item.id }}', this.checked)">
+                                        فقط اتو (بدون شست‌وشو) — {{ item.iron_only_price }} تومان
+                                    </label>
+                                    {% endif %}
+
+                                    <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-2 py-1.5">
+                                        <button type="button" class="qty-btn bg-white border border-gray-200 text-gray-600 hover:text-[var(--cyan)]"
+                                                onclick="changeQty('{{ item.id }}', -1)">−</button>
+                                        <span class="qty-input" id="qty-{{ item.id }}">0</span>
+                                        <button type="button" class="qty-btn bg-white border border-gray-200 text-gray-600 hover:text-[var(--cyan)]"
+                                                onclick="changeQty('{{ item.id }}', 1)">+</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-gray-400 text-sm py-8">
+                        فعلاً لیست اقلامی برای سفارش ثبت نشده. لطفاً از صفحه
+                        <a href="{% url 'pricing' %}" class="text-[var(--cyan)] font-bold">لیست قیمت</a>
+                        اقلام رو اضافه کنید.
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- قدم ۲: مشخصات مشتری -->
+            <div class="flex items-center gap-2 mt-8 mb-5">
+                <span class="step-num">۲</span>
+                <h3 class="font-bold text-sm sm:text-base">مشخصات شما</h3>
+            </div>
+            <div class="grid sm:grid-cols-2 gap-3">
+                <input type="text" id="order-name" placeholder="نام و نام‌خانوادگی" required
+                       class="fab-input bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                <input type="tel" inputmode="numeric" id="order-phone" placeholder="شماره موبایل" required
+                       class="fab-input bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200 text-center">
+            </div>
+            <p class="text-[11px] text-gray-400 mt-2">اگه اولین باره سفارش می‌دید، با همین شماره یه حساب کاربری براتون ساخته می‌شه.</p>
+
+            <!-- قدم ۳: روش دریافت -->
+            <div class="flex items-center gap-2 mt-8 mb-5">
+                <span class="step-num">۳</span>
+                <h3 class="font-bold text-sm sm:text-base">روش تحویل</h3>
+            </div>
+            <div class="delivery-tabs flex rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-5 text-xs sm:text-sm font-bold p-1" id="delivery-track-neworder">
+                <div class="delivery-indicator" id="delivery-indicator-neworder"></div>
+                <button type="button" onclick="setDelivery('neworder', 'pickup', this)" id="btn-pickup-neworder" class="delivery-tab active btn-motion flex-1 py-2.5 sm:py-3 text-center rounded-xl">مراجعه حضوری</button>
+                <button type="button" onclick="setDelivery('neworder', 'courier', this)" id="btn-courier-neworder" class="delivery-tab btn-motion flex-1 py-2.5 sm:py-3 text-center rounded-xl">ارسال با پیک</button>
+            </div>
+
+            <div id="section-pickup-neworder" class="method-panel">
+                <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">{{ shop_address|default:"آدرس فروشگاه در تنظیمات ثبت نشده است." }}</p>
+                <div class="map-frame w-full h-40 sm:h-56 rounded-xl overflow-hidden">
+                    <iframe src="https://maps.google.com/maps?q=تهران،%20پاسداران،%20خیابان%20وفامنش،%20خیابان%20مفتوحی%20شرقی،%20پلاک%2034&t=&z=16&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+
+            <div id="section-courier-neworder" class="hidden">
+                <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
+                <div id="interactive-map-neworder" class="interactive-map map-frame w-full h-40 sm:h-56 rounded-xl mb-4"></div>
+                <input type="hidden" id="lat-neworder">
+                <input type="hidden" id="lng-neworder">
+                <input type="tel" inputmode="numeric" maxlength="10" id="postal-neworder" placeholder="کد پستی (۱۰ رقمی)"
+                       class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-1 focus:outline-none text-center tracking-widest">
+            </div>
+
+            <!-- خلاصه سبد -->
+            <div class="mt-8 bg-gray-50 rounded-xl p-5 border border-gray-100">
+                <h4 class="text-sm font-semibold text-gray-600 mb-3">خلاصه سفارش</h4>
+                <ul id="cart-list" class="space-y-2 mb-3">
+                    <li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکردید.</li>
+                </ul>
+                <div class="border-t border-gray-200 pt-3 flex justify-between items-center">
+                    <span class="text-gray-700 font-medium text-sm">جمع کل:</span>
+                    <span id="cart-total" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">۰ تومان</span>
+                </div>
+                <p id="cart-note" class="hidden text-[11px] text-amber-600 mt-2">قیمت برخی اقلام انتخابی متغیره؛ جمع کل تقریبیه و بعد از ثبت سفارش دقیقش رو باهاتون هماهنگ می‌کنیم.</p>
+            </div>
+
+            <button type="button" id="submit-order-btn" onclick="submitOrder()"
+                    class="btn-motion mt-6 w-full bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold py-4 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                ثبت نهایی سفارش
+            </button>
+
+            <div id="order-success" class="hidden mt-6 rounded-2xl p-6 text-center flex flex-col items-center gap-3 bg-green-50 border border-green-200">
+                <div class="success-check w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
+                    <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24"><path class="checkmark-path" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h4 class="font-black text-green-700 text-sm sm:text-base">سفارش شما با موفقیت ثبت شد</h4>
+                <p id="order-success-msg" class="text-green-700 text-xs sm:text-sm"></p>
+                <a href="#track-section" class="btn-motion inline-flex items-center gap-2 bg-white border border-green-200 text-green-700 font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm">پیگیری این سفارش</a>
+            </div>
+        </form>
+    </section>
+
+    <section id="track-section" class="max-w-2xl mx-auto px-5 mb-20 relative z-10">
         <div class="panel enter rounded-3xl p-6 sm:p-8">
             <div class="text-center mb-6">
                 <div class="breathe w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center">
@@ -613,6 +817,13 @@
             <h2 class="text-2xl sm:text-3xl font-black mb-2">سوالات متداول</h2>
         </div>
         <div class="space-y-3">
+            <details class="panel rounded-2xl p-5" open>
+                <summary class="flex items-center justify-between font-bold text-sm">
+                    چطور آنلاین سفارش بدم؟
+                    <svg class="faq-chevron w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </summary>
+                <p class="text-gray-500 text-sm mt-3">از بخش «ثبت سفارش» بالای صفحه، اقلام لباس و تعدادشون رو انتخاب کنید، مشخصاتتون رو وارد کنید و روش تحویل (مراجعه حضوری یا ارسال با پیک) رو مشخص کنید. سفارش فوراً برای ما ثبت می‌شه.</p>
+            </details>
             <details class="panel rounded-2xl p-5">
                 <summary class="flex items-center justify-between font-bold text-sm">
                     چطور سفارشم رو پیگیری کنم؟
@@ -646,11 +857,16 @@
 
     <section class="max-w-4xl mx-auto px-5 mb-20">
         <div class="rounded-3xl bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] p-8 sm:p-12 text-center relative overflow-hidden">
-            <h2 class="text-2xl sm:text-3xl font-black text-gray-950 mb-3">همین حالا سفارشتون رو پیگیری کنید</h2>
-            <p class="text-gray-900/70 text-sm mb-6">فقط چند ثانیه طول می‌کشه</p>
-            <a href="#track-section" class="btn-motion inline-flex items-center gap-2 bg-gray-950 text-white font-bold px-7 py-3.5 rounded-xl">
-                پیگیری سفارش من
-            </a>
+            <h2 class="text-2xl sm:text-3xl font-black text-gray-950 mb-3">همین حالا لباس‌های خود را به ما بسپارید</h2>
+            <p class="text-gray-900/70 text-sm mb-6">ثبت سفارش تنها چند ثانیه زمان می‌برد</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="#order-section" class="btn-motion inline-flex items-center gap-2 bg-gray-950 text-white font-bold px-7 py-3.5 rounded-xl">
+                    ثبت سفارش آنلاین
+                </a>
+                <a href="#track-section" class="btn-motion inline-flex items-center gap-2 bg-white/70 border border-gray-950/10 text-gray-900 font-bold px-7 py-3.5 rounded-xl">
+                    پیگیری سفارش من
+                </a>
+            </div>
         </div>
     </section>
 
@@ -830,6 +1046,162 @@
                     btn.disabled = false;
                     btn.classList.remove('opacity-75', 'cursor-not-allowed');
                     showToast('خطا در ثبت اطلاعات: ' + data.message);
+                }
+            })
+            .catch(function(){
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                showToast('خطا در ارتباط با سرور. لطفاً اینترنت خود را بررسی کنید.');
+            });
+        }
+
+        /* ---------- سبد سفارش آنلاین ---------- */
+        var cart = {};
+
+        // قیمت‌ها تو دیتابیس متنی هستن (مثلاً "520,000" یا حتی "۳ تا ۷ میلیون").
+        // این تابع سعی می‌کنه عدد رو استخراج کنه؛ اگه نشد null برمی‌گردونه یعنی «نیاز به هماهنگی».
+        function parsePrice(raw){
+            if (!raw) return null;
+            var fa = '۰۱۲۳۴۵۶۷۸۹';
+            var normalized = String(raw).replace(/[۰-۹]/g, function(d){ return String(fa.indexOf(d)); }).replace(/,/g, '').trim();
+            if (/^\d+$/.test(normalized)) return parseInt(normalized, 10);
+            return null;
+        }
+
+        function updateCartUI(){
+            var listEl = document.getElementById('cart-list');
+            var totalEl = document.getElementById('cart-total');
+            var noteEl = document.getElementById('cart-note');
+            var keys = Object.keys(cart);
+            if (keys.length === 0){
+                listEl.innerHTML = '<li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکردید.</li>';
+                totalEl.textContent = '۰ تومان';
+                if (noteEl) noteEl.classList.add('hidden');
+                return;
+            }
+            var total = 0, html = '', hasUnknown = false;
+            keys.forEach(function(id){
+                var it = cart[id];
+                var lineText;
+                if (it.price === null){
+                    hasUnknown = true;
+                    lineText = 'هماهنگی قیمت';
+                } else {
+                    var lineTotal = it.price * it.qty;
+                    total += lineTotal;
+                    lineText = lineTotal.toLocaleString('fa-IR') + ' تومان';
+                }
+                html += '<li class="flex justify-between items-center text-sm">' +
+                            '<span class="text-gray-600">' + it.name + ' × ' + it.qty + '</span>' +
+                            '<span class="font-bold text-gray-800">' + lineText + '</span>' +
+                        '</li>';
+            });
+            listEl.innerHTML = html;
+            totalEl.textContent = (hasUnknown ? '~ ' : '') + total.toLocaleString('fa-IR') + ' تومان';
+            if (noteEl) noteEl.classList.toggle('hidden', !hasUnknown);
+        }
+
+        // lineId = آیدی آیتم. هر آیتم یه شمارشگر تعداد داره؛ نوع سرویس (خشکشویی+اتو یا فقط اتو)
+        // با چک‌باکس toggleIronOnly مشخص می‌شه، نه با شمارشگر جدا.
+        var itemIronOnly = {};
+
+        function toggleIronOnly(itemId, checked){
+            itemIronOnly[itemId] = checked;
+            var cardEl = document.getElementById('item-card-' + itemId);
+            var priceLabel = document.getElementById('price-label-' + itemId);
+            if (!cardEl) return;
+            var priceRaw = checked ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice;
+            if (priceLabel) priceLabel.textContent = priceRaw + ' تومان';
+
+            if (cart[itemId]){
+                var name = cardEl.dataset.name + (checked ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
+                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: cart[itemId].qty };
+                updateCartUI();
+            }
+        }
+
+        function changeQty(itemId, delta){
+            var cardEl = document.getElementById('item-card-' + itemId);
+            if (!cardEl) return;
+            var ironOnly = !!itemIronOnly[itemId];
+            var priceRaw = ironOnly ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice;
+            var name = cardEl.dataset.name + (ironOnly ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
+
+            var current = cart[itemId] ? cart[itemId].qty : 0;
+            var next = Math.max(0, current + delta);
+            if (next === 0){
+                delete cart[itemId];
+            } else {
+                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: next };
+            }
+            var qtyEl = document.getElementById('qty-' + itemId);
+            if (qtyEl) qtyEl.textContent = next;
+            cardEl.classList.toggle('selected', next > 0);
+            updateCartUI();
+        }
+
+        function getOrderCsrfToken(){
+            var el = document.querySelector('#order-form input[name="csrfmiddlewaretoken"]');
+            return el ? el.value : '';
+        }
+
+        function submitOrder(){
+            var nameEl = document.getElementById('order-name');
+            var phoneEl = document.getElementById('order-phone');
+            var name = nameEl.value.trim();
+            var phone = phoneEl.value.trim();
+
+            if (!name){ flashInvalid(nameEl, 'لطفاً نام خود را وارد کنید.'); return; }
+            if (!phone || phone.length < 10){ flashInvalid(phoneEl, 'لطفاً شماره موبایل خود را به‌درستی وارد کنید.'); return; }
+
+            var items = Object.keys(cart).map(function(id){
+                return {
+                    line_id: id,
+                    name: cart[id].name,
+                    price_raw: cart[id].priceRaw,
+                    price_numeric: cart[id].price,
+                    quantity: cart[id].qty
+                };
+            });
+            if (items.length === 0){ flashInvalid(document.getElementById('item-grid'), 'لطفاً حداقل یک قلم لباس انتخاب کنید.'); return; }
+
+            var courierActive = document.getElementById('btn-courier-neworder').classList.contains('active');
+            var payload = { name: name, phone: phone, items: items, delivery_method: courierActive ? 'courier' : 'pickup' };
+
+            if (courierActive){
+                var lat = document.getElementById('lat-neworder').value;
+                var lng = document.getElementById('lng-neworder').value;
+                var postal = document.getElementById('postal-neworder').value;
+                if (!lat){ flashInvalid(document.getElementById('interactive-map-neworder'), 'لطفاً موقعیت خود را روی نقشه انتخاب کنید.'); return; }
+                if (!postal || postal.length !== 10){ flashInvalid(document.getElementById('postal-neworder'), 'لطفاً کد پستی ۱۰ رقمی خود را به‌درستی وارد کنید.'); return; }
+                payload.lat = lat; payload.lng = lng; payload.postal = postal;
+            }
+
+            var btn = document.getElementById('submit-order-btn');
+            var originalText = btn.innerHTML;
+            btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> در حال ثبت سفارش...';
+            btn.disabled = true;
+            btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            fetch('/place-order/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getOrderCsrfToken() },
+                body: JSON.stringify(payload)
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                if (data.status === 'success'){
+                    document.getElementById('order-success-msg').textContent =
+                        'شماره فاکتور شما: ' + (data.invoice_number || data.order_id || '') + ' — با همین شماره فاکتور و موبایل می‌توانید سفارش را پیگیری کنید.';
+                    document.getElementById('order-form').querySelectorAll('button, input').forEach(function(el){ el.disabled = true; });
+                    document.getElementById('order-success').classList.remove('hidden');
+                    document.getElementById('order-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    showToast('خطا در ثبت سفارش: ' + (data.message || 'لطفاً دوباره تلاش کنید.'));
                 }
             })
             .catch(function(){
