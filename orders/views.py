@@ -1,12 +1,11 @@
 import json
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
-from .models import Order, Customer, PriceCategory, ShopSettings
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from .models import Order, ShopSettings, PriceCategory
 
-def track_order(request):
+def home(request):
     phone_number = request.GET.get('phone')
     order_id = request.GET.get('order_id')
     orders = None
@@ -14,12 +13,18 @@ def track_order(request):
     if phone_number and order_id:
         orders = Order.objects.filter(customer__phone=phone_number, id=order_id)
 
-    context = {
+    shop = ShopSettings.load()
+    categories = list(PriceCategory.objects.prefetch_related('items').all())
+    
+    return render(request, 'home.html', {
         'orders': orders,
         'phone': phone_number,
-    }
-
-    return render(request, 'track.html', context)
+        'shop_name': shop.name,
+        'shop_tagline': shop.tagline,
+        'shop_phone': shop.phone,
+        'shop_address': shop.address,
+        'categories': categories,
+    })
 
 def print_receipt(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -42,8 +47,9 @@ def send_request(request, order_id):
     if order.is_paid:
         return HttpResponse("این فاکتور قبلاً پرداخت شده است.")
 
+    shop = ShopSettings.load()
     amount = int(order.total_price) * 10
-    description = f"پرداخت فاکتور شماره {order.id} - باکسیت"
+    description = f"پرداخت فاکتور شماره {order.id} - {shop.name}"
 
     callback_path = f'/verify/?order_id={order.id}'
     CallbackURL = request.build_absolute_uri(callback_path)
@@ -72,7 +78,6 @@ def send_request(request, order_id):
 
     except requests.exceptions.RequestException as e:
         return HttpResponse(f"خطای شبکه! آیا اینترنت متصل است یا VPN روشن است؟ <br> {e}")
-
 
 def verify(request):
     order_id = request.GET.get('order_id')
@@ -104,7 +109,7 @@ def verify(request):
                     order.save()
 
                     ref_id = response_json['data']['ref_id']
-                    return HttpResponse(f"<div style='font-family:Tahoma; text-align:center; margin-top:50px;'><h1>پرداخت با موفقیت انجام شد!</h1><p>کد پیگیری: {ref_id}</p><a href='/track/?phone={order.customer.phone}'>بازگشت به سایت</a></div>")
+                    return HttpResponse(f"<div style='font-family:Tahoma; text-align:center; margin-top:50px;'><h1>پرداخت با موفقیت انجام شد!</h1><p>کد پیگیری: {ref_id}</p><a href='/?phone={order.customer.phone}&order_id={order.id}#track-section'>بازگشت به سایت</a></div>")
 
                 elif response_json.get('data') and response_json['data'].get('code') == 101:
                     return HttpResponse("این تراکنش قبلاً با موفقیت تایید شده است.")
@@ -117,16 +122,23 @@ def verify(request):
     else:
         return HttpResponse("<div style='font-family:Tahoma; text-align:center; margin-top:50px; color:red;'><h1>پرداخت توسط شما لغو شد.</h1><button onclick='history.back()'>بازگشت</button></div>")
 
+PRICING_THEMES = [
+    {'header_bg': 'bg-teal-50', 'header_text': 'text-teal-700', 'header_border': 'border-teal-200'},
+    {'header_bg': 'bg-blue-50', 'header_text': 'text-blue-700', 'header_border': 'border-blue-200'},
+    {'header_bg': 'bg-rose-50', 'header_text': 'text-rose-700', 'header_border': 'border-rose-200'},
+    {'header_bg': 'bg-amber-50', 'header_text': 'text-amber-700', 'header_border': 'border-amber-200'},
+    {'header_bg': 'bg-violet-50', 'header_text': 'text-violet-700', 'header_border': 'border-violet-200'},
+]
+
 def pricing_menu(request):
-    categories = PriceCategory.objects.prefetch_related('items').all()
-    
+    categories = list(PriceCategory.objects.prefetch_related('items').all())
+    for index, category in enumerate(categories):
+        theme = PRICING_THEMES[index % len(PRICING_THEMES)]
+        category.header_bg = theme['header_bg']
+        category.header_text = theme['header_text']
+        category.header_border = theme['header_border']
     shop = ShopSettings.load()
-    
-    context = {
-        'categories': categories,
-        'shop_name': shop.name,
-    }
-    return render(request, 'pricing.html', context)
+    return render(request, 'pricing.html', {'categories': categories, 'shop_name': shop.name})
 
 @csrf_exempt
 def request_courier(request):
@@ -148,10 +160,7 @@ def request_courier(request):
             order.longitude = lng
             order.postal_code = postal
             order.save()
-
             return JsonResponse({'status': 'success', 'message': 'درخواست پیک با موفقیت ثبت شد.'})
-
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
-
     return JsonResponse({'status': 'failed', 'message': 'درخواست نامعتبر است.'})

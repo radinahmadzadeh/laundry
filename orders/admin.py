@@ -21,7 +21,7 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ('total_price',)
 
     def actions_buttons(self, obj):
-        site_url = "radinahmadzadeh.pythonanywhere.com/track/"
+        site_url = "radinahmadzadeh.pythonanywhere.com/"
 
         sms_text = f"فاکتور {obj.id} به نام {obj.customer.name} با موفقیت ثبت شد. تاریخ تحویل: {obj.shamsi_date}. برای پیگیری سفارش به لینک زیر مراجعه بفرمایید:\n{site_url}"
 

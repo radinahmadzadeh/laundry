@@ -8,23 +8,24 @@
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
         :root{
-            --ink:#eaf3f4;
-            --bg-deep:#070b12;
-            --bg-panel:#0d1420;
-            --line:rgba(234,243,244,0.10);
-            --cyan:#49e0d6;
-            --violet:#9b8cfb;
-            --amber:#ffc266;
+            --ink:#101828;
+            --bg:#f5f8fa;
+            --line:#e2e8f0;
+            --cyan:#0891b2;
+            --violet:#7c3aed;
+            --amber:#b45309;
+            --cyan-soft:#49e0d6;
+            --violet-soft:#9b8cfb;
         }
         *{ font-family:'Vazirmatn', sans-serif; }
 
         body{
-            background-color:var(--bg-deep);
+            background-color:var(--bg);
             color:var(--ink);
             background-image:
-                radial-gradient(circle at 12% 15%, rgba(73,224,214,0.10), transparent 40%),
-                radial-gradient(circle at 85% 10%, rgba(155,140,251,0.10), transparent 45%),
-                radial-gradient(circle at 50% 100%, rgba(255,194,102,0.06), transparent 50%);
+                radial-gradient(circle at 12% 15%, rgba(8,145,178,0.06), transparent 40%),
+                radial-gradient(circle at 85% 10%, rgba(124,58,237,0.06), transparent 45%),
+                radial-gradient(circle at 50% 100%, rgba(180,83,9,0.04), transparent 50%);
             min-height:100vh;
         }
 
@@ -37,35 +38,30 @@
 
         .suds span{
             position:absolute; border-radius:50%;
-            background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0.02) 70%);
-            filter:blur(0.5px);
+            background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(120,190,220,0.18) 65%, transparent 78%);
+            border:1px solid rgba(100,170,200,0.3);
             animation:rise linear infinite;
         }
         @keyframes rise{
             0%{ transform:translateY(0) translateX(0); opacity:0; }
-            10%{ opacity:0.5; }
-            90%{ opacity:0.35; }
+            10%{ opacity:0.7; }
+            90%{ opacity:0.45; }
             100%{ transform:translateY(-115vh) translateX(var(--drift,20px)); opacity:0; }
         }
 
         .panel{
             position:relative; z-index:10;
-            background:rgba(13,20,32,0.55);
-            backdrop-filter:blur(20px);
-            -webkit-backdrop-filter:blur(20px);
+            background:#ffffff;
             border:1px solid var(--line);
-            box-shadow:0 30px 60px -20px rgba(0,0,0,0.65);
+            box-shadow:0 25px 50px -25px rgba(15,23,42,0.18);
         }
 
-        .drum{
-            animation:spin 6s linear infinite;
-            transform-origin:50% 50%;
-        }
+        .drum{ animation:spin 6s linear infinite; transform-origin:50% 50%; }
         @keyframes spin{ to{ transform:rotate(360deg);} }
 
         @keyframes breathe{
-            0%,100%{ box-shadow:0 0 0 0 rgba(73,224,214,0.35); }
-            50%{ box-shadow:0 0 0 10px rgba(73,224,214,0); }
+            0%,100%{ box-shadow:0 0 0 0 rgba(8,145,178,0.25); }
+            50%{ box-shadow:0 0 0 10px rgba(8,145,178,0); }
         }
         .breathe{ animation:breathe 2.6s ease-in-out infinite; }
 
@@ -73,29 +69,26 @@
         .enter{ animation:fadeUp .7s cubic-bezier(.2,.8,.2,1) both; }
 
         .card-hover{ transition:transform .35s ease, box-shadow .35s ease; }
-        .card-hover:hover{ transform:translateY(-4px); box-shadow:0 35px 70px -25px rgba(0,0,0,0.75); }
+        .card-hover:hover{ transform:translateY(-4px); box-shadow:0 35px 70px -30px rgba(15,23,42,0.22); }
 
         .btn-motion{ position:relative; overflow:hidden; transition:transform .25s ease, box-shadow .25s ease, filter .25s ease; }
         .btn-motion::after{
             content:''; position:absolute; inset:0;
-            background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%);
+            background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.55) 50%, transparent 70%);
             transform:translateX(-130%);
             transition:transform .7s ease;
         }
         .btn-motion:hover::after{ transform:translateX(130%); }
         .btn-motion:active{ transform:scale(0.97); }
 
-        .tab-btn{
-            position:relative; z-index:1;
-            transition:color .3s ease, background .3s ease;
-        }
+        .tab-btn{ position:relative; z-index:1; transition:color .3s ease, background .3s ease; color:#64748b; }
         .tab-btn .tab-label{ position:relative; z-index:2; }
         .tab-btn.active{ color:#04141a; }
         .tab-indicator{
             position:absolute; top:4px; bottom:4px; z-index:0;
             border-radius:0.75rem;
-            background:linear-gradient(115deg, var(--cyan), var(--violet));
-            box-shadow:0 10px 25px -8px rgba(73,224,214,0.5);
+            background:linear-gradient(115deg, var(--cyan-soft), var(--violet-soft));
+            box-shadow:0 10px 25px -8px rgba(8,145,178,0.35);
             transition:right .4s cubic-bezier(.2,.8,.2,1), width .4s cubic-bezier(.2,.8,.2,1);
         }
 
@@ -103,9 +96,9 @@
         .tab-content.active{ display:block; }
 
         table{ border-collapse:separate; border-spacing:0; }
-        tbody tr{ transition:background-color .25s ease, transform .2s ease; }
-        tbody tr:nth-child(even){ background-color:rgba(255,255,255,0.02); }
-        tbody tr:hover{ background-color:rgba(73,224,214,0.06); }
+        tbody tr{ transition:background-color .25s ease; }
+        tbody tr:nth-child(even){ background-color:#fafbfc; }
+        tbody tr:hover{ background-color:#f0f9fa; }
 
         .row-enter{ animation:fadeUp .5s cubic-bezier(.2,.8,.2,1) both; }
 
@@ -114,7 +107,7 @@
         .back-link:active{ transform:translateY(0) scale(0.96); }
 
         ::-webkit-scrollbar{ height:6px; width:6px; }
-        ::-webkit-scrollbar-thumb{ background:rgba(255,255,255,0.15); border-radius:10px; }
+        ::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:10px; }
     </style>
 </head>
 <body class="min-h-screen px-4 py-8 sm:py-12">
@@ -135,8 +128,8 @@
         <div class="panel enter rounded-2xl sm:rounded-3xl p-5 sm:p-7 mb-6">
             <div class="flex items-center justify-between gap-3">
                 <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div class="breathe w-11 h-11 sm:w-14 sm:h-14 shrink-0 rounded-full bg-gradient-to-br from-[var(--cyan)] to-[var(--violet)] flex items-center justify-center shadow-lg shadow-cyan-500/20 relative overflow-hidden">
-                        <svg viewBox="0 0 24 24" class="w-6 h-6 sm:w-8 sm:h-8 text-white/90 drum">
+                    <div class="breathe w-11 h-11 sm:w-14 sm:h-14 shrink-0 rounded-full bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center shadow-lg shadow-cyan-500/20 relative overflow-hidden">
+                        <svg viewBox="0 0 24 24" class="w-6 h-6 sm:w-8 sm:h-8 text-white drum">
                             <circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.4"/>
                             <path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
                         </svg>
@@ -145,18 +138,18 @@
                         <h1 class="text-lg sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] truncate">
                             لیست قیمت خدمات
                         </h1>
-                        <p class="text-gray-400 text-[11px] sm:text-sm font-light mt-0.5">{{ shop_name|default:"خشکشویی" }}</p>
+                        <p class="text-gray-500 text-[11px] sm:text-sm font-light mt-0.5">{{ shop_name|default:"خشکشویی" }}</p>
                     </div>
                 </div>
-                <a href="/track/" class="back-link btn-motion shrink-0 text-xs sm:text-sm bg-white/5 border border-white/10 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-white/10 flex items-center gap-1.5">
+                <a href="/" class="back-link btn-motion shrink-0 text-xs sm:text-sm bg-gray-50 border border-gray-200 text-gray-600 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl hover:bg-gray-100 hover:text-gray-900 flex items-center gap-1.5">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                    بازگشت
+                    صفحه اصلی
                 </a>
             </div>
         </div>
 
         {% if categories %}
-        <div class="enter relative flex overflow-x-auto rounded-2xl bg-black/40 border border-white/10 mb-6 text-xs sm:text-base font-bold p-1" style="animation-delay:100ms" id="tab-track">
+        <div class="enter relative flex overflow-x-auto rounded-2xl bg-gray-100 border border-gray-200 mb-6 text-xs sm:text-base font-bold p-1" style="animation-delay:100ms" id="tab-track">
             <div class="tab-indicator" id="tab-indicator"></div>
             {% for category in categories %}
                 <button onclick="openTab('cat-{{ category.id }}', this)" id="btn-cat-{{ category.id }}"
@@ -174,20 +167,20 @@
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-right text-sm sm:text-base min-w-[420px]">
-                    <thead class="text-gray-400 border-b border-white/10 text-xs sm:text-sm">
+                    <thead class="text-gray-500 border-b border-gray-200 text-xs sm:text-sm">
                         <tr><th class="p-3">نوع لباس</th><th class="p-3 text-center">خشکشویی + اتو</th><th class="p-3 text-center">فقط اتو</th></tr>
                     </thead>
-                    <tbody class="text-gray-200 font-medium text-xs sm:text-sm">
+                    <tbody class="text-gray-800 font-medium text-xs sm:text-sm">
                         {% for item in category.items.all %}
                         <tr>
                             <td class="p-3 {% if item.highlight == 'amber' %}text-[var(--amber)]{% elif item.highlight == 'violet' %}text-[var(--violet)]{% endif %}">{{ item.name }}</td>
                             <td class="p-3 text-center {% if item.highlight == 'amber' %}text-[var(--amber)]{% elif item.highlight == 'violet' %}text-[var(--violet)]{% endif %}">{{ item.dry_clean_price }}</td>
-                            <td class="p-3 text-center {% if item.iron_only_price %}{% if item.highlight == 'amber' %}text-[var(--amber)]/70{% elif item.highlight == 'violet' %}text-[var(--violet)]/70{% else %}text-gray-400{% endif %}{% else %}text-gray-500{% endif %}">
+                            <td class="p-3 text-center {% if item.iron_only_price %}{% if item.highlight == 'amber' %}text-[var(--amber)]/80{% elif item.highlight == 'violet' %}text-[var(--violet)]/80{% else %}text-gray-500{% endif %}{% else %}text-gray-400{% endif %}">
                                 {{ item.iron_only_price|default:"---" }}
                             </td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="3" class="p-6 text-center text-gray-500">قیمتی در این دسته ثبت نشده.</td></tr>
+                        <tr><td colspan="3" class="p-6 text-center text-gray-400">قیمتی در این دسته ثبت نشده.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -200,7 +193,7 @@
         </div>
         {% endif %}
 
-        <div class="mt-6 mb-4 text-center text-xs text-gray-500">تمامی قیمت‌ها به تومان می‌باشد.</div>
+        <div class="mt-6 mb-4 text-center text-xs text-gray-400">تمامی قیمت‌ها به تومان می‌باشد.</div>
     </div>
 
     <script>
