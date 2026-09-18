@@ -1,11 +1,35 @@
-# سیستم مدیریت و رهگیری سفارشات خشکشویی 🧺
+# 🧺 Dry Cleaning Service Platform
 
-این پروژه یک وب‌اپلیکیشن اختصاصی با فریم‌ورک Django است که برای مدیریت فاکتورها، چاپ فیش مشتریان و رهگیری دو مرحله‌ای سفارشات توسعه داده شده است. این فایل به عنوان راهنمای شخصی برای توسعه، آپدیت و استقرار روی سرور نوشته شده است.
+A modern Django platform that turns a dry cleaning shop into a full online
+experience — customers order and track their laundry from their phone,
+while the shop runs the whole operation from one clean admin panel.
 
-## 🌟 ویژگی‌های کلیدی
-* **رهگیری دو مرحله‌ای (امن):** پیگیری وضعیت سفارش با ترکیب شماره موبایل و شماره فاکتور.
-* **رابط کاربری واکنش‌گرا (Responsive):** طراحی شده با Tailwind CSS برای نمایش بی‌نقص در موبایل و دسکتاپ.
-* **صدور و چاپ فیش:** قالب اختصاصی فاکتور با قابلیت پرینت مستقیم (حذف المان‌های اضافی در زمان چاپ).
-* **وضعیت‌های پویا:** نمایش گرافیکی زمان باقی‌مانده تحویل (تاخیر، آماده تحویل، تحویل داده شده).
+## ✨ Highlights
 
----
+- **Order in seconds** — pick items by category, choose *dry clean + iron*
+  or *iron only*, set quantities, and choose in-person or courier delivery
+  with a map-based location picker.
+- **Live tracking** — customers follow their order from *received* all the
+  way to *delivered*, using just their phone number and invoice number.
+- **Instant accounts** — a customer profile is created automatically on the
+  first order, no signup forms required.
+- **One dashboard to run it all** — orders, customers, prices, and shop
+  details are all managed from the Django admin.
+- **Smart pricing catalog** — services organized into categories, each with
+  its own items and prices.
+- **Built-in payments** — Zarinpal integration for secure online checkout.
+- **Courier pickup** — customers drop a pin on the map and enter a postal
+  code for doorstep pickup.
+- **Printable receipts** — a clean invoice for every order.
+
+## 🛠 Tech Stack
+
+Django · Tailwind CSS · Leaflet.js · Zarinpal · `jdatetime` (Shamsi calendar)
+
+## 🧩 Core Models
+
+- `Customer` — name, phone
+- `Order` — status, price, payment state, delivery info
+- `OrderItem` — item name, quantity, price (auto-updates order total)
+- `PriceCategory` / `PriceItem` — the service catalog
+- `ShopSettings` — shop name, tagline, phone, address
