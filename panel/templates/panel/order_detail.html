@@ -1,4 +1,4 @@
-{% extends 'panel/base.html' %}
+﻿{% extends 'panel/base.html' %}
 {% block title %}فاکتور #{{ order.id }} | پنل مدیریت{% endblock %}
 {% block content %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -24,7 +24,7 @@
                 <tbody>
                     {% for item in order.orderitem_set.all %}
                     <tr class="border-b border-white/5">
-                        <td class="p-2">{{ item.item_name }}</td>
+                        <td class="p-2"><div>{{ item.item_name }}</div>{% if item.description %}<div class="text-[10px] text-gray-500 mt-1">{{ item.description }}</div>{% endif %}</td>
                         <td class="p-2 text-center">{{ item.quantity }}</td>
                         <td class="p-2 text-center">{{ item.price }}</td>
                         <td class="p-2 text-left">
@@ -114,3 +114,4 @@ function fillPrice(select){
 }
 </script>
 {% endblock %}
+

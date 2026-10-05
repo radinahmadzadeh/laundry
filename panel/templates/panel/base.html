@@ -43,16 +43,16 @@
         <p class="text-[11px] text-gray-400 mt-1 hidden md:block">{{ request.user.username }}</p>
     </div>
 
-    <a href="{% url 'panel_dashboard' %}" class="nav-link {% if active == 'dashboard' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">🏠 داشبورد</a>
-    <a href="{% url 'panel_orders' %}" class="nav-link {% if active == 'orders' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">📦 سفارش‌ها</a>
-    <a href="{% url 'panel_order_create' %}" class="nav-link {% if active == 'order_create' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">➕ سفارش جدید</a>
-    <a href="{% url 'panel_customers' %}" class="nav-link {% if active == 'customers' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">👤 مشتریان</a>
-    <a href="{% url 'panel_pricing' %}" class="nav-link {% if active == 'pricing' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">💰 لیست قیمت</a>
-    <a href="{% url 'panel_courier' %}" class="nav-link {% if active == 'courier' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">🛵 درخواست پیک</a>
-    <a href="{% url 'panel_settings' %}" class="nav-link {% if active == 'settings' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">⚙️ تنظیمات</a>
+    <a href="{% url 'panel_dashboard' %}" class="nav-link {% if active == 'dashboard' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">داشبورد</a>
+    <a href="{% url 'panel_orders' %}" class="nav-link {% if active == 'orders' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">سفارش‌ها</a>
+    <a href="{% url 'panel_order_create' %}" class="nav-link {% if active == 'order_create' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">سفارش جدید</a>
+    <a href="{% url 'panel_customers' %}" class="nav-link {% if active == 'customers' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">مشتریان</a>
+    <a href="{% url 'panel_pricing' %}" class="nav-link {% if active == 'pricing' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">لیست قیمت</a>
+    <a href="{% url 'panel_courier' %}" class="nav-link {% if active == 'courier' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">درخواست پیک</a>
+    <a href="{% url 'panel_settings' %}" class="nav-link {% if active == 'settings' %}active{% endif %} rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2">تنظیمات</a>
 
     <div class="md:mt-auto md:pt-4 md:border-t border-white/10 shrink-0">
-        <a href="{% url 'panel_logout' %}" class="nav-link rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2 text-red-300">🚪 خروج</a>
+        <a href="{% url 'panel_logout' %}" class="nav-link rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2 text-red-300">خروج</a>
     </div>
 </aside>
 

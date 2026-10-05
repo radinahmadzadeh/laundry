@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+﻿from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -98,9 +98,10 @@ def order_detail(request, order_id):
         item_name = request.POST.get('item_name_manual', '').strip() or request.POST.get('item_name', '').strip()
         item_qty = request.POST.get('item_qty')
         item_price = request.POST.get('item_price')
+        item_description = request.POST.get('item_description', '').strip()
 
         if item_name and item_qty and item_price:
-            OrderItem.objects.create(order=order, item_name=item_name, quantity=int(item_qty), price=item_price)
+            OrderItem.objects.create(order=order, item_name=item_name, description=item_description, quantity=int(item_qty), price=item_price)
             messages.success(request, 'قلم جدید اضافه شد.')
         else:
             messages.error(request, 'نام، تعداد و قیمت الزامی است.')
@@ -192,11 +193,13 @@ def order_create(request):
         item_names = request.POST.getlist('item_name[]')
         item_qtys = request.POST.getlist('item_qty[]')
         item_prices = request.POST.getlist('item_price[]')
+        item_descriptions = request.POST.getlist('item_description[]')
 
         created_any = False
-        for name, qty, price in zip(item_names, item_qtys, item_prices):
+        for idx, (name, qty, price) in enumerate(zip(item_names, item_qtys, item_prices)):
+            description = item_descriptions[idx].strip() if idx < len(item_descriptions) else ''
             if name.strip() and qty.strip() and price.strip():
-                OrderItem.objects.create(order=order, item_name=name.strip(), quantity=int(qty), price=price)
+                OrderItem.objects.create(order=order, item_name=name.strip(), description=description, quantity=int(qty), price=price)
                 created_any = True
 
         if not created_any:
@@ -331,3 +334,5 @@ def shop_settings_view(request):
         return redirect('panel_settings')
 
     return render(request, 'panel/settings.html', {'active': 'settings', 'shop': shop})
+
+

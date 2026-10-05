@@ -115,22 +115,6 @@
         .paid-glow{ animation:paidGlow 3s ease-in-out infinite; }
         .fab-input{ transition:transform .2s ease, box-shadow .2s ease; }
         .fab-input:focus{ box-shadow:0 0 0 3px rgba(8,145,178,0.25); transform:scale(1.01); }
-        /* فرم‌ها: کمی بزرگ‌تر، خواناتر و همچنان جمع‌وجور */
-        input:not([type="checkbox"]):not([type="radio"]), select, textarea{
-            min-height:44px;
-            border-radius:12px;
-            padding:10px 13px;
-            font-size:13px;
-            transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
-        }
-        textarea{ min-height:92px; resize:vertical; line-height:1.8; }
-        input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus{
-            outline:none;
-            border-color:rgba(8,145,178,.45) !important;
-            box-shadow:0 0 0 3px rgba(8,145,178,.10);
-            background:#fff;
-        }
-        input::placeholder, textarea::placeholder{ color:#94a3b8; }
         .delivery-tabs{ position:relative; z-index:0; }
         .delivery-indicator{
             position:absolute; top:4px; bottom:4px; right:4px;
@@ -212,27 +196,6 @@
             display:flex; align-items:center; gap:8px; font-size:11px; font-weight:800; color:var(--ink);
         }
         .step-num{ width:26px; height:26px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:12px; color:#04141a; background:linear-gradient(115deg, var(--cyan-soft), var(--violet-soft)); }
-        /* هدر: مرتب، متعادل و جمع‌وجور */
-        .site-header-inner{ min-height:68px; }
-        .site-nav{ gap:2rem; }
-        .site-nav .nav-link{ padding:8px 2px; transition:color .2s ease, transform .2s ease; }
-        .site-nav .nav-link:hover{ color:#0f172a; transform:translateY(-1px); }
-        .header-actions{ gap:7px; }
-        .header-actions > a, .header-actions > button{
-            min-height:40px;
-            padding:8px 13px;
-            border-radius:10px;
-            display:inline-flex;
-            align-items:center;
-            justify-content:center;
-            line-height:1;
-        }
-        .header-actions .customer-status{ height:40px; padding:0 7px; }
-        @media (max-width:640px){
-            .site-header-inner{ min-height:62px; }
-            .header-actions{ gap:5px; }
-            .header-actions > a, .header-actions > button{ min-height:38px; padding:8px 10px; }
-        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -240,29 +203,25 @@
     <div class="weave"></div>
 
     <header class="sticky top-0 z-50 bg-white/85 backdrop-blur border-b border-gray-100">
-        <div class="site-header-inner max-w-6xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+        <div class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center">
                     <svg viewBox="0 0 24 24" class="w-5 h-5 text-white"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
                 </div>
                 <span class="font-black text-sm sm:text-base">{{ shop_name|default:"خشکشویی" }}</span>
             </div>
-            <nav class="site-nav hidden sm:flex items-center text-sm font-bold text-gray-600">
+            <nav class="hidden sm:flex items-center gap-6 text-sm font-bold text-gray-600">
                 <a href="{% url 'pricing' %}" class="nav-link">لیست قیمت</a>
                 <a href="#services" class="nav-link">خدمات</a>
                 <a href="#faq" class="nav-link">سوالات متداول</a>
             </nav>
-            <div class="header-actions flex items-center shrink-0">
-                {% if customer_logged_in %}
-                <span class="customer-status hidden lg:inline-flex items-center gap-1 text-[11px] font-bold text-gray-500">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> مشتری
-                </span>
-                <a href="#track-section" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-700 font-bold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg">پیگیری</a>
-                <a href="#order-section" class="btn-motion inline-flex items-center whitespace-nowrap bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg shadow-sm">ثبت سفارش</a>
-                <a href="/customer-logout/" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-500 font-bold text-[11px] px-2.5 sm:px-3 py-2 rounded-lg">خروج</a>
-                {% else %}
-                <button type="button" onclick="openLoginChooser()" class="btn-motion bg-white border border-gray-200 text-gray-700 font-bold text-xs px-3.5 sm:px-4 py-2 rounded-lg">ورود</button>
-                {% endif %}
+            <div class="flex items-center gap-2">
+                <a href="#track-section" class="btn-motion hidden sm:inline-flex bg-white border border-gray-200 text-gray-700 font-bold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl">
+                    پیگیری سفارش
+                </a>
+                <a href="#order-section" class="btn-motion bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-xs sm:text-sm px-4 sm:px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/20">
+                    ثبت سفارش
+                </a>
             </div>
         </div>
     </header>
@@ -284,8 +243,7 @@
             <p class="enter text-gray-500 text-sm sm:text-base max-w-xl mx-auto mb-8" style="animation-delay:150ms">
                 {{ shop_tagline|default:"سفارش خود را به‌سادگی از همین سایت ثبت کنید؛ شست‌وشو، خشکشویی و اتوکشی حرفه‌ای، با مراجعه حضوری یا تحویل درب منزل." }}
             </p>
-            {% if customer_logged_in %}
-<div class="enter flex flex-col sm:flex-row items-center justify-center gap-3" style="animation-delay:220ms">
+            <div class="enter flex flex-col sm:flex-row items-center justify-center gap-3" style="animation-delay:220ms">
                 <a href="#order-section" class="btn-motion w-full sm:w-auto bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-7 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
                     ثبت سفارش آنلاین
@@ -295,7 +253,6 @@
                     پیگیری سفارش من
                 </a>
             </div>
-            {% endif %}
         </div>
 
         <div class="max-w-4xl mx-auto px-5 pb-16 sm:pb-20 relative z-10">
@@ -336,7 +293,6 @@
         </div>
     </section>
 
-    {% if customer_logged_in %}
     <section id="order-section" class="max-w-5xl mx-auto px-5 mb-20 relative z-10">
         <div class="text-center mb-8">
             <span class="enter inline-block bg-violet-50 text-violet-700 border border-violet-200 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
@@ -390,13 +346,6 @@
                                         <span class="qty-input" id="qty-{{ item.id }}">0</span>
                                         <button type="button" class="qty-btn bg-white border border-gray-200 text-gray-600 hover:text-[var(--cyan)]"
                                                 onclick="changeQty('{{ item.id }}', 1)">+</button>
-                                    </div>
-                                    <div id="item-note-wrap-{{ item.id }}" class="hidden mt-3">
-                                        <label class="block text-[11px] font-bold text-gray-600 mb-1.5">توضیحات این لباس</label>
-                                        <textarea id="item-note-{{ item.id }}" rows="2"
-                                            oninput="updateItemDescription('{{ item.id }}', this.value)"
-                                            class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs resize-y focus:outline-none focus:ring-2 focus:ring-cyan-200"
-                                            placeholder="اگر درباره این لباس توضیحی دارید اینجا بنویسید..."></textarea>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -464,13 +413,11 @@
                 <p id="cart-note" class="hidden text-[11px] text-amber-600 mt-2">قیمت برخی اقلام انتخابی متغیره؛ جمع کل تقریبیه و بعد از ثبت سفارش دقیقش رو باهاتون هماهنگ می‌کنیم.</p>
             </div>
 
-            {% if customer_logged_in %}
             <button type="button" id="submit-order-btn" onclick="submitOrder()"
                     class="btn-motion mt-6 w-full bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold py-4 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 ثبت نهایی سفارش
             </button>
-            {% endif %}
 
             <div id="order-success" class="hidden mt-6 rounded-2xl p-6 text-center flex flex-col items-center gap-3 bg-green-50 border border-green-200">
                 <div class="success-check w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
@@ -482,9 +429,7 @@
             </div>
         </form>
     </section>
-    {% endif %}
 
-    {% if customer_logged_in %}
     <section id="track-section" class="max-w-2xl mx-auto px-5 mb-20 relative z-10">
         <div class="panel enter rounded-3xl p-6 sm:p-8">
             <div class="text-center mb-6">
@@ -741,7 +686,6 @@
         </div>
     </section>
 
-    {% endif %}
     <section class="max-w-6xl mx-auto px-5 mb-20">
         <div class="text-center mb-10">
             <h2 class="text-2xl sm:text-3xl font-black mb-2">چرا {{ shop_name|default:"ما" }} را انتخاب کنید</h2>
@@ -822,88 +766,27 @@
         </div>
     </section>
 
+    {% if categories %}
     <section id="services" class="max-w-6xl mx-auto px-5 mb-20">
         <div class="text-center mb-10">
-            <span class="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 border border-cyan-200 text-xs font-bold px-4 py-1.5 rounded-full mb-4">خدمات تخصصی خشکشویی</span>
-            <h2 class="text-2xl sm:text-3xl font-black mb-3">خدمات ما، فقط شست‌وشو نیست</h2>
-            <p class="text-gray-500 text-sm sm:text-base max-w-2xl mx-auto leading-7">هر لباس با توجه به جنس پارچه، رنگ، میزان آلودگی و نوع استفاده بررسی می‌شود و مناسب‌ترین روش شست‌وشو، لکه‌بری و اتوکشی برای آن انتخاب می‌شود.</p>
+            <h2 class="text-2xl sm:text-3xl font-black mb-2">خدمات ما</h2>
+            <p class="text-gray-500 text-sm">برای هر نوع لباس، قیمت مشخص</p>
         </div>
-
-        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-            <div class="panel card-hover enter rounded-2xl p-6">
-                <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-700 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 4h10l2 4-3 2v10H8V10L5 8l2-4z"/></svg>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for category in categories %}
+            <a href="{% url 'pricing' %}" class="panel card-hover enter rounded-2xl p-6 flex items-center gap-4" style="animation-delay:{{ forloop.counter0 }}0ms">
+                <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
-                <h3 class="font-black mb-2">خشکشویی تخصصی لباس</h3>
-                <p class="text-gray-500 text-sm leading-7">مناسب کت‌وشلوار، پالتو، بارانی، لباس مجلسی و لباس‌هایی که نیاز به شست‌وشوی حساس دارند. روش کار با توجه به جنس و برچسب مراقبت لباس انتخاب می‌شود.</p>
-            </div>
-
-            <div class="panel card-hover enter rounded-2xl p-6" style="animation-delay:60ms">
-                <div class="w-12 h-12 rounded-xl bg-violet-50 text-violet-700 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M6 4h12M7 10h10v9H7zM9 14h6"/></svg>
-                </div>
-                <h3 class="font-black mb-2">شست‌وشوی لباس‌های روزمره</h3>
-                <p class="text-gray-500 text-sm leading-7">پیراهن، شلوار، تی‌شرت، لباس‌های خانگی و سایر پوشاک روزمره با توجه به جنس پارچه و رنگ، شست‌وشو و آماده تحویل می‌شوند.</p>
-            </div>
-
-            <div class="panel card-hover enter rounded-2xl p-6" style="animation-delay:120ms">
-                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 20h12M8 16h8M10 12h4M7 4h10l-2 8H9L7 4z"/></svg>
-                </div>
-                <h3 class="font-black mb-2">اتوکشی حرفه‌ای</h3>
-                <p class="text-gray-500 text-sm leading-7">اتوکشی تمیز و فرم‌دهی اصولی برای پیراهن، کت، شلوار، مانتو و لباس‌های حساس؛ با تمرکز روی حفظ فرم و ظاهر لباس.</p>
-            </div>
-
-            <div class="panel card-hover enter rounded-2xl p-6" style="animation-delay:180ms">
-                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M5 13l3 3L19 5M4 19h16"/></svg>
-                </div>
-                <h3 class="font-black mb-2">لکه‌بری تخصصی</h3>
-                <p class="text-gray-500 text-sm leading-7">لکه‌ها قبل از شست‌وشو بررسی می‌شوند و در صورت امکان، روش مناسب برای کاهش یا حذف لکه انتخاب می‌شود؛ بدون آسیب غیرضروری به بافت لباس.</p>
-            </div>
-
-            <div class="panel card-hover enter rounded-2xl p-6" style="animation-delay:240ms">
-                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4zM7 9h10M7 12h7"/></svg>
-                </div>
-                <h3 class="font-black mb-2">شست‌وشوی ملحفه و حوله</h3>
-                <p class="text-gray-500 text-sm leading-7">برای ملحفه، روبالشی، حوله و اقلام پارچه‌ای بزرگ، شست‌وشوی کامل و آماده‌سازی برای استفاده مجدد انجام می‌شود.</p>
-            </div>
-
-            <div class="panel card-hover enter rounded-2xl p-6" style="animation-delay:300ms">
-                <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6 5h12M6 9h12M6 13h8M6 17h12"/></svg>
-                </div>
-                <h3 class="font-black mb-2">بسته‌بندی و آماده‌سازی</h3>
-                <p class="text-gray-500 text-sm leading-7">پس از پایان کار، لباس‌ها بررسی و مرتب می‌شوند و برای تحویل حضوری یا ارسال با پیک به شکل منظم آماده می‌گردند.</p>
-            </div>
-        </div>
-
-        {% if categories %}
-        <div class="panel rounded-3xl p-6 sm:p-8">
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
                 <div>
-                    <h3 class="text-lg sm:text-xl font-black mb-1.5">دسته‌بندی خدمات و قیمت‌ها</h3>
-                    <p class="text-gray-500 text-sm">برای دیدن اقلام هر دسته و قیمت دقیق، دسته موردنظر را انتخاب کنید.</p>
+                    <h3 class="font-bold mb-0.5">{{ category.name }}</h3>
+                    <p class="text-gray-500 text-xs">{{ category.items.count }} خدمت · مشاهده قیمت‌ها</p>
                 </div>
-                <a href="{% url 'pricing' %}" class="btn-motion inline-flex items-center justify-center gap-2 bg-gray-950 text-white font-bold text-xs px-5 py-3 rounded-xl">مشاهده لیست کامل قیمت‌ها ←</a>
-            </div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {% for category in categories %}
-                <a href="{% url 'pricing' %}" class="rounded-xl border border-gray-100 bg-gray-50/70 hover:bg-white hover:border-cyan-200 p-4 transition-all">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <h4 class="font-bold text-sm mb-1">{{ category.name }}</h4>
-                            <p class="text-gray-500 text-xs">{{ category.items.count }} خدمت در این دسته</p>
-                        </div>
-                        <span class="text-cyan-600 font-black">←</span>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
+            </a>
+            {% endfor %}
         </div>
-        {% endif %}
     </section>
+    {% endif %}
 
     <section class="max-w-6xl mx-auto px-5 mb-20">
         <div class="text-center mb-10">
@@ -1019,70 +902,7 @@
         </div>
     </footer>
 
-
-
-    <!-- انتخاب نوع ورود -->
-    <div id="login-chooser" class="fixed inset-0 z-[100] hidden items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="login-chooser-title">
-        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onclick="closeLoginChooser()"></div>
-        <div id="login-chooser-card" class="relative w-full max-w-lg bg-white rounded-3xl border border-white/60 shadow-2xl p-6 sm:p-8 enter">
-            <button type="button" onclick="closeLoginChooser()" aria-label="بستن" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-xl transition">×</button>
-
-            <div class="text-center mb-7 pt-2">
-                <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center shadow-lg shadow-cyan-500/20 mb-4">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M15 7a4 4 0 10-6 3.46V13h6v-2.54A4 4 0 0015 7zM8 13v7h8v-7M10 17h4"/>
-                    </svg>
-                </div>
-                <h2 id="login-chooser-title" class="text-xl sm:text-2xl font-black text-gray-900">برای ورود، نوع حساب را انتخاب کنید</h2>
-                <p class="text-xs sm:text-sm text-gray-500 mt-2">اگر مشتری هستید فاکتور خود را پیگیری کنید؛ اگر مدیر هستید وارد پنل مدیریت شوید.</p>
-            </div>
-
-            <div class="grid sm:grid-cols-2 gap-4">
-                <a href="/customer-login/" class="group rounded-2xl border-2 border-gray-100 hover:border-cyan-300 bg-gray-50 hover:bg-cyan-50/50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-                    <div class="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M20 21a8 8 0 10-16 0m8-10a4 4 0 100-8 4 4 0 000 8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-gray-900 mb-1">ورود مشتری</h3>
-                    <p class="text-xs leading-6 text-gray-500">با شماره موبایل و شماره فاکتور، سفارش خود را ببینید و پیگیری کنید.</p>
-                    <span class="inline-flex items-center gap-1 mt-4 text-xs font-extrabold text-cyan-700">ادامه <span>←</span></span>
-                </a>
-
-                <a href="/panel/login/" class="group rounded-2xl border-2 border-gray-100 hover:border-violet-300 bg-gray-50 hover:bg-violet-50/50 p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-                    <div class="w-12 h-12 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6zm7 0a7 7 0 01-14 0m14 0V9a7 7 0 00-14 0v6"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-gray-900 mb-1">ورود مدیریت</h3>
-                    <p class="text-xs leading-6 text-gray-500">ورود امن مدیر با نام کاربری و رمز عبور برای دسترسی به پنل مدیریت.</p>
-                    <span class="inline-flex items-center gap-1 mt-4 text-xs font-extrabold text-violet-700">ورود به پنل <span>←</span></span>
-                </a>
-            </div>
-
-            <p class="text-center text-[10px] text-gray-400 mt-6">انتخاب کنید تا به صفحه ورود مربوط منتقل شوید.</p>
-        </div>
-    </div>
     <script>
-        function openLoginChooser(){
-            var modal = document.getElementById('login-chooser');
-            if (!modal) return;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.classList.add('overflow-hidden');
-        }
-        function closeLoginChooser(){
-            var modal = document.getElementById('login-chooser');
-            if (!modal) return;
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.classList.remove('overflow-hidden');
-        }
-        document.addEventListener('keydown', function(e){
-            if (e.key === 'Escape') closeLoginChooser();
-        });
-
         var courierMaps = {};
         var courierMarkers = {};
 
@@ -1296,12 +1116,10 @@
 
             if (cart[itemId]){
                 var name = cardEl.dataset.name + (checked ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
-                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: cart[itemId].qty, description: cart[itemId].description || '' };
+                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: cart[itemId].qty };
                 updateCartUI();
             }
         }
-
-        function updateItemDescription(itemId, value){ if (!cart[itemId]) return; cart[itemId].description = value || ''; }
 
         function changeQty(itemId, delta){
             var cardEl = document.getElementById('item-card-' + itemId);
@@ -1315,12 +1133,11 @@
             if (next === 0){
                 delete cart[itemId];
             } else {
-                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: next, description: cart[itemId] ? (cart[itemId].description || '') : '' };
+                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: next };
             }
             var qtyEl = document.getElementById('qty-' + itemId);
             if (qtyEl) qtyEl.textContent = next;
             cardEl.classList.toggle('selected', next > 0);
-            var noteWrap = document.getElementById('item-note-wrap-' + itemId); if (noteWrap) noteWrap.classList.toggle('hidden', next <= 0);
             updateCartUI();
         }
 
@@ -1344,7 +1161,7 @@
                     name: cart[id].name,
                     price_raw: cart[id].priceRaw,
                     price_numeric: cart[id].price,
-                    quantity: cart[id].qty, description: cart[id].description || ''
+                    quantity: cart[id].qty
                 };
             });
             if (items.length === 0){ flashInvalid(document.getElementById('item-grid'), 'لطفاً حداقل یک قلم لباس انتخاب کنید.'); return; }
@@ -1403,9 +1220,12 @@
                 if (activeBtn) positionDeliveryIndicator(orderId, activeBtn);
             });
             
-            // After login, always keep the customer at the top of the page.
-            // Tracking is opened only when the customer explicitly clicks «پیگیری».
-            window.scrollTo(0, 0);
+            {% if orders or phone %}
+            var trackSection = document.getElementById('track-section');
+            if(trackSection) {
+                trackSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            {% endif %}
         });
 
         window.addEventListener('resize', function(){

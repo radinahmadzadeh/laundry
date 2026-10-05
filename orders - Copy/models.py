@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 import jdatetime
 from datetime import date
 
@@ -62,7 +62,6 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     item_name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, default='', verbose_name='توضیحات لباس')
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=0, default=0)
 
@@ -136,4 +135,3 @@ class ShopSettings(models.Model):
 
     def __str__(self):
         return self.name
-

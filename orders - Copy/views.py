@@ -1,62 +1,30 @@
-﻿import json
+import json
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib import messages
 from .models import Order, OrderItem, Customer, ShopSettings, PriceCategory
 
 def home(request):
-    customer_id = request.session.get('customer_id')
-    customer_logged_in = bool(request.session.get('customer_logged_in') and customer_id)
-    phone_number = None
+    phone_number = request.GET.get('phone')
     order_id = request.GET.get('order_id')
     orders = None
 
-    if customer_logged_in:
-        customer = Customer.objects.filter(id=customer_id).first()
-        if customer:
-            phone_number = customer.phone
-            if order_id and str(order_id).isdigit():
-                orders = Order.objects.filter(customer=customer, id=int(order_id))
-            else:
-                orders = Order.objects.filter(customer=customer).order_by('-created_at')[:20]
-        else:
-            request.session.pop('customer_id', None)
-            request.session.pop('customer_logged_in', None)
-            customer_logged_in = False
+    if phone_number and order_id:
+        orders = Order.objects.filter(customer__phone=phone_number, id=order_id)
 
     shop = ShopSettings.load()
     categories = list(PriceCategory.objects.prefetch_related('items').all())
+    
     return render(request, 'home.html', {
         'orders': orders,
         'phone': phone_number,
-        'customer_logged_in': customer_logged_in,
         'shop_name': shop.name,
         'shop_tagline': shop.tagline,
         'shop_phone': shop.phone,
         'shop_address': shop.address,
         'categories': categories,
     })
-
-def customer_login(request):
-    error = None
-    if request.method == 'POST':
-        phone = request.POST.get('phone', '').strip()
-        order_id = request.POST.get('order_id', '').strip()
-        if phone and order_id.isdigit():
-            order = Order.objects.filter(id=int(order_id), customer__phone=phone).first()
-            if order:
-                request.session['customer_id'] = order.customer_id
-                request.session['customer_logged_in'] = True
-                return redirect("home")
-        error = 'شماره موبایل یا شماره فاکتور صحیح نیست.'
-    return render(request, 'customer_login.html', {'error': error})
-
-def customer_logout(request):
-    request.session.pop('customer_id', None)
-    request.session.pop('customer_logged_in', None)
-    return redirect('home')
 
 def print_receipt(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -213,13 +181,6 @@ def place_order(request):
     اگه قیمت بعضی اقلام متنی/غیرعددی باشه (price_numeric خالی)، قیمت آیتم صفر ثبت می‌شه
     تا بعداً از پنل ادمین توسط شما اصلاح بشه.
     """
-    if not request.session.get('customer_logged_in') or not request.session.get('customer_id'):
-        return JsonResponse({'status': 'error', 'message': 'برای ثبت سفارش ابتدا وارد حساب مشتری شوید.'}, status=403)
-
-    logged_customer = Customer.objects.filter(id=request.session.get('customer_id')).first()
-    if not logged_customer:
-        return JsonResponse({'status': 'error', 'message': 'حساب مشتری معتبر نیست؛ دوباره وارد شوید.'}, status=403)
-
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'درخواست نامعتبر است.'})
 
@@ -237,7 +198,14 @@ def place_order(request):
             return JsonResponse({'status': 'error', 'message': 'حداقل یک قلم لباس انتخاب کنید.'})
 
         # پیدا کردن یا ساختن مشتری بر اساس شماره موبایل
-        customer = logged_customer
+        customer, created = Customer.objects.get_or_create(
+            phone=phone,
+            defaults={'name': name},
+        )
+        if not created and name and customer.name != name:
+            customer.name = name
+            customer.save()
+
         order = Order.objects.create(customer=customer)
 
         if delivery_method == 'courier':
@@ -262,7 +230,6 @@ def place_order(request):
                 item_name=item.get('name', '')[:100],
                 quantity=quantity,
                 price=price,
-                description=(item.get('description') or '').strip()[:2000],
             )
 
         order.refresh_from_db()
