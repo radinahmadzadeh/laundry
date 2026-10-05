@@ -113,10 +113,10 @@ class PriceItem(models.Model):
 
 
 class ShopSettings(models.Model):
-    name = models.CharField(max_length=100, default='نام خشکشویی', verbose_name='نام فروشگاه')
-    tagline = models.CharField(max_length=150, blank=True, default='خدمات خشکشویی و سفیدشویی پریمیوم', verbose_name='تگ‌لاین')
-    phone = models.CharField(max_length=20, blank=True, verbose_name='شماره تماس')
-    address = models.TextField(blank=True, verbose_name='آدرس')
+    name = models.CharField(max_length=100, default='خشکشویی و سفید شویی آرین', verbose_name='نام فروشگاه')
+    tagline = models.CharField(max_length=150, blank=True, default='خشکشویی و سفید شویی آرین', verbose_name='تگ‌لاین')
+    phone = models.CharField(max_length=20, blank=True, default='۰۹۱۲-۳۲۷۷۸۸۱', verbose_name='شماره تماس')
+    address = models.TextField(blank=True, default='تهران، بلوار فردوس غرب، بهار جنوبی (تقوی)، نبش کوچه وحید شرقی، پلاک ۵۲', verbose_name='آدرس')
 
     class Meta:
         verbose_name = 'تنظیمات فروشگاه'

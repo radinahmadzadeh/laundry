@@ -102,7 +102,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
-PWA_APP_NAME = 'Laundry tracker'
+PWA_APP_NAME = 'خشکشویی و سفید شویی آرین'
 PWA_APP_DESCRIPTION = 'پیگیری سفارشات خشکشویی'
 PWA_APP_THEME_COLOR = '#070b12'
 PWA_APP_BACKGROUND_COLOR = '#070b12'

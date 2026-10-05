@@ -5,7 +5,7 @@
     {% progressive_web_app_meta %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ shop_name|default:"خشکشویی" }} | خشکشویی و اتوشویی آنلاین</title>
+    <title>{{ shop_name|default:"خشکشویی و سفید شویی آرین" }} | خشکشویی و سفیدشویی آرین</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -457,7 +457,7 @@
             <div id="section-pickup-neworder" class="method-panel">
                 <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">{{ shop_address|default:"آدرس فروشگاه در تنظیمات ثبت نشده است." }}</p>
                 <div class="map-frame w-full h-40 sm:h-56 rounded-xl overflow-hidden">
-                    <iframe src="https://maps.google.com/maps?q=تهران،%20پاسداران،%20خیابان%20وفامنش،%20خیابان%20مفتوحی%20شرقی،%20پلاک%2034&t=&z=16&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    <iframe src="https://maps.google.com/maps?q=35.7262837,51.2922665&t=&z=17&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                 </div>
             </div>
 
@@ -631,7 +631,7 @@
                                         <div id="section-pickup-{{ order.id }}" class="method-panel">
                                             <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">{{ shop_address|default:"آدرس فروشگاه در تنظیمات ثبت نشده است." }}</p>
                                             <div class="map-frame w-full h-48 sm:h-64 rounded-xl overflow-hidden">
-                                                <iframe src="https://maps.google.com/maps?q=تهران،%20پاسداران،%20خیابان%20وفامنش،%20خیابان%20مفتوحی%20شرقی،%20پلاک%2034&t=&z=16&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                                                <iframe src="https://maps.google.com/maps?q=35.7262837,51.2922665&t=&z=17&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                                             </div>
                                         </div>
 
@@ -1137,7 +1137,7 @@
                     setTimeout(function(){
                         var mapEl = document.getElementById('interactive-map-' + orderId);
                         if (!mapEl) return;
-                        var map = L.map('interactive-map-' + orderId).setView([35.7634, 51.4720], 13);
+                        var map = L.map('interactive-map-' + orderId).setView([35.7262837, 51.2922665], 16);
                         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
                             attribution: '© OpenStreetMap © CARTO',
                             subdomains: 'abcd',
