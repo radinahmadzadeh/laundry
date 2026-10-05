@@ -10,6 +10,7 @@ def home(request):
     customer_id = request.session.get('customer_id')
     customer_logged_in = bool(request.session.get('customer_logged_in') and customer_id)
     phone_number = None
+    customer_name = None
     order_id = request.GET.get('order_id')
     orders = None
 
@@ -17,6 +18,7 @@ def home(request):
         customer = Customer.objects.filter(id=customer_id).first()
         if customer:
             phone_number = customer.phone
+            customer_name = customer.name
             if order_id and str(order_id).isdigit():
                 orders = Order.objects.filter(customer=customer, id=int(order_id))
             else:
@@ -31,6 +33,7 @@ def home(request):
     return render(request, 'home.html', {
         'orders': orders,
         'phone': phone_number,
+        'customer_name': customer_name,
         'customer_logged_in': customer_logged_in,
         'shop_name': shop.name,
         'shop_tagline': shop.tagline,

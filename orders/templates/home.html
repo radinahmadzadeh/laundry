@@ -228,6 +228,10 @@
             line-height:1;
         }
         .header-actions .customer-status{ height:40px; padding:0 7px; }
+        .welcome-card{ position:relative; overflow:hidden; background:linear-gradient(135deg, rgba(255,255,255,.96), rgba(240,253,250,.92)); border:1px solid rgba(8,145,178,.14); box-shadow:0 22px 55px -35px rgba(8,145,178,.45); }
+        .welcome-card::before{ content:''; position:absolute; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle, rgba(73,224,214,.22), transparent 68%); top:-80px; left:-35px; }
+        .welcome-card::after{ content:''; position:absolute; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle, rgba(155,140,251,.18), transparent 68%); bottom:-80px; right:-30px; }
+        .welcome-name{ background:linear-gradient(90deg, var(--cyan), var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
         @media (max-width:640px){
             .site-header-inner{ min-height:62px; }
             .header-actions{ gap:5px; }
@@ -272,10 +276,25 @@
         <div class="bubble float-blob" style="width:70px;height:70px;top:60%;right:14%;animation-delay:1.5s;"></div>
         <div class="bubble float-blob" style="width:50px;height:50px;top:25%;left:8%;animation-delay:.8s;"></div>
 
-        <div class="max-w-6xl mx-auto px-5 pt-16 pb-14 sm:pt-24 sm:pb-16 relative z-10 text-center">
+        <div class="max-w-6xl mx-auto px-5 pt-12 pb-14 sm:pt-20 sm:pb-16 relative z-10 text-center">
+            {% if customer_logged_in and customer_name %}
+            <div class="welcome-card enter max-w-xl mx-auto mb-7 rounded-2xl px-5 py-4 sm:px-6 sm:py-4 text-right" style="animation-delay:40ms">
+                <div class="relative z-10 flex items-center gap-3">
+                    <div class="w-11 h-11 shrink-0 rounded-xl bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center shadow-sm">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 12.5A7.5 7.5 0 0112.5 5 7.5 7.5 0 0120 12.5 7.5 7.5 0 0112.5 20 7.5 7.5 0 015 12.5z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9.5 11.5a3 3 0 116 0v.5a3 3 0 01-6 0v-.5z"/></svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-bold text-gray-400 mb-0.5">خوش آمدید</p>
+                        <p class="text-base sm:text-lg font-black text-gray-900 truncate">خوش اومدی، <span class="welcome-name">{{ customer_name }}</span></p>
+                    </div>
+                    <span class="mr-auto w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-300"></span>
+                </div>
+            </div>
+            {% else %}
             <span class="enter inline-block bg-cyan-50 text-cyan-700 border border-cyan-200 text-xs font-bold px-4 py-1.5 rounded-full mb-5">
                 خشکشویی آنلاین با کیفیت هتلی
             </span>
+            {% endif %}
             <h1 class="enter text-3xl sm:text-5xl font-black leading-tight max-w-3xl mx-auto mb-5" style="animation-delay:80ms">
                 لباس‌هایتان را با اطمینان بسپارید،
                 <span class="text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">تمیز، خوش‌بو و اتو شده</span>
