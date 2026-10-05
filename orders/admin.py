@@ -1,12 +1,24 @@
 from django.contrib import admin
 from django.utils.html import format_html
 import urllib.parse
-from .models import Customer, Order, OrderItem, PriceCategory, PriceItem, ShopSettings
+from .models import Customer, Order, OrderItem, PriceCategory, PriceItem, ShopSettings, Wallet, WalletTransaction
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('name', 'phone')
     search_fields = ('name', 'phone')
+
+@admin.register(Wallet)
+class WalletAdmin(admin.ModelAdmin):
+    list_display = ('customer', 'balance', 'updated_at')
+    search_fields = ('customer__name', 'customer__phone')
+
+@admin.register(WalletTransaction)
+class WalletTransactionAdmin(admin.ModelAdmin):
+    list_display = ('wallet', 'transaction_type', 'amount', 'description', 'order', 'reference_id', 'created_at')
+    list_filter = ('transaction_type',)
+    search_fields = ('wallet__customer__name', 'wallet__customer__phone', 'reference_id')
+    readonly_fields = ('created_at',)
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem

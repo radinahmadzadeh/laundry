@@ -4,7 +4,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from .models import Order, OrderItem, Customer, ShopSettings, PriceCategory
+from django.db import transaction
+from .models import Order, OrderItem, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 
 def home(request):
     customer_id = request.session.get('customer_id')
@@ -13,12 +14,14 @@ def home(request):
     customer_name = None
     order_id = request.GET.get('order_id')
     orders = None
+    wallet = None
 
     if customer_logged_in:
         customer = Customer.objects.filter(id=customer_id).first()
         if customer:
             phone_number = customer.phone
             customer_name = customer.name
+            wallet, _ = Wallet.objects.get_or_create(customer=customer)
             if order_id and str(order_id).isdigit():
                 orders = Order.objects.filter(customer=customer, id=int(order_id))
             else:
@@ -40,7 +43,134 @@ def home(request):
         'shop_phone': shop.phone,
         'shop_address': shop.address,
         'categories': categories,
+        'wallet': wallet,
     })
+
+def wallet_page(request):
+    customer_id = request.session.get('customer_id')
+    if not request.session.get('customer_logged_in') or not customer_id:
+        return redirect('customer_login')
+    customer = get_object_or_404(Customer, id=customer_id)
+    wallet, _ = Wallet.objects.get_or_create(customer=customer)
+    transactions = wallet.transactions.select_related('order')[:30]
+    return render(request, 'wallet.html', {'wallet': wallet, 'transactions': transactions, 'customer': customer})
+
+
+def wallet_pay_order(request, order_id):
+    customer_id = request.session.get('customer_id')
+    if not request.session.get('customer_logged_in') or not customer_id:
+        return redirect('customer_login')
+    if request.method != 'GET':
+        return redirect('home')
+
+    order = get_object_or_404(Order, id=order_id, customer_id=customer_id)
+    if order.is_paid:
+        messages.info(request, 'این فاکتور قبلاً پرداخت شده است.')
+        return redirect('home')
+    if order.total_price <= 0:
+        messages.error(request, 'مبلغ این فاکتور برای پرداخت با کیف پول معتبر نیست.')
+        return redirect('home')
+
+    with transaction.atomic():
+        wallet, _ = Wallet.objects.select_for_update().get_or_create(customer_id=customer_id)
+        if wallet.balance < order.total_price:
+            messages.error(request, f'موجودی کیف پول کافی نیست. موجودی فعلی: {wallet.balance:,} تومان')
+            return redirect('home')
+        wallet.balance -= order.total_price
+        wallet.save(update_fields=['balance', 'updated_at'])
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            transaction_type='debit',
+            amount=order.total_price,
+            description=f'پرداخت فاکتور شماره {order.id}',
+            order=order,
+        )
+        order.is_paid = True
+        order.save(update_fields=['is_paid'])
+
+    messages.success(request, f'فاکتور شماره {order.id} با موفقیت از کیف پول پرداخت شد.')
+    return redirect('home')
+
+
+def recharge_wallet(request):
+    customer_id = request.session.get('customer_id')
+    if not request.session.get('customer_logged_in') or not customer_id:
+        return redirect('customer_login')
+    if request.method != 'POST':
+        return redirect('wallet')
+    try:
+        amount = int(request.POST.get('amount', '0').replace(',', '').strip())
+    except (TypeError, ValueError):
+        amount = 0
+    if amount < 10000:
+        messages.error(request, 'حداقل مبلغ شارژ کیف پول ۱۰٬۰۰۰ تومان است.')
+        return redirect('wallet')
+
+    customer = get_object_or_404(Customer, id=customer_id)
+    wallet, _ = Wallet.objects.get_or_create(customer=customer)
+    transaction_obj = WalletTransaction.objects.create(
+        wallet=wallet, transaction_type='credit', amount=amount,
+        description='شارژ کیف پول از طریق درگاه'
+    )
+    shop = ShopSettings.load()
+    data = {
+        'merchant_id': MERCHANT,
+        'amount': amount * 10,
+        'description': f'شارژ کیف پول {customer.name} - {shop.name}',
+        'callback_url': request.build_absolute_uri(f'/wallet/verify/?transaction_id={transaction_obj.id}'),
+    }
+    try:
+        response = requests.post(ZP_API_REQUEST, json=data, headers={'accept': 'application/json'}, timeout=15)
+        response_json = response.json() if response.content else {}
+        if response.status_code == 200 and response_json.get('data', {}).get('code') == 100:
+            authority = response_json['data']['authority']
+            transaction_obj.authority = authority
+            transaction_obj.save(update_fields=['authority'])
+            return redirect(ZP_API_STARTPAY.format(authority=authority))
+        transaction_obj.delete()
+        error_code = response_json.get('errors', {}).get('code', 'نامشخص')
+        messages.error(request, f'ایجاد تراکنش شارژ کیف پول ناموفق بود. کد درگاه: {error_code}')
+    except requests.exceptions.RequestException:
+        transaction_obj.delete()
+        messages.error(request, 'ارتباط با درگاه پرداخت برقرار نشد.')
+    return redirect('wallet')
+
+
+def verify_wallet(request):
+    transaction_id = request.GET.get('transaction_id')
+    authority = request.GET.get('Authority')
+    status = request.GET.get('Status')
+    if not transaction_id or not authority:
+        return HttpResponse('اطلاعات تراکنش کیف پول نامعتبر است.')
+    customer_id = request.session.get('customer_id')
+    transaction_obj = get_object_or_404(
+        WalletTransaction,
+        id=transaction_id,
+        authority=authority,
+        transaction_type='credit',
+        wallet__customer_id=customer_id,
+    )
+    if status != 'OK':
+        return redirect('wallet')
+    amount = int(transaction_obj.amount) * 10
+    data = {'merchant_id': MERCHANT, 'amount': amount, 'authority': authority}
+    try:
+        response = requests.post(ZP_API_VERIFY, json=data, headers={'accept': 'application/json'}, timeout=15)
+        response_json = response.json() if response.content else {}
+        code = response_json.get('data', {}).get('code')
+        if response.status_code == 200 and code in (100, 101):
+            ref_id = str(response_json.get('data', {}).get('ref_id', ''))
+            with transaction.atomic():
+                locked_wallet = Wallet.objects.select_for_update().get(pk=transaction_obj.wallet_id)
+                if not transaction_obj.reference_id:
+                    locked_wallet.balance += transaction_obj.amount
+                    locked_wallet.save(update_fields=['balance', 'updated_at'])
+                    transaction_obj.reference_id = ref_id or 'verified'
+                    transaction_obj.save(update_fields=['reference_id'])
+            return redirect('wallet')
+    except requests.exceptions.RequestException:
+        pass
+    return HttpResponse('شارژ کیف پول تایید نشد. در صورت کسر وجه، لطفاً با پشتیبانی تماس بگیرید.')
 
 def customer_login(request):
     error = None
@@ -157,6 +287,14 @@ def verify(request):
     else:
         return HttpResponse("<div style='font-family:Tahoma; text-align:center; margin-top:50px; color:red;'><h1>پرداخت توسط شما لغو شد.</h1><button onclick='history.back()'>بازگشت</button></div>")
 
+def parse_price_value(raw):
+    if not raw:
+        return 0
+    fa_digits = '۰۱۲۳۴۵۶۷۸۹'
+    normalized = str(raw).translate(str.maketrans(fa_digits, '0123456789')).replace(',', '').replace('٬', '').strip()
+    return int(normalized) if normalized.isdigit() else 0
+
+
 PRICING_THEMES = [
     {'header_bg': 'bg-teal-50', 'header_text': 'text-teal-700', 'header_border': 'border-teal-200'},
     {'header_bg': 'bg-blue-50', 'header_text': 'text-blue-700', 'header_border': 'border-blue-200'},
@@ -184,7 +322,10 @@ def request_courier(request):
             lat = data.get('lat')
             lng = data.get('lng')
             postal = data.get('postal')
-            order = get_object_or_404(Order, id=order_id)
+            if not request.session.get('customer_logged_in') or not request.session.get('customer_id'):
+                return JsonResponse({'status': 'error', 'message': 'برای درخواست پیک ابتدا وارد حساب مشتری شوید.'}, status=403)
+
+            order = get_object_or_404(Order, id=order_id, customer_id=request.session.get('customer_id'))
             if order.courier_requested:
                 return JsonResponse({
                     'status': 'error',
@@ -257,12 +398,19 @@ def place_order(request):
             order.save()
 
         for item in items:
-            quantity = int(item.get('quantity') or 1)
-            price_numeric = item.get('price_numeric')
-            price = int(price_numeric) if price_numeric not in (None, '') else 0
+            quantity = max(1, int(item.get('quantity') or 1))
+            try:
+                price_item = PriceItem.objects.get(id=int(item.get('line_id')))
+            except (TypeError, ValueError, PriceItem.DoesNotExist):
+                order.delete()
+                return JsonResponse({'status': 'error', 'message': 'یکی از اقلام سفارش دیگر معتبر نیست؛ صفحه را تازه کنید و دوباره تلاش کنید.'})
+            iron_only = bool(item.get('iron_only'))
+            raw_price = price_item.iron_only_price if iron_only else price_item.dry_clean_price
+            price = parse_price_value(raw_price)
+            item_name = price_item.name + (' (فقط اتو)' if iron_only else ' (خشکشویی + اتو)')
             OrderItem.objects.create(
                 order=order,
-                item_name=item.get('name', '')[:100],
+                item_name=item_name[:100],
                 quantity=quantity,
                 price=price,
                 description=(item.get('description') or '').strip()[:2000],
@@ -270,10 +418,33 @@ def place_order(request):
 
         order.refresh_from_db()
 
+        paid_by_wallet = False
+        wallet_insufficient = False
+        if data.get('use_wallet') and order.total_price > 0:
+            with transaction.atomic():
+                wallet, _ = Wallet.objects.select_for_update().get_or_create(customer=logged_customer)
+                if wallet.balance >= order.total_price:
+                    wallet.balance -= order.total_price
+                    wallet.save(update_fields=['balance', 'updated_at'])
+                    WalletTransaction.objects.create(
+                        wallet=wallet,
+                        transaction_type='debit',
+                        amount=order.total_price,
+                        description=f'پرداخت فاکتور شماره {order.id}',
+                        order=order,
+                    )
+                    order.is_paid = True
+                    order.save(update_fields=['is_paid'])
+                    paid_by_wallet = True
+                else:
+                    wallet_insufficient = True
+
         return JsonResponse({
             'status': 'success',
             'order_id': order.id,
             'invoice_number': order.id,
+            'paid_by_wallet': paid_by_wallet,
+            'wallet_insufficient': wallet_insufficient,
         })
 
     except Exception as e:

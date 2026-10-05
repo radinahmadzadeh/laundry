@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from orders.models import (
     Customer,
+    Wallet,
     Order,
     OrderItem,
     PriceCategory,
@@ -221,7 +222,7 @@ def order_create(request):
 @staff_required
 def customers_list(request):
     q = request.GET.get('q', '').strip()
-    customers = Customer.objects.all().order_by('name')
+    customers = Customer.objects.select_related('wallet').all().order_by('name')
     if q:
         customers = customers.filter(Q(name__icontains=q) | Q(phone__icontains=q))
 
@@ -271,7 +272,7 @@ def price_item_create(request):
         dry = request.POST.get('dry_clean_price', '').strip()
         iron = request.POST.get('iron_only_price', '').strip()
 
-        if category_id and name and dry:
+        if category_id and name:
             category = get_object_or_404(PriceCategory, id=category_id)
             order = category.items.count()
             PriceItem.objects.create(
@@ -280,7 +281,7 @@ def price_item_create(request):
             )
             messages.success(request, 'قیمت جدید اضافه شد.')
         else:
-            messages.error(request, 'نام و قیمت خشکشویی الزامی است.')
+            messages.error(request, 'لطفاً نام لباس را وارد کنید.')
     return redirect('panel_pricing')
 
 

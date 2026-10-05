@@ -27,7 +27,7 @@
 <thead class="text-gray-400 border-b border-gray-100"><tr><th class="p-3 text-right">نوع لباس</th><th class="p-3 text-center">خشکشویی + اتو</th><th class="p-3 text-center">فقط اتو</th></tr></thead>
 <tbody>
 {% for item in category.items.all %}
-<tr class="border-b border-gray-50 last:border-0"><td class="p-3 font-bold">{{ item.name }}</td><td class="p-3 text-center font-bold whitespace-nowrap">{{ item.dry_clean_price }}</td><td class="p-3 text-center text-gray-500 whitespace-nowrap">{{ item.iron_only_price|default:"---" }}</td></tr>
+<tr class="border-b border-gray-50 last:border-0"><td class="p-3 font-bold">{{ item.name }}</td><td class="p-3 text-center font-bold whitespace-nowrap"><span class="money">{{ item.dry_clean_price }}</span></td><td class="p-3 text-center text-gray-500 whitespace-nowrap"><span class="money">{{ item.iron_only_price|default:"" }}</span></td></tr>
 {% empty %}<tr><td colspan="3" class="p-5 text-center text-gray-400">قیمتی ثبت نشده.</td></tr>{% endfor %}
 </tbody>
 </table>
@@ -38,4 +38,5 @@
 {% else %}<div class="panel rounded-2xl p-8 text-center text-gray-400">هنوز لیست قیمتی ثبت نشده است.</div>{% endif %}
 <p class="text-center text-xs text-gray-400 mt-6">تمامی قیمت‌ها به تومان می‌باشد.</p>
 </div>
+<script>document.querySelectorAll('.money').forEach(function(el){var d=String(el.textContent||'').replace(/[^0-9]/g,'');if(d)el.textContent=Number(d).toLocaleString('en-US')})</script>
 </body></html>

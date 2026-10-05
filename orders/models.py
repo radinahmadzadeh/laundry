@@ -6,8 +6,43 @@ class Customer(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, unique=True)
 
+    @property
+    def wallet_balance(self):
+        wallet = getattr(self, 'wallet', None)
+        return wallet.balance if wallet else 0
+
     def __str__(self):
         return self.name
+
+
+class Wallet(models.Model):
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE, related_name='wallet')
+    balance = models.DecimalField(max_digits=12, decimal_places=0, default=0, verbose_name='موجودی کیف پول')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"کیف پول {self.customer.name}"
+
+
+class WalletTransaction(models.Model):
+    TYPE_CHOICES = (
+        ('credit', 'شارژ'),
+        ('debit', 'پرداخت'),
+    )
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name='transactions')
+    transaction_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    amount = models.DecimalField(max_digits=12, decimal_places=0)
+    description = models.CharField(max_length=255, blank=True, default='')
+    order = models.ForeignKey('Order', null=True, blank=True, on_delete=models.SET_NULL, related_name='wallet_transactions')
+    authority = models.CharField(max_length=64, blank=True, default='', unique=True, null=True)
+    reference_id = models.CharField(max_length=100, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} {self.amount} تومان"
 
 class Order(models.Model):
     STATUS_CHOICES = (
@@ -99,7 +134,7 @@ class PriceCategory(models.Model):
 class PriceItem(models.Model):
     category = models.ForeignKey(PriceCategory, on_delete=models.CASCADE, related_name='items')
     name = models.CharField(max_length=100, verbose_name='نوع لباس')
-    dry_clean_price = models.CharField(max_length=30, verbose_name='خشکشویی + اتو', help_text='مثلاً 520,000 یا «۳ تا ۷ میلیون»')
+    dry_clean_price = models.CharField(max_length=30, blank=True, default='', verbose_name='خشکشویی + اتو', help_text='اگر قیمت مشخص نیست خالی بگذارید.')
     iron_only_price = models.CharField(max_length=30, null=True, blank=True, verbose_name='فقط اتو', help_text='خالی بگذارید یعنی ---')
     order = models.PositiveIntegerField(default=0, verbose_name='ترتیب نمایش')
 
@@ -116,7 +151,7 @@ class ShopSettings(models.Model):
     name = models.CharField(max_length=100, default='خشکشویی و سفید شویی آرین', verbose_name='نام فروشگاه')
     tagline = models.CharField(max_length=150, blank=True, default='خشکشویی و سفید شویی آرین', verbose_name='تگ‌لاین')
     phone = models.CharField(max_length=20, blank=True, default='۰۹۱۲-۳۲۷۷۸۸۱', verbose_name='شماره تماس')
-    address = models.TextField(blank=True, default='تهران، بلوار فردوس غرب، بهار جنوبی (تقوی)، نبش کوچه وحید شرقی، پلاک ۵۲', verbose_name='آدرس')
+    address = models.TextField(blank=True, default='تهران، ارم، بلوار فردوس غرب، خیابان بهار جنوبی', verbose_name='آدرس')
 
     class Meta:
         verbose_name = 'تنظیمات فروشگاه'
