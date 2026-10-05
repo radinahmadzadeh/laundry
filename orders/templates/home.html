@@ -298,6 +298,8 @@
         .welcome-card::before{ content:''; position:absolute; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle, rgba(73,224,214,.22), transparent 68%); top:-80px; left:-35px; }
         .welcome-card::after{ content:''; position:absolute; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle, rgba(155,140,251,.18), transparent 68%); bottom:-80px; right:-30px; }
         .welcome-name{ background:linear-gradient(90deg, var(--cyan), var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .wallet-nav{ transition:transform .2s ease, box-shadow .2s ease; }
+        .wallet-nav:hover{ transform:translateY(-1px); box-shadow:0 10px 22px -14px rgba(16,185,129,.5); }
         .item-section-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
         .item-section-title{ display:flex; align-items:center; gap:9px; min-width:0; }
         .item-section-dot{ width:7px; height:7px; border-radius:999px; background:linear-gradient(135deg,var(--cyan),var(--violet)); box-shadow:0 0 0 5px rgba(8,145,178,.07); flex:none; }
@@ -335,9 +337,11 @@
             </nav>
             <div class="header-actions flex items-center shrink-0">
                 {% if customer_logged_in %}
-                <span class="customer-status hidden lg:inline-flex items-center gap-1 text-[11px] font-bold text-gray-500">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> مشتری
-                </span>
+                <a href="{% url 'wallet' %}" class="wallet-nav btn-motion inline-flex items-center gap-1.5 whitespace-nowrap bg-emerald-50 border border-emerald-200 text-emerald-700 font-black text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5A2.5 2.5 0 015.5 5H20v14H5.5A2.5 2.5 0 013 16.5v-9Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 9h-4.25a2.25 2.25 0 1 0 0 4.5H20"/><circle cx="15.75" cy="11.25" r=".7" fill="currentColor" stroke="none"/></svg>
+                    کیف پول
+                    <span class="hidden sm:inline text-[10px] opacity-70">{{ wallet.balance|default:0 }} تومان</span>
+                </a>
                 <a href="#track-section" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-700 font-bold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg">پیگیری</a>
                 <a href="#order-section" class="btn-motion inline-flex items-center whitespace-nowrap bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg shadow-sm">ثبت سفارش</a>
                 <a href="/customer-logout/" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-500 font-bold text-[11px] px-2.5 sm:px-3 py-2 rounded-lg">خروج</a>
@@ -528,7 +532,7 @@
                                                     <span class="text-xs text-gray-400 font-light hidden sm:inline-block">({{ item.price }} تومان)</span>
                                                 </div>
                                                 <div class="flex items-center gap-4">
-                                                    <span class="text-xs text-[var(--cyan)] sm:hidden">{{ item.price }} تومان</span>
+                                                    <span class="text-xs text-[var(--cyan)] sm:hidden"><span class="money-value">{{ item.price }}</span> تومان</span>
                                                     <span class="font-bold text-gray-900 bg-white border border-gray-200 px-3 py-1 rounded-lg transition-transform duration-200 hover:scale-110">{{ item.quantity }} عدد</span>
                                                 </div>
                                             </li>
@@ -538,15 +542,15 @@
                                     <div class="border-t border-gray-200 pt-4 mt-2 space-y-3">
                                         <div class="flex justify-between items-center text-gray-500 text-sm">
                                             <span>جمع اقلام:</span>
-                                            <span>{{ order.subtotal_amount }} تومان</span>
+                                            <span><span class="money-value">{{ order.subtotal_amount }}</span> تومان</span>
                                         </div>
                                         <div class="flex justify-between items-center text-gray-500 text-sm">
                                             <span>مالیات (۱۰٪):</span>
-                                            <span>{{ order.tax_amount }} تومان</span>
+                                            <span><span class="money-value">{{ order.tax_amount }}</span> تومان</span>
                                         </div>
                                         <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 group">
                                             <span class="text-gray-700 font-medium">مبلغ نهایی پرداخت:</span>
-                                            <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block">{{ order.total_price }} <span class="text-sm font-light text-gray-400">تومان</span></span>
+                                            <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block"><span class="money-value">{{ order.total_price }}</span> <span class="text-sm font-light text-gray-400">تومان</span></span>
                                         </div>
                                     </div>
                                 </div>
@@ -659,23 +663,33 @@
                                     </div>
                                 {% endif %}
 
-                                <div class="flex gap-3 mt-4">
-                                    <a href="/receipt/{{ order.id }}/" target="_blank" class="btn-motion flex items-center justify-center gap-2 w-1/2 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 py-3.5 rounded-xl transition-all cursor-pointer hover:text-gray-900 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] group">
-                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                        فاکتور
+                                {% if not order.is_paid %}
+                                <div class="grid grid-cols-2 gap-3 mt-4">
+                                    <a href="/pay/{{ order.id }}/" class="btn-motion pay-glow flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/30 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
+                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                        پرداخت آنلاین
                                     </a>
+                                    <a href="{% url 'wallet_pay_order' order.id %}" class="btn-motion flex items-center justify-center gap-2 bg-gradient-to-l from-teal-500 to-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
+                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5A2.5 2.5 0 0 1 5.5 5H20v14H5.5A2.5 2.5 0 0 1 3 16.5v-9Z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 9h-4.25a2.25 2.25 0 1 0 0 4.5H20"/>
+                                            <circle cx="15.75" cy="11.25" r=".7" fill="currentColor" stroke="none"/>
+                                        </svg>
+                                        پرداخت با کیف پول
+                                    </a>
+                                </div>
+                                {% else %}
+                                <div class="mt-4 paid-glow flex items-center justify-center gap-2 w-full bg-green-50 border border-green-200 text-green-700 font-bold py-3.5 rounded-xl">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    پرداخت شده
+                                </div>
+                                {% endif %}
 
-                                    {% if not order.is_paid %}
-                                        <a href="/pay/{{ order.id }}/" class="btn-motion pay-glow flex items-center justify-center gap-2 w-1/2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/30 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
-                                            <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                            پرداخت آنلاین
-                                        </a>
-                                    {% else %}
-                                        <div class="paid-glow flex items-center justify-center gap-2 w-1/2 bg-green-50 border border-green-200 text-green-700 font-bold py-3.5 rounded-xl transition-transform duration-300 hover:scale-[1.02]">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                            پرداخت شده
-                                        </div>
-                                    {% endif %}
+                                <div class="mt-3">
+                                    <a href="/receipt/{{ order.id }}/" target="_blank" class="btn-motion flex items-center justify-center gap-2 w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 py-3 rounded-xl transition-all cursor-pointer hover:text-gray-900 group">
+                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        مشاهده فاکتور
+                                    </a>
                                 </div>
 
                             </div>
@@ -747,7 +761,7 @@
                                             <p class="font-black text-sm text-gray-900 truncate">{{ item.name }}</p>
                                             <div class="item-price-row" id="price-label-{{ item.id }}">
                                                 {% if item.dry_clean_price %}
-                                                    <span class="text-xs font-bold text-gray-500">{{ item.dry_clean_price }} تومان</span>
+                                                    <span class="text-xs font-bold text-gray-500"><span class="money-value">{{ item.dry_clean_price }}</span> تومان</span>
                                                 {% else %}
                                                     <span class="item-price-empty">قیمت در حال هماهنگی</span>
                                                 {% endif %}
@@ -759,7 +773,7 @@
                                     <label class="mt-3 flex items-center gap-2 text-[11px] text-gray-500 cursor-pointer select-none">
                                         <input type="checkbox" class="w-3.5 h-3.5 accent-[var(--cyan)]" onchange="toggleIronOnly('{{ item.id }}', this.checked)">
                                         <span>فقط اتو</span>
-                                        <span class="mr-auto text-[10px] font-bold text-gray-400">{{ item.iron_only_price }} تومان</span>
+                                        <span class="mr-auto text-[10px] font-bold text-gray-400"><span class="money-value">{{ item.iron_only_price }}</span> تومان</span>
                                     </label>
                                     {% endif %}
 
@@ -848,6 +862,14 @@
             </div>
 
             {% if customer_logged_in %}
+            <label class="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 cursor-pointer select-none">
+                <input type="checkbox" id="use-wallet" class="w-4 h-4 accent-emerald-600" checked>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-xs font-black text-emerald-800">اگر موجودی کافی باشد، از کیف پول پرداخت شود</span>
+                    <span class="block text-[10px] text-emerald-700/70 mt-0.5">موجودی فعلی: {{ wallet.balance|default:0 }} تومان</span>
+                </span>
+                <a href="{% url 'wallet' %}" onclick="event.stopPropagation()" class="text-[10px] font-black text-emerald-700 whitespace-nowrap">مدیریت کیف پول</a>
+            </label>
             <button type="button" id="submit-order-btn" onclick="submitOrder()"
                     class="btn-motion mt-6 w-full bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold py-4 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -1428,7 +1450,7 @@
                 } else {
                     var lineTotal = it.price * it.qty;
                     total += lineTotal;
-                    lineText = lineTotal.toLocaleString('fa-IR') + ' تومان';
+                    lineText = lineTotal.toLocaleString('en-US') + ' تومان';
                 }
                 html += '<li class="flex justify-between items-center text-sm">' +
                             '<span class="text-gray-600">' + it.name + ' × ' + it.qty + '</span>' +
@@ -1436,7 +1458,7 @@
                         '</li>';
             });
             listEl.innerHTML = html;
-            totalEl.textContent = (hasUnknown ? '~ ' : '') + total.toLocaleString('fa-IR') + ' تومان';
+            totalEl.textContent = (hasUnknown ? '~ ' : '') + total.toLocaleString('en-US') + ' تومان';
             if (noteEl) noteEl.classList.toggle('hidden', !hasUnknown);
         }
 
@@ -1450,7 +1472,7 @@
             var priceLabel = document.getElementById('price-label-' + itemId);
             if (!cardEl) return;
             var priceRaw = checked ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice;
-            if (priceLabel) priceLabel.textContent = priceRaw + ' تومان';
+            if (priceLabel) priceLabel.textContent = Number(parsePrice(priceRaw)).toLocaleString('en-US') + ' تومان';
 
             if (cart[itemId]){
                 var name = cardEl.dataset.name + (checked ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
@@ -1502,13 +1524,15 @@
                     name: cart[id].name,
                     price_raw: cart[id].priceRaw,
                     price_numeric: cart[id].price,
+                    iron_only: !!itemIronOnly[id],
                     quantity: cart[id].qty, description: cart[id].description || ''
                 };
             });
             if (items.length === 0){ flashInvalid(document.getElementById('item-grid'), 'لطفاً حداقل یک قلم لباس انتخاب کنید.'); return; }
 
             var courierActive = document.getElementById('btn-courier-neworder').classList.contains('active');
-            var payload = { name: name, phone: phone, items: items, delivery_method: courierActive ? 'courier' : 'pickup' };
+            var useWallet = document.getElementById('use-wallet') ? document.getElementById('use-wallet').checked : false;
+            var payload = { name: name, phone: phone, items: items, delivery_method: courierActive ? 'courier' : 'pickup', use_wallet: useWallet };
 
             if (courierActive){
                 var lat = document.getElementById('lat-neworder').value;
@@ -1533,8 +1557,9 @@
             .then(function(r){ return r.json(); })
             .then(function(data){
                 if (data.status === 'success'){
+                    var paymentText = data.paid_by_wallet ? ' — مبلغ سفارش از کیف پول پرداخت شد.' : (data.wallet_insufficient ? ' — موجودی کیف پول برای پرداخت کافی نبود؛ سفارش ثبت شد و می‌توانید بعداً پرداخت کنید.' : '');
                     document.getElementById('order-success-msg').textContent =
-                        'شماره فاکتور شما: ' + (data.invoice_number || data.order_id || '') + ' — با همین شماره فاکتور و موبایل می‌توانید سفارش را پیگیری کنید.';
+                        'شماره فاکتور شما: ' + (data.invoice_number || data.order_id || '') + ' — با همین شماره فاکتور و موبایل می‌توانید سفارش را پیگیری کنید.' + paymentText;
                     document.getElementById('order-form').querySelectorAll('button, input').forEach(function(el){ el.disabled = true; });
                     document.getElementById('order-success').classList.remove('hidden');
                     document.getElementById('order-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1550,6 +1575,13 @@
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
                 showToast('خطا در ارتباط با سرور. لطفاً اینترنت خود را بررسی کنید.');
+            });
+        }
+
+        function formatVisibleMoney(){
+            document.querySelectorAll('.money-value').forEach(function(el){
+                var raw = String(el.textContent || '').replace(/[^0-9]/g, '');
+                if (raw) el.textContent = Number(raw).toLocaleString('en-US');
             });
         }
 
