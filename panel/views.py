@@ -3,7 +3,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -222,19 +222,47 @@ def order_create(request):
 @staff_required
 def customers_list(request):
     q = request.GET.get('q', '').strip()
-    customers = Customer.objects.select_related('wallet').all().order_by('name')
+    customers = (
+        Customer.objects.select_related('wallet')
+        .annotate(order_count=Count('order', distinct=True), total_spent=Sum('order__total_price'))
+        .all().order_by('name')
+    )
     if q:
         customers = customers.filter(Q(name__icontains=q) | Q(phone__icontains=q))
 
-    context = {'active': 'customers', 'customers': customers, 'q': q}
+    customer_ids = customers.values('pk')
+    summary = Order.objects.filter(customer_id__in=customer_ids).aggregate(total_orders=Count('id'), total_spent=Sum('total_price'))
+    context = {
+        'active': 'customers',
+        'customers': customers,
+        'q': q,
+        'customer_count': customers.count(),
+        'active_count': customers.exclude(password_hash='').count(),
+        'total_orders': summary['total_orders'] or 0,
+        'total_spent': summary['total_spent'] or 0,
+    }
     return render(request, 'panel/customers_list.html', context)
 
 
 @staff_required
 def customer_detail(request, customer_id):
-    customer = get_object_or_404(Customer, id=customer_id)
+    customer = get_object_or_404(Customer.objects.select_related('wallet'), id=customer_id)
+    wallet, _ = Wallet.objects.get_or_create(customer=customer)
     orders = customer.order_set.order_by('-created_at')
-    context = {'active': 'customers', 'customer': customer, 'orders': orders}
+    wallet_transactions = wallet.transactions.select_related('order').all()
+    total_spent = orders.filter(is_paid=True).aggregate(total=Sum('total_price'))['total'] or 0
+    total_orders = orders.count()
+    paid_orders = orders.filter(is_paid=True).count()
+    context = {
+        'active': 'customers',
+        'customer': customer,
+        'wallet': wallet,
+        'orders': orders,
+        'wallet_transactions': wallet_transactions,
+        'total_spent': total_spent,
+        'total_orders': total_orders,
+        'paid_orders': paid_orders,
+    }
     return render(request, 'panel/customer_detail.html', context)
 
 

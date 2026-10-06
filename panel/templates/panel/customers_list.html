@@ -1,38 +1,47 @@
-{% extends 'panel/base.html' %}
 {% block title %}مشتریان | پنل مدیریت{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-black mb-6">مشتریان</h1>
-
-<form method="get" class="mb-5">
-    <input type="text" name="q" value="{{ q }}" placeholder="جستجو با نام یا شماره تماس..."
-           class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm w-full max-w-sm focus:outline-none">
-</form>
-
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+    <div>
+        <p class="text-xs font-bold text-cyan-300 mb-2">مدیریت ارتباط با مشتری</p>
+        <h1 class="text-2xl sm:text-3xl font-black text-white">مشتریان</h1>
+        <p class="text-xs text-gray-400 mt-2">اطلاعات حساب، کیف پول، سفارش‌ها و وضعیت هر مشتری را یکجا ببینید.</p>
+    </div>
+    <form method="get" class="flex gap-2 w-full lg:w-auto">
+        <input type="text" name="q" value="{{ q }}" placeholder="جستجو با نام یا شماره تماس..." class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm w-full lg:w-80 focus:outline-none">
+        <button class="px-5 py-2.5 rounded-xl btn-primary text-sm shrink-0">جستجو</button>
+    </form>
+</div>
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">تعداد مشتریان</p><p class="text-2xl font-black mt-1 text-white">{{ customer_count }}</p></div>
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">حساب‌های فعال</p><p class="text-2xl font-black mt-1 text-emerald-300">{{ active_count }}</p></div>
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">مجموع سفارش‌ها</p><p class="text-2xl font-black mt-1 text-cyan-300">{{ total_orders }}</p></div>
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">مجموع مبالغ سفارش</p><p class="text-sm font-black mt-2 text-violet-300"><span class="money-auto">{{ total_spent }}</span> تومان</p></div>
+</div>
 <div class="panel rounded-2xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+        <h2 class="font-black text-white">فهرست کامل مشتریان</h2>
+        <span class="text-[10px] text-gray-500">رمز عبور هرگز نمایش داده نمی‌شود</span>
+    </div>
     <div class="overflow-x-auto">
-        <table class="w-full text-sm text-right min-w-[620px]">
-            <thead class="text-gray-400 text-xs border-b border-white/10">
-                <tr><th class="p-3">نام</th><th class="p-3">شماره تماس</th><th class="p-3">موجودی کیف پول</th><th class="p-3"></th></tr>
+        <table class="w-full text-sm text-right min-w-[1080px]">
+            <thead class="text-gray-400 text-[11px] border-b border-white/10 bg-white/[0.02]">
+                <tr><th class="p-4">شناسه</th><th class="p-4">نام و نام‌خانوادگی</th><th class="p-4">شماره تماس</th><th class="p-4">حساب</th><th class="p-4">کیف پول</th><th class="p-4">سفارش‌ها</th><th class="p-4">مجموع سفارش‌ها</th><th class="p-4"></th></tr>
             </thead>
             <tbody>
                 {% for c in customers %}
-                <tr class="border-b border-white/5 hover:bg-white/5">
-                    <td class="p-3">{{ c.name }}</td>
-                    <td class="p-3 dir-ltr text-gray-400">{{ c.phone }}</td>
-                    <td class="p-3 font-black text-emerald-300"><span class="wallet-amount">{{ c.wallet.balance|default:0 }}</span> تومان</td>
-                    <td class="p-3"><a href="{% url 'panel_customer_detail' c.id %}" class="text-[var(--cyan)] text-xs font-bold hover:underline">مشاهده سفارشات</a></td>
+                <tr class="border-b border-white/5">
+                    <td class="p-4 text-gray-500">#{{ c.id }}</td>
+                    <td class="p-4 font-bold text-white">{{ c.name }}</td>
+                    <td class="p-4 dir-ltr text-gray-300">{{ c.phone }}</td>
+                    <td class="p-4">{% if c.password_hash %}<span class="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">فعال</span>{% else %}<span class="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/20">بدون رمز</span>{% endif %}</td>
+                    <td class="p-4 font-black text-emerald-300"><span class="money-auto">{{ c.wallet.balance|default:0 }}</span> تومان</td>
+                    <td class="p-4 text-cyan-300 font-bold">{{ c.order_count }}</td>
+                    <td class="p-4 text-gray-300"><span class="money-auto">{{ c.total_spent|default:0 }}</span> تومان</td>
+                    <td class="p-4"><a href="{% url 'panel_customer_detail' c.id %}" class="px-3 py-2 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold hover:bg-cyan-400/15 transition">جزئیات کامل</a></td>
                 </tr>
-                {% empty %}
-                <tr><td colspan="4" class="p-6 text-center text-gray-500">مشتری‌ای پیدا نشد.</td></tr>
-                {% endfor %}
+                {% empty %}<tr><td colspan="8" class="p-10 text-center text-gray-500">مشتری‌ای پیدا نشد.</td></tr>{% endfor %}
             </tbody>
         </table>
     </div>
 </div>
-<script>
-document.querySelectorAll('.wallet-amount').forEach(function(el){
-    var digits=String(el.textContent||'').replace(/[^0-9]/g,'');
-    if(digits) el.textContent=Number(digits).toLocaleString('en-US');
-});
-</script>
 {% endblock %}
