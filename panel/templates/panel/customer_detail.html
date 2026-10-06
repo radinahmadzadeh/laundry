@@ -20,6 +20,18 @@
     <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">مجموع پرداخت‌ها</p><p class="text-sm font-black text-violet-300 mt-3"><span class="money-auto">{{ total_spent }}</span> تومان</p></div>
 </div>
 
+<div class="panel rounded-2xl p-5 mb-5 motion-card">
+    <div class="flex items-center justify-between mb-4"><h2 class="font-black text-white">ویرایش اطلاعات مشتری</h2><span class="text-[10px] text-cyan-300">قابل ویرایش توسط مدیریت</span></div>
+    <form method="post" action="{% url 'panel_customer_update' customer.id %}" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        {% csrf_token %}
+        <label class="text-[10px] text-gray-500">نام و نام‌خانوادگی<input name="name" value="{{ customer.name }}" class="mt-1 w-full rounded-xl px-3 py-2"></label>
+        <label class="text-[10px] text-gray-500">شماره موبایل<input name="phone" value="{{ customer.phone }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+        <label class="text-[10px] text-gray-500">رمز عبور جدید<input name="password" type="password" placeholder="برای تغییر وارد کنید" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+        <label class="text-[10px] text-gray-500">موجودی کیف پول<input name="wallet_balance" value="{{ wallet.balance|default:0 }}" inputmode="numeric" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+        <button class="btn-primary rounded-xl px-5 py-3 text-xs font-black sm:col-span-2 xl:col-span-4">ذخیره تغییرات مشتری</button>
+    </form>
+</div>
+
 <div class="panel rounded-2xl p-5 mb-5">
     <div class="flex items-center justify-between mb-4"><h2 class="font-black text-white">اطلاعات کامل مشتری</h2><span class="text-[10px] text-gray-500">رمز عبور نمایش داده نمی‌شود</span></div>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">

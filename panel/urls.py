@@ -9,6 +9,8 @@ urlpatterns = [
     path('orders/', views.orders_list, name='panel_orders'),
     path('orders/new/', views.order_create, name='panel_order_create'),
     path('orders/<int:order_id>/', views.order_detail, name='panel_order_detail'),
+    path('orders/<int:order_id>/edit/', views.order_update, name='panel_order_update'),
+    path('orders/<int:order_id>/items/<int:item_id>/edit/', views.order_item_update, name='panel_order_item_update'),
     path('orders/<int:order_id>/status/', views.order_update_status, name='panel_order_status'),
     path('orders/<int:order_id>/paid/', views.order_toggle_paid, name='panel_order_toggle_paid'),
     path('orders/<int:order_id>/delete/', views.order_delete, name='panel_order_delete'),
@@ -16,6 +18,7 @@ urlpatterns = [
 
     path('customers/', views.customers_list, name='panel_customers'),
     path('customers/<int:customer_id>/', views.customer_detail, name='panel_customer_detail'),
+    path('customers/<int:customer_id>/edit/', views.customer_update, name='panel_customer_update'),
 
     path('pricing/', views.pricing_list, name='panel_pricing'),
     path('pricing/category/add/', views.price_category_create, name='panel_price_category_create'),

@@ -1,4 +1,4 @@
-﻿{% extends 'panel/base.html' %}
+{% extends 'panel/base.html' %}
 {% block title %}فاکتور #{{ order.id }} | پنل مدیریت{% endblock %}
 {% block content %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
@@ -14,9 +14,23 @@
 
 <div class="grid md:grid-cols-3 gap-5">
     <div class="md:col-span-2 space-y-5">
+        <div class="panel rounded-2xl p-5 motion-card">
+            <h2 class="font-bold text-sm mb-4">ویرایش اطلاعات سفارش</h2>
+            <form method="post" action="{% url 'panel_order_update' order.id %}" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {% csrf_token %}
+                <label class="text-[10px] text-gray-500">مشتری<select name="customer_id" class="mt-1 w-full rounded-xl px-3 py-2">{% for c in customers %}<option value="{{ c.id }}" {% if c.id == order.customer_id %}selected{% endif %}>{{ c.name }} — {{ c.phone }}</option>{% endfor %}</select></label>
+                <label class="text-[10px] text-gray-500">تاریخ تحویل<input type="date" name="delivery_date" value="{{ order.delivery_date|date:'Y-m-d' }}" class="mt-1 w-full rounded-xl px-3 py-2"></label>
+                <label class="text-[10px] text-gray-500">وضعیت<select name="status" class="mt-1 w-full rounded-xl px-3 py-2">{% for code,label in status_choices %}<option value="{{ code }}" {% if code == order.status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+                <label class="text-[10px] text-gray-500">کد پستی<input name="postal_code" value="{{ order.postal_code|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                <label class="text-[10px] text-gray-500">عرض جغرافیایی<input name="latitude" value="{{ order.latitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                <label class="text-[10px] text-gray-500">طول جغرافیایی<input name="longitude" value="{{ order.longitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                <div class="sm:col-span-2 flex flex-wrap gap-4 pt-2 text-xs"><label><input type="checkbox" name="is_paid" {% if order.is_paid %}checked{% endif %}> پرداخت شده</label><label><input type="checkbox" name="courier_requested" {% if order.courier_requested %}checked{% endif %}> درخواست پیک</label><label><input type="checkbox" name="courier_dispatched" {% if order.courier_dispatched %}checked{% endif %}> پیک ارسال شده</label></div>
+                <button class="btn-primary rounded-xl px-5 py-3 text-xs font-black sm:col-span-2">ذخیره تغییرات سفارش</button>
+            </form>
+        </div>
 
-        <div class="panel rounded-2xl p-5">
-            <h2 class="font-bold mb-4 text-sm">اقلام سفارش</h2>
+        <div class="panel rounded-2xl p-5 motion-card">
+            <div class="flex items-center justify-between mb-4"><h2 class="font-bold text-sm">اقلام سفارش</h2><span class="text-[10px] text-cyan-300">ویرایش مستقیم</span></div>
             <table class="w-full text-sm mb-4">
                 <thead class="text-gray-400 text-xs border-b border-white/10">
                     <tr><th class="p-2 text-right">شرح</th><th class="p-2 text-center">تعداد</th><th class="p-2 text-center">فی</th><th class="p-2"></th></tr>
@@ -24,14 +38,16 @@
                 <tbody>
                     {% for item in order.orderitem_set.all %}
                     <tr class="border-b border-white/5">
-                        <td class="p-2"><div>{{ item.item_name }}</div>{% if item.description %}<div class="text-[10px] text-gray-500 mt-1">{{ item.description }}</div>{% endif %}</td>
-                        <td class="p-2 text-center">{{ item.quantity }}</td>
-                        <td class="p-2 text-center"><span class="money-auto">{{ item.price }}</span></td>
-                        <td class="p-2 text-left">
-                            <form method="post" action="{% url 'panel_order_item_delete' order.id item.id %}" onsubmit="return confirm('این قلم حذف شود؟');">
-                                {% csrf_token %}
-                                <button class="text-red-400 text-xs hover:underline">حذف</button>
-                            </form>
+                        <td class="p-2">
+                            <input form="edit-item-{{ item.id }}" name="item_name" value="{{ item.item_name }}" class="w-full rounded-lg px-2 py-1.5 text-xs">
+                            <input form="edit-item-{{ item.id }}" name="description" value="{{ item.description }}" placeholder="توضیحات لباس" class="w-full rounded-lg px-2 py-1.5 text-xs mt-1">
+                        </td>
+                        <td class="p-2 text-center"><input form="edit-item-{{ item.id }}" name="quantity" type="number" min="1" value="{{ item.quantity }}" class="w-20 rounded-lg px-2 py-1.5 text-xs text-center"></td>
+                        <td class="p-2 text-center"><input form="edit-item-{{ item.id }}" name="price" value="{{ item.price }}" class="w-28 rounded-lg px-2 py-1.5 text-xs text-center dir-ltr"></td>
+                        <td class="p-2 text-left whitespace-nowrap">
+                            <form id="edit-item-{{ item.id }}" method="post" action="{% url 'panel_order_item_update' order.id item.id %}" class="inline">{% csrf_token %}</form>
+                            <button form="edit-item-{{ item.id }}" class="text-cyan-300 text-xs font-bold hover:underline">ذخیره</button>
+                            <form method="post" action="{% url 'panel_order_item_delete' order.id item.id %}" class="inline ml-2" onsubmit="return confirm('این قلم حذف شود؟');">{% csrf_token %}<button class="text-red-400 text-xs hover:underline">حذف</button></form>
                         </td>
                     </tr>
                     {% empty %}

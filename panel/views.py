@@ -111,6 +111,7 @@ def order_detail(request, order_id):
     context = {
         'active': 'orders',
         'order': order,
+        'customers': Customer.objects.order_by('name'),
         'status_choices': Order.STATUS_CHOICES,
         'price_items': PriceItem.objects.select_related('category').all(),
     }
@@ -264,6 +265,91 @@ def customer_detail(request, customer_id):
         'paid_orders': paid_orders,
     }
     return render(request, 'panel/customer_detail.html', context)
+
+
+@staff_required
+def customer_update(request, customer_id):
+    customer = get_object_or_404(Customer, id=customer_id)
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        phone = request.POST.get('phone', '').strip()
+        password = request.POST.get('password', '')
+        wallet_balance = request.POST.get('wallet_balance', '').strip()
+        if not name or len(name) < 2 or not phone:
+            messages.error(request, 'نام و شماره موبایل الزامی است.')
+            return redirect('panel_customer_detail', customer_id=customer.id)
+        if Customer.objects.exclude(id=customer.id).filter(phone=phone).exists():
+            messages.error(request, 'این شماره موبایل برای مشتری دیگری ثبت شده است.')
+            return redirect('panel_customer_detail', customer_id=customer.id)
+        customer.name, customer.phone = name, phone
+        if password:
+            from django.contrib.auth.hashers import make_password
+            customer.password_hash = make_password(password)
+        customer.save()
+        wallet, _ = Wallet.objects.get_or_create(customer=customer)
+        if wallet_balance:
+            try:
+                from decimal import Decimal
+                value = Decimal(wallet_balance.replace(',', '').replace('٬', '').strip())
+                if value < 0: raise ValueError
+                wallet.balance = value
+                wallet.save()
+            except Exception:
+                messages.error(request, 'موجودی کیف پول نامعتبر است.')
+                return redirect('panel_customer_detail', customer_id=customer.id)
+        messages.success(request, 'اطلاعات مشتری با موفقیت ویرایش شد.')
+    return redirect('panel_customer_detail', customer_id=customer.id)
+
+
+@staff_required
+def order_update(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == 'POST':
+        customer_id = request.POST.get('customer_id')
+        delivery_date = request.POST.get('delivery_date', '').strip()
+        if customer_id:
+            order.customer = get_object_or_404(Customer, id=customer_id)
+        if delivery_date:
+            try:
+                from datetime import datetime
+                order.delivery_date = datetime.strptime(delivery_date, '%Y-%m-%d').date()
+            except ValueError:
+                messages.error(request, 'تاریخ تحویل نامعتبر است.')
+                return redirect('panel_order_detail', order_id=order.id)
+        else:
+            order.delivery_date = None
+        status = request.POST.get('status')
+        if status in dict(Order.STATUS_CHOICES):
+            order.status = status
+        order.is_paid = request.POST.get('is_paid') == 'on'
+        order.courier_requested = request.POST.get('courier_requested') == 'on'
+        order.courier_dispatched = request.POST.get('courier_dispatched') == 'on'
+        order.postal_code = request.POST.get('postal_code', '').strip()
+        order.latitude = request.POST.get('latitude', '').strip()
+        order.longitude = request.POST.get('longitude', '').strip()
+        order.save()
+        messages.success(request, 'اطلاعات سفارش با موفقیت ویرایش شد.')
+    return redirect('panel_order_detail', order_id=order.id)
+
+
+@staff_required
+def order_item_update(request, order_id, item_id):
+    item = get_object_or_404(OrderItem, id=item_id, order_id=order_id)
+    if request.method == 'POST':
+        name = request.POST.get('item_name', '').strip()
+        description = request.POST.get('description', '').strip()
+        qty = request.POST.get('quantity', '').strip()
+        price = request.POST.get('price', '').strip().replace(',', '').replace('٬', '')
+        if name and qty.isdigit() and int(qty) > 0 and price.isdigit():
+            item.item_name = name
+            item.description = description
+            item.quantity = int(qty)
+            item.price = price
+            item.save()
+            messages.success(request, 'قلم سفارش ویرایش شد.')
+        else:
+            messages.error(request, 'نام، تعداد و قیمت قلم را درست وارد کنید.')
+    return redirect('panel_order_detail', order_id=order_id)
 
 
 @staff_required
