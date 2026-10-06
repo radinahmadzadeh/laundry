@@ -261,7 +261,8 @@
         .motion-card:hover svg{transform:translateY(-2px) scale(1.08) rotate(-3deg);}
         @media (prefers-reduced-motion:reduce){.motion-reveal,.motion-stagger > *{opacity:1;transform:none;filter:none;transition:none}.motion-card,.motion-card svg{transition:none}.motion-card:hover{transform:none}.motion-card:hover svg{transform:none}.gallery-track{animation:none}.gallery-item{transition:none}.gallery-item:hover{transform:none}.gallery-item:hover img{transform:none}}
 
-        .home-gallery{overflow:hidden;position:relative;border-radius:30px;padding:0;background:transparent;border:0;box-shadow:none;isolation:isolate;}
+        /* Anchor the oversized track on the left so repeated sets slide into view on this RTL page. */
+        .home-gallery{direction:ltr;overflow:hidden;position:relative;border-radius:30px;padding:0;background:transparent;border:0;box-shadow:none;isolation:isolate;}
         .home-gallery::before,.home-gallery::after{content:"";position:absolute;top:0;bottom:0;width:2.5%;z-index:4;pointer-events:none;}
         .home-gallery::before{right:0;background:linear-gradient(270deg,rgba(248,250,252,.28),transparent);}
         .home-gallery::after{left:0;background:linear-gradient(90deg,rgba(248,250,252,.28),transparent);}
