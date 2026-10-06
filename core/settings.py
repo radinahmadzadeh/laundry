@@ -19,6 +19,7 @@ SECRET_KEY = 'django-insecure-is+yv#ly&b*uy(%6_ocb$u^z_k+haq16*+9)3spw-vc6_#hr_l
 
 DEBUG = True
 ALLOWED_HOSTS = ['radinahmadzadeh.pythonanywhere.com', '127.0.0.1', 'localhost']
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 INSTALLED_APPS = [

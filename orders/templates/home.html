@@ -508,13 +508,11 @@
                     <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <h2 class="text-xl sm:text-2xl font-black">پیگیری سریع سفارش</h2>
-                <p class="text-gray-500 text-xs sm:text-sm mt-2">شماره موبایل و شماره فاکتوری که هنگام سفارش گرفتید را وارد کنید</p>
+                <p class="text-gray-500 text-xs sm:text-sm mt-2">{% if customer_logged_in %}شماره فاکتور سفارش را وارد کنید{% else %}برای پیگیری، ابتدا وارد حساب مشتری شوید{% endif %}</p>
             </div>
             <form method="GET" action="#track-section" class="flex flex-col sm:flex-row gap-3">
-                <input type="text" name="phone" value="{{ phone|default:'' }}" placeholder="شماره موبایل" required
-                       class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
                 <input type="number" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" required
-                       class="w-full sm:w-40 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                       class="w-full sm:flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
                 <button type="submit" class="btn-motion bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 whitespace-nowrap">
                     پیگیری کن
                 </button>
@@ -864,6 +862,7 @@
                 {% endfor %}
             </div>
 
+            {% if not customer_logged_in %}
             <!-- قدم ۲: مشخصات مشتری -->
             <div class="flex items-center gap-2 mt-8 mb-5">
                 <span class="step-num">۲</span>
@@ -875,7 +874,8 @@
                 <input type="tel" inputmode="numeric" id="order-phone" placeholder="شماره موبایل" required
                        class="fab-input bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200 text-center">
             </div>
-            <p class="text-[11px] text-gray-400 mt-2">اگه اولین باره سفارش می‌دید، با همین شماره یه حساب کاربری براتون ساخته می‌شه.</p>
+            <p class="text-[11px] text-gray-400 mt-2">برای ثبت سفارش، ابتدا حساب مشتری بسازید و وارد شوید.</p>
+            {% endif %}
 
             <!-- قدم ۳: روش دریافت -->
             <div class="flex items-center gap-2 mt-8 mb-5">
@@ -1569,11 +1569,12 @@
         function submitOrder(){
             var nameEl = document.getElementById('order-name');
             var phoneEl = document.getElementById('order-phone');
-            var name = nameEl.value.trim();
-            var phone = phoneEl.value.trim();
+            var loggedIn = {{ customer_logged_in|yesno:"true,false" }};
+            var name = loggedIn ? '' : (nameEl ? nameEl.value.trim() : '');
+            var phone = loggedIn ? '' : (phoneEl ? phoneEl.value.trim() : '');
 
-            if (!name){ flashInvalid(nameEl, 'لطفاً نام خود را وارد کنید.'); return; }
-            if (!phone || phone.length < 10){ flashInvalid(phoneEl, 'لطفاً شماره موبایل خود را به‌درستی وارد کنید.'); return; }
+            if (!loggedIn && !name){ flashInvalid(nameEl, 'لطفاً نام خود را وارد کنید.'); return; }
+            if (!loggedIn && (!phone || phone.length < 10)){ flashInvalid(phoneEl, 'لطفاً شماره موبایل خود را به‌درستی وارد کنید.'); return; }
 
             var items = Object.keys(cart).map(function(id){
                 return {

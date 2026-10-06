@@ -4,7 +4,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password, check_password
 from django.db import transaction
+import re
 from .models import Order, OrderItem, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 
 def home(request):
@@ -172,19 +174,68 @@ def verify_wallet(request):
         pass
     return HttpResponse('شارژ کیف پول تایید نشد. در صورت کسر وجه، لطفاً با پشتیبانی تماس بگیرید.')
 
+def normalize_phone(raw):
+    digits = str(raw or '').translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
+    digits = re.sub(r'\D', '', digits)
+    if digits.startswith('98'):
+        digits = '0' + digits[2:]
+    return digits
+
+def valid_password(password):
+    return (
+        len(password) >= 8
+        and bool(re.search(r'[A-Za-z]', password))
+        and bool(re.search(r'\d', password))
+        and bool(re.search(r'[^A-Za-z0-9]', password))
+    )
+
 def customer_login(request):
     error = None
     if request.method == 'POST':
-        phone = request.POST.get('phone', '').strip()
-        order_id = request.POST.get('order_id', '').strip()
-        if phone and order_id.isdigit():
-            order = Order.objects.filter(id=int(order_id), customer__phone=phone).first()
-            if order:
-                request.session['customer_id'] = order.customer_id
+        phone = normalize_phone(request.POST.get('phone'))
+        password = request.POST.get('password', '')
+        if len(phone) == 11 and phone.startswith('09') and password:
+            customer = Customer.objects.filter(phone=phone).first()
+            if customer and customer.password_hash and check_password(password, customer.password_hash):
+                request.session['customer_id'] = customer.id
                 request.session['customer_logged_in'] = True
-                return redirect("home")
-        error = 'شماره موبایل یا شماره فاکتور صحیح نیست.'
+                request.session.cycle_key()
+                return redirect('home')
+        error = 'شماره موبایل یا رمز عبور صحیح نیست.'
     return render(request, 'customer_login.html', {'error': error})
+
+def customer_register(request):
+    error = None
+    success = None
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        phone = normalize_phone(request.POST.get('phone'))
+        password = request.POST.get('password', '')
+        password_confirm = request.POST.get('password_confirm', '')
+        order_id = request.POST.get('order_id', '').strip()
+
+        if not name or len(name) < 2:
+            error = 'لطفاً نام و نام‌خانوادگی معتبر وارد کنید.'
+        elif len(phone) != 11 or not phone.startswith('09'):
+            error = 'شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد.'
+        elif Customer.objects.filter(phone=phone).exists():
+            error = 'این شماره موبایل قبلاً ثبت شده است. اگر حساب قدیمی دارید، از گزینه فعال‌سازی حساب قدیمی استفاده کنید.'
+        elif not valid_password(password):
+            error = 'رمز عبور باید حداقل ۸ کاراکتر و شامل حروف انگلیسی، عدد و یک نماد باشد.'
+        elif password != password_confirm:
+            error = 'تکرار رمز عبور با رمز اصلی یکسان نیست.'
+        else:
+            customer = Customer.objects.create(
+                name=name,
+                phone=phone,
+                password_hash=make_password(password),
+            )
+            Wallet.objects.get_or_create(customer=customer)
+            request.session['customer_id'] = customer.id
+            request.session['customer_logged_in'] = True
+            request.session.cycle_key()
+            return redirect('home')
+    return render(request, 'customer_register.html', {'error': error})
 
 def customer_logout(request):
     request.session.pop('customer_id', None)
@@ -370,13 +421,9 @@ def place_order(request):
     try:
         data = json.loads(request.body)
 
-        name = (data.get('name') or '').strip()
-        phone = (data.get('phone') or '').strip()
         items = data.get('items') or []
         delivery_method = data.get('delivery_method')
 
-        if not name or not phone:
-            return JsonResponse({'status': 'error', 'message': 'نام و شماره موبایل الزامی است.'})
         if not items:
             return JsonResponse({'status': 'error', 'message': 'حداقل یک قلم لباس انتخاب کنید.'})
 

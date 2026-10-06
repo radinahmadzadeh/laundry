@@ -5,6 +5,7 @@ from datetime import date
 class Customer(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, unique=True)
+    password_hash = models.CharField(max_length=128, blank=True, default='')
 
     @property
     def wallet_balance(self):

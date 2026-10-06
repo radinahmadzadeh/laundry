@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ساخت حساب مشتری | {{ shop_name|default:"خشکشویی و سفید شویی آرین" }}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<style>
+:root{--cyan:#49e0d6;--violet:#9b8cfb}*{box-sizing:border-box}body{font-family:Vazirmatn,sans-serif;background:#f5f8fa}
+.panel{background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border:1px solid #e2e8f0;box-shadow:0 25px 50px -25px rgba(15,23,42,.18)}
+.site-bubbles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}.bubble{position:absolute;border-radius:50%;border:1px solid rgba(73,170,205,.4);background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.98) 0 11%,rgba(255,255,255,.55) 12% 20%,rgba(73,224,214,.22) 42%,rgba(155,140,251,.13) 68%,transparent 80%);box-shadow:inset -8px -10px 18px rgba(124,58,237,.07),0 14px 35px rgba(8,145,178,.11);animation:bubbleFloat 6s ease-in-out infinite}
+@keyframes bubbleFloat{0%,100%{transform:translate3d(0,28px,0) scale(.92);opacity:.4}50%{transform:translate3d(-10px,-30px,0) scale(1.04);opacity:.9}}
+.shell{position:relative;z-index:2;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+@media(max-width:640px){.shell{padding:14px}}
+</style></head>
+<body>
+<div class="site-bubbles"><div class="bubble" style="width:118px;height:118px;top:8%;right:7%"></div><div class="bubble" style="width:72px;height:72px;top:62%;left:8%;animation-delay:1s"></div><div class="bubble" style="width:44px;height:44px;top:28%;left:18%;animation-delay:.5s"></div></div>
+<div class="shell"><div class="panel w-full max-w-md rounded-3xl p-7">
+<div class="text-center mb-7"><div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-violet-300 flex items-center justify-center shadow-lg shadow-cyan-500/15"><svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0"/></svg></div>
+<h1 class="text-2xl font-black mb-2">ساخت حساب مشتری</h1><p class="text-sm text-gray-500">یک حساب امن بسازید تا سفارش‌ها و کیف پولتان همیشه در دسترس باشد.</p></div>
+{% if error %}<div class="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3 text-xs font-bold mb-4">{{ error }}</div>{% endif %}
+<form method="post" class="space-y-4" id="register-form">{% csrf_token %}
+<input name="name" type="text" required minlength="2" placeholder="نام و نام‌خانوادگی" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
+<input name="phone" type="tel" inputmode="numeric" maxlength="11" required placeholder="شماره موبایل، مثال ۰۹۱۲..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
+<input name="password" id="password" type="password" minlength="8" required placeholder="رمز عبور قوی" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
+<input name="password_confirm" type="password" minlength="8" required placeholder="تکرار رمز عبور" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
+<div class="rounded-2xl bg-slate-50 border border-slate-200 p-3"><p class="text-[11px] font-black text-gray-700 mb-1">شرایط رمز عبور</p><p class="text-[10px] leading-6 text-gray-500">حداقل ۸ کاراکتر، شامل حداقل یک حرف انگلیسی، یک عدد و یک نماد مثل ! @ #</p></div>
+<button class="w-full py-3.5 rounded-xl font-extrabold bg-gradient-to-l from-cyan-300 to-violet-300 shadow-lg shadow-cyan-500/15">ساخت حساب و ورود</button>
+</form>
+<div class="flex items-center justify-between mt-5 text-xs"><a href="/" class="text-gray-500">بازگشت به سایت</a><a href="{% url 'customer_login' %}" class="font-bold text-gray-700">قبلاً حساب دارم</a></div>
+</div></div></body></html>

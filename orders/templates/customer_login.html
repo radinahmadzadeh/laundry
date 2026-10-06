@@ -8,13 +8,13 @@
 <style>
 :root{--cyan:#49e0d6;--violet:#9b8cfb}
 *{box-sizing:border-box}body{font-family:Vazirmatn,sans-serif;background:#f5f8fa;overflow-x:hidden;position:relative}
-.panel{position:relative;z-index:3;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border:1px solid #e2e8f0;box-shadow:0 25px 50px -25px rgba(15,23,42,.18)}
+.panel{position:relative;z-index:3;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border:1px solid #e2e8f0;box-shadow:0 35px 80px -40px rgba(15,23,42,.3);align-items:stretch}.panel>div:first-child{display:flex;flex-direction:column;justify-content:center;padding:48px 58px}.panel>div:first-child>div:first-child{margin-bottom:20px}.panel>div:last-child{border-radius:0!important}.panel>div:nth-last-child(2){background:linear-gradient(135deg,#49e0d6,#79ddd7 45%,#9b8cfb)!important;border:0!important;color:#fff}.panel>div:nth-last-child(2) p{color:rgba(255,255,255,.88)!important}.panel>div:nth-last-child(2) a{background:rgba(255,255,255,.08)!important;color:#fff!important;border-color:rgba(255,255,255,.8)!important}.panel form input{height:52px!important;border-radius:16px!important}.panel form button{height:52px!important;border-radius:16px!important;transition:.25s}.panel form button:hover{transform:translateY(-2px);filter:brightness(1.03)}@media(max-width:800px){.panel>div:first-child{padding:34px 24px 24px}.panel>div:nth-last-child(2){min-height:235px}.panel>div:last-child{padding-bottom:22px}}
 .site-bubbles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
 .bubble{position:absolute;border-radius:50%;border:1px solid rgba(73,170,205,.4);background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.98) 0 11%,rgba(255,255,255,.55) 12% 20%,rgba(73,224,214,.22) 42%,rgba(155,140,251,.13) 68%,transparent 80%);box-shadow:inset -8px -10px 18px rgba(124,58,237,.07),0 14px 35px rgba(8,145,178,.11);will-change:transform,opacity;animation:bubbleFloat 6s ease-in-out infinite}
 .bubble:after{content:'';position:absolute;width:22%;height:22%;left:20%;top:18%;border-radius:50%;background:rgba(255,255,255,.8);filter:blur(1px)}
 @keyframes bubbleFloat{0%{transform:translate3d(0,35px,0) scale(.9);opacity:.38}25%{transform:translate3d(15px,-4px,0) scale(1.03);opacity:.75}50%{transform:translate3d(-8px,-35px,0) scale(.96);opacity:.95}75%{transform:translate3d(-18px,-8px,0) scale(1.06);opacity:.72}100%{transform:translate3d(4px,28px,0) scale(.9);opacity:.38}}
 .login-shell{position:relative;z-index:2;width:100%;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
-@media(max-width:640px){.login-shell{padding:14px}.panel{border-radius:24px!important;padding:22px!important}}
+@media(max-width:640px){.login-shell{padding:14px}.panel{border-radius:24px!important;padding:0!important}.panel>div:first-child{padding:28px 18px 22px}.panel>div:nth-last-child(2){min-height:220px;padding:28px 18px!important}}
 @media(prefers-reduced-motion:reduce){.bubble{animation:none}}
 </style>
 </head>
@@ -28,16 +28,29 @@
 <div class="bubble" style="width:26px;height:26px;top:18%;right:42%;animation-duration:5.4s;animation-delay:.7s"></div>
 </div>
 <div class="login-shell">
-<div class="panel w-full max-w-md rounded-3xl p-7">
-<div class="text-center mb-7"><h1 class="text-2xl font-black mb-2">ورود مشتری</h1><p class="text-sm text-gray-500">برای مشاهده و پیگیری فاکتور، شماره موبایل و شماره فاکتور را وارد کنید.</p></div>
+<div class="panel w-full max-w-5xl rounded-[32px] p-0 overflow-hidden grid md:grid-cols-2 min-h-[570px] bg-white/90 backdrop-blur-xl shadow-2xl">
+<div class="text-center mb-7">
+<div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-violet-300 flex items-center justify-center shadow-lg shadow-cyan-500/15">
+<svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0"/></svg>
+</div>
+<h1 class="text-2xl font-black mb-2">ورود به حساب مشتری</h1>
+<p class="text-sm text-gray-500">شماره موبایل و رمز عبور خود را وارد کنید.</p>
+</div>
 {% if error %}<div class="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3 text-xs font-bold mb-4">{{ error }}</div>{% endif %}
 <form method="post" class="space-y-4">
 {% csrf_token %}
-<input name="phone" type="tel" inputmode="numeric" required placeholder="شماره موبایل" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none">
-<input name="order_id" type="number" required placeholder="شماره فاکتور" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none">
-<button class="w-full py-3.5 rounded-xl font-extrabold bg-gradient-to-l from-cyan-300 to-violet-300">ورود و مشاهده فاکتور</button>
+<input name="phone" type="tel" inputmode="numeric" maxlength="11" required placeholder="شماره موبایل، مثال ۰۹۱۲..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
+<input name="password" type="password" minlength="8" required placeholder="رمز عبور" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
+<button class="w-full py-3.5 rounded-xl font-extrabold bg-gradient-to-l from-cyan-300 to-violet-300 shadow-lg shadow-cyan-500/15">ورود به حساب</button>
 </form>
+<p class="mt-4 text-[11px] text-slate-400 text-center leading-6">با ورود، سفارش‌ها و فاکتورهای شما در همین حساب در دسترس خواهند بود.</p>
 <div class="flex items-center justify-between mt-5 text-xs"><a href="/" class="text-gray-500 hover:text-cyan-600">بازگشت به سایت</a><a href="/panel/login/" class="font-bold text-gray-700">ورود مدیریت</a></div>
+</div>
+<div class="bg-gradient-to-br from-cyan-300 via-teal-200 to-violet-300 text-white flex flex-col items-center justify-center text-center p-10 md:p-14">
+<div class="w-16 h-16 rounded-2xl bg-white/15 border border-white/30 flex items-center justify-center backdrop-blur-sm mb-6"><svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" d="M4 7.5A2.5 2.5 0 016.5 5h11A2.5 2.5 0 0120 7.5v9a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 16.5v-9z"/><path stroke-linecap="round" stroke-width="1.7" d="M8 9h8M8 13h5"/></svg></div>
+<h2 class="text-2xl md:text-3xl font-black">هنوز حساب مشتری ندارید؟</h2>
+<p class="mt-4 mb-7 text-sm leading-8 text-white/90 max-w-sm">حساب خود را بسازید تا سفارش‌ها، فاکتورها و کیف پول شما همیشه در یک حساب در دسترس باشد.</p>
+<a href="{% url 'customer_register' %}" class="px-7 py-3 rounded-2xl border border-white/75 bg-white/10 text-white font-black text-xs hover:bg-white/20 transition">ایجاد حساب مشتری</a>
 </div>
 </div>
 </body></html>
