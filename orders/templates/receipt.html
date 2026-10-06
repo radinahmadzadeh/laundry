@@ -168,7 +168,12 @@
                 <tbody>
                     {% for item in order.orderitem_set.all %}
                     <tr>
-                        <td class="text-right font-bold">{{ item.item_name }}</td>
+                        <td class="text-right font-bold">
+                            {{ item.item_name }}
+                            {% if item.description %}
+                                <div class="mt-1 text-[9px] leading-4 text-gray-500 font-normal">توضیحات: {{ item.description|linebreaksbr }}</div>
+                            {% endif %}
+                        </td>
                         <td class="text-center text-gray-600">{{ item.quantity }}</td>
                         <td class="text-center text-gray-500"><span class="money">{{ item.price }}</span></td>
                         <td class="text-left font-semibold"><span class="money">{% widthratio item.price 1 item.quantity %}</span></td>

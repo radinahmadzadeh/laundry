@@ -35,7 +35,9 @@ class OrderAdmin(admin.ModelAdmin):
     def actions_buttons(self, obj):
         site_url = "radinahmadzadeh.pythonanywhere.com/"
 
-        sms_text = f"فاکتور {obj.id} به نام {obj.customer.name} با موفقیت ثبت شد. تاریخ تحویل: {obj.shamsi_date}. برای پیگیری سفارش به لینک زیر مراجعه بفرمایید:\n{site_url}"
+        item_notes = [f"{item.item_name}: {item.description}" for item in obj.orderitem_set.all() if item.description]
+        notes_text = ("\nتوضیحات لباس‌ها:\n" + "\n".join(item_notes)) if item_notes else ""
+        sms_text = f"فاکتور {obj.id} به نام {obj.customer.name} با موفقیت ثبت شد. تاریخ تحویل: {obj.shamsi_date}.{notes_text}\nبرای پیگیری سفارش به لینک زیر مراجعه بفرمایید:\n{site_url}"
 
         encoded_text = urllib.parse.quote(sms_text)
 

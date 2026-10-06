@@ -581,15 +581,23 @@
 
                                     <ul class="space-y-3 mb-5">
                                         {% for item in order.orderitem_set.all %}
-                                            <li class="flex justify-between items-center text-gray-600 text-sm border-b border-gray-100 pb-3 last:border-0 last:pb-0 transition-colors duration-200 hover:text-gray-900">
-                                                <div class="flex items-center gap-3">
-                                                    <span class="text-gray-900">{{ item.item_name }}</span>
-                                                    <span class="text-xs text-gray-400 font-light hidden sm:inline-block">({{ item.price }} تومان)</span>
+                                            <li class="border-b border-gray-100 pb-3 last:border-0 last:pb-0 transition-colors duration-200 hover:text-gray-900">
+                                                <div class="flex justify-between items-center text-gray-600 text-sm">
+                                                    <div class="flex items-center gap-3">
+                                                        <span class="text-gray-900">{{ item.item_name }}</span>
+                                                        <span class="text-xs text-gray-400 font-light hidden sm:inline-block">({{ item.price }} تومان)</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-4">
+                                                        <span class="text-xs text-[var(--cyan)] sm:hidden"><span class="money-value">{{ item.price }}</span> تومان</span>
+                                                        <span class="font-bold text-gray-900 bg-white border border-gray-200 px-3 py-1 rounded-lg transition-transform duration-200 hover:scale-110">{{ item.quantity }} عدد</span>
+                                                    </div>
                                                 </div>
-                                                <div class="flex items-center gap-4">
-                                                    <span class="text-xs text-[var(--cyan)] sm:hidden"><span class="money-value">{{ item.price }}</span> تومان</span>
-                                                    <span class="font-bold text-gray-900 bg-white border border-gray-200 px-3 py-1 rounded-lg transition-transform duration-200 hover:scale-110">{{ item.quantity }} عدد</span>
-                                                </div>
+                                                {% if item.description %}
+                                                    <div class="mt-2 mr-1 rounded-xl bg-white border border-cyan-100 px-3 py-2 text-[11px] leading-6 text-gray-500">
+                                                        <span class="font-bold text-gray-700">توضیحات این لباس:</span>
+                                                        {{ item.description|linebreaksbr }}
+                                                    </div>
+                                                {% endif %}
                                             </li>
                                         {% endfor %}
                                     </ul>
