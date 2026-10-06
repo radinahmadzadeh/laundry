@@ -1,37 +1,41 @@
-﻿{% block title %}{{ customer.name }} | ظ¾ظ†ظ„ ظ…ط¯غŒط±غŒطھ{% endblock %}
+{% extends 'panel/base.html' %}
+{% block title %}{{ customer.name }} | پنل مدیریت{% endblock %}
 {% block content %}
 <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5 mb-6">
     <div>
-        <div class="flex items-center gap-3 mb-2"><span class="text-xs text-gray-500">ظ…ط´طھط±غŒ #{{ customer.id }}</span>{% if customer.password_hash %}<span class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">ط­ط³ط§ط¨ ظپط¹ط§ظ„</span>{% else %}<span class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/20">ط¨ط¯ظˆظ† ط±ظ…ط² ط¹ط¨ظˆط±</span>{% endif %}</div>
+        <div class="flex items-center gap-3 mb-2">
+            <span class="text-xs text-gray-500">مشتری #{{ customer.id }}</span>
+            {% if customer.password_hash %}<span class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">حساب فعال</span>{% else %}<span class="px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/20">بدون رمز عبور</span>{% endif %}
+        </div>
         <h1 class="text-2xl sm:text-3xl font-black text-white">{{ customer.name }}</h1>
         <p class="text-sm text-gray-400 dir-ltr mt-2">{{ customer.phone }}</p>
     </div>
-    <a href="{% url 'panel_customers' %}" class="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold hover:bg-white/10 transition">ط¨ط§ط²ع¯ط´طھ ط¨ظ‡ ظ…ط´طھط±غŒط§ظ†</a>
+    <a href="{% url 'panel_customers' %}" class="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-xs font-bold hover:bg-white/10 transition">بازگشت به مشتریان</a>
 </div>
 
 <div class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
-    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">ظ…ظˆط¬ظˆط¯غŒ ع©غŒظپ ظ¾ظˆظ„</p><p class="text-xl font-black text-emerald-300 mt-2"><span class="money-auto">{{ wallet.balance|default:0 }}</span> طھظˆظ…ط§ظ†</p><p class="text-[9px] text-gray-500 mt-1">ط¢ط®ط±غŒظ† ط¨ط±ظˆط²ط±ط³ط§ظ†غŒ: {{ customer.wallet.updated_at|date:"Y/m/d H:i" }}</p></div>
-    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">ع©ظ„ ط³ظپط§ط±ط´â€Œظ‡ط§</p><p class="text-2xl font-black text-cyan-300 mt-2">{{ total_orders }}</p></div>
-    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">ط³ظپط§ط±ط´â€Œظ‡ط§غŒ ظ¾ط±ط¯ط§ط®طھâ€Œط´ط¯ظ‡</p><p class="text-2xl font-black text-emerald-300 mt-2">{{ paid_orders }}</p></div>
-    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">ظ…ط¬ظ…ظˆط¹ ظ¾ط±ط¯ط§ط®طھâ€Œظ‡ط§</p><p class="text-sm font-black text-violet-300 mt-3"><span class="money-auto">{{ total_spent }}</span> طھظˆظ…ط§ظ†</p></div>
+    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">موجودی کیف پول</p><p class="text-xl font-black text-emerald-300 mt-2"><span class="money-auto">{{ wallet.balance|default:0 }}</span> تومان</p><p class="text-[9px] text-gray-500 mt-1">آخرین بروزرسانی: {{ wallet.updated_at|date:"Y/m/d H:i" }}</p></div>
+    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">کل سفارش‌ها</p><p class="text-2xl font-black text-cyan-300 mt-2">{{ total_orders }}</p></div>
+    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">سفارش‌های پرداخت‌شده</p><p class="text-2xl font-black text-emerald-300 mt-2">{{ paid_orders }}</p></div>
+    <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">مجموع پرداخت‌ها</p><p class="text-sm font-black text-violet-300 mt-3"><span class="money-auto">{{ total_spent }}</span> تومان</p></div>
 </div>
 
 <div class="panel rounded-2xl p-5 mb-5">
-    <div class="flex items-center justify-between mb-4"><h2 class="font-black text-white">ط§ط·ظ„ط§ط¹ط§طھ ع©ط§ظ…ظ„ ظ…ط´طھط±غŒ</h2><span class="text-[10px] text-gray-500">ط§ط·ظ„ط§ط¹ط§طھ ط§ظ…ظ†غŒطھغŒ ط±ظ…ط² ظ†ظ…ط§غŒط´ ط¯ط§ط¯ظ‡ ظ†ظ…غŒâ€Œط´ظˆط¯</span></div>
+    <div class="flex items-center justify-between mb-4"><h2 class="font-black text-white">اطلاعات کامل مشتری</h2><span class="text-[10px] text-gray-500">رمز عبور نمایش داده نمی‌شود</span></div>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">ط´ظ†ط§ط³ظ‡ ظ…ط´طھط±غŒ</p><p class="font-bold text-white mt-1">#{{ customer.id }}</p></div>
-        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">ظ†ط§ظ…</p><p class="font-bold text-white mt-1">{{ customer.name }}</p></div>
-        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">ط´ظ…ط§ط±ظ‡ ظ…ظˆط¨ط§غŒظ„</p><p class="font-bold text-white mt-1 dir-ltr text-right">{{ customer.phone }}</p></div>
-        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">ظˆط¶ط¹غŒطھ ط­ط³ط§ط¨</p><p class="font-bold mt-1 {% if customer.password_hash %}text-emerald-300{% else %}text-amber-300{% endif %}">{% if customer.password_hash %}ظپط¹ط§ظ„{% else %}ط¨ط¯ظˆظ† ط±ظ…ط² ط¹ط¨ظˆط±{% endif %}</p></div>
+        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">شناسه مشتری</p><p class="font-bold text-white mt-1">#{{ customer.id }}</p></div>
+        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">نام و نام‌خانوادگی</p><p class="font-bold text-white mt-1">{{ customer.name }}</p></div>
+        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">شماره موبایل</p><p class="font-bold text-white mt-1 dir-ltr text-right">{{ customer.phone }}</p></div>
+        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">وضعیت حساب</p><p class="font-bold mt-1 {% if customer.password_hash %}text-emerald-300{% else %}text-amber-300{% endif %}">{% if customer.password_hash %}فعال{% else %}بدون رمز عبور{% endif %}</p></div>
     </div>
 </div>
 
 <div class="panel rounded-2xl overflow-hidden mb-5">
-    <div class="px-5 py-4 border-b border-white/10"><h2 class="font-black text-white">طھظ…ط§ظ… ط³ظپط§ط±ط´â€Œظ‡ط§غŒ ظ…ط´طھط±غŒ</h2></div>
+    <div class="px-5 py-4 border-b border-white/10"><h2 class="font-black text-white">تمام سفارش‌های مشتری</h2></div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-right min-w-[1050px]">
             <thead class="text-gray-400 text-[11px] border-b border-white/10 bg-white/[0.02]">
-                <tr><th class="p-4">ظپط§ع©طھظˆط±</th><th class="p-4">طھط§ط±غŒط® ط«ط¨طھ</th><th class="p-4">طھط­ظˆغŒظ„</th><th class="p-4">ظˆط¶ط¹غŒطھ</th><th class="p-4">ظ¾ط±ط¯ط§ط®طھ</th><th class="p-4">ظ¾غŒع©</th><th class="p-4">ظ…ط¨ظ„ط؛</th><th class="p-4"></th></tr>
+                <tr><th class="p-4">فاکتور</th><th class="p-4">تاریخ ثبت</th><th class="p-4">تحویل</th><th class="p-4">وضعیت</th><th class="p-4">پرداخت</th><th class="p-4">پیک</th><th class="p-4">مبلغ</th><th class="p-4"></th></tr>
             </thead>
             <tbody>
             {% for order in orders %}
@@ -40,33 +44,33 @@
                     <td class="p-4 text-gray-300">{{ order.shamsi_date }}</td>
                     <td class="p-4 text-gray-400">{{ order.shamsi_delivery_date|default:"-" }}</td>
                     <td class="p-4 text-gray-300">{{ order.get_status_display }}</td>
-                    <td class="p-4">{% if order.is_paid %}<span class="text-emerald-300 font-bold">ظ¾ط±ط¯ط§ط®طھ ط´ط¯ظ‡</span>{% else %}<span class="text-amber-300 font-bold">ظ¾ط±ط¯ط§ط®طھ ظ†ط´ط¯ظ‡</span>{% endif %}</td>
-                    <td class="p-4">{% if order.courier_requested %}{% if order.courier_dispatched %}<span class="text-cyan-300">ط§ط±ط³ط§ظ„ ط´ط¯ظ‡</span>{% else %}<span class="text-amber-300">ط¯ط±ط®ظˆط§ط³طھ ط´ط¯ظ‡</span>{% endif %}{% else %}<span class="text-gray-500">ظ†ط¯ط§ط±ط¯</span>{% endif %}</td>
-                    <td class="p-4 font-bold text-white"><span class="money-auto">{{ order.total_price }}</span> طھظˆظ…ط§ظ†</td>
-                    <td class="p-4"><a href="{% url 'panel_order_detail' order.id %}" class="text-cyan-300 text-xs font-bold hover:underline">ط¬ط²ط¦غŒط§طھ</a></td>
+                    <td class="p-4">{% if order.is_paid %}<span class="text-emerald-300 font-bold">پرداخت شده</span>{% else %}<span class="text-amber-300 font-bold">پرداخت نشده</span>{% endif %}</td>
+                    <td class="p-4">{% if order.courier_requested %}{% if order.courier_dispatched %}<span class="text-cyan-300">ارسال شده</span>{% else %}<span class="text-amber-300">درخواست شده</span>{% endif %}{% else %}<span class="text-gray-500">ندارد</span>{% endif %}</td>
+                    <td class="p-4 font-bold text-white"><span class="money-auto">{{ order.total_price }}</span> تومان</td>
+                    <td class="p-4"><a href="{% url 'panel_order_detail' order.id %}" class="text-cyan-300 text-xs font-bold hover:underline">جزئیات</a></td>
                 </tr>
-            {% empty %}<tr><td colspan="8" class="p-10 text-center text-gray-500">ط³ظپط§ط±ط´غŒ ط«ط¨طھ ظ†ط´ط¯ظ‡ ط§ط³طھ.</td></tr>{% endfor %}
+            {% empty %}<tr><td colspan="8" class="p-10 text-center text-gray-500">سفارشی ثبت نشده است.</td></tr>{% endfor %}
             </tbody>
         </table>
     </div>
 </div>
 
 <div class="panel rounded-2xl overflow-hidden">
-    <div class="px-5 py-4 border-b border-white/10"><h2 class="font-black text-white">ع¯ط±ط¯ط´ ع©غŒظپ ظ¾ظˆظ„</h2></div>
+    <div class="px-5 py-4 border-b border-white/10"><h2 class="font-black text-white">گردش کیف پول</h2></div>
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-right min-w-[850px]">
-            <thead class="text-gray-400 text-[11px] border-b border-white/10 bg-white/[0.02]"><tr><th class="p-4">طھط§ط±غŒط®</th><th class="p-4">ظ†ظˆط¹</th><th class="p-4">ظ…ط¨ظ„ط؛</th><th class="p-4">طھظˆط¶غŒط­ط§طھ</th><th class="p-4">ظپط§ع©طھظˆط±</th><th class="p-4">ظ…ط±ط¬ط¹</th></tr></thead>
+            <thead class="text-gray-400 text-[11px] border-b border-white/10 bg-white/[0.02]"><tr><th class="p-4">تاریخ</th><th class="p-4">نوع</th><th class="p-4">مبلغ</th><th class="p-4">توضیحات</th><th class="p-4">فاکتور</th><th class="p-4">مرجع</th></tr></thead>
             <tbody>
             {% for tx in wallet_transactions %}
                 <tr class="border-b border-white/5">
                     <td class="p-4 text-gray-400">{{ tx.created_at|date:"Y/m/d H:i" }}</td>
-                    <td class="p-4">{% if tx.transaction_type == 'credit' %}<span class="text-emerald-300 font-bold">ط´ط§ط±عک</span>{% else %}<span class="text-amber-300 font-bold">ظ¾ط±ط¯ط§ط®طھ</span>{% endif %}</td>
-                    <td class="p-4 font-bold {% if tx.transaction_type == 'credit' %}text-emerald-300{% else %}text-amber-300{% endif %}"><span class="money-auto">{{ tx.amount }}</span> طھظˆظ…ط§ظ†</td>
+                    <td class="p-4">{% if tx.transaction_type == 'credit' %}<span class="text-emerald-300 font-bold">شارژ</span>{% else %}<span class="text-amber-300 font-bold">پرداخت</span>{% endif %}</td>
+                    <td class="p-4 font-bold {% if tx.transaction_type == 'credit' %}text-emerald-300{% else %}text-amber-300{% endif %}"><span class="money-auto">{{ tx.amount }}</span> تومان</td>
                     <td class="p-4 text-gray-300">{{ tx.description|default:"-" }}</td>
                     <td class="p-4 text-cyan-300">{% if tx.order %}#{{ tx.order.id }}{% else %}-{% endif %}</td>
                     <td class="p-4 text-gray-500 dir-ltr">{{ tx.reference_id|default:"-" }}</td>
                 </tr>
-            {% empty %}<tr><td colspan="6" class="p-10 text-center text-gray-500">طھط±ط§ع©ظ†ط´ ع©غŒظپ ظ¾ظˆظ„غŒ ط«ط¨طھ ظ†ط´ط¯ظ‡ ط§ط³طھ.</td></tr>{% endfor %}
+            {% empty %}<tr><td colspan="6" class="p-10 text-center text-gray-500">تراکنش کیف پولی ثبت نشده است.</td></tr>{% endfor %}
             </tbody>
         </table>
     </div>
