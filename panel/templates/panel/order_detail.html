@@ -26,7 +26,7 @@
                     <tr class="border-b border-white/5">
                         <td class="p-2"><div>{{ item.item_name }}</div>{% if item.description %}<div class="text-[10px] text-gray-500 mt-1">{{ item.description }}</div>{% endif %}</td>
                         <td class="p-2 text-center">{{ item.quantity }}</td>
-                        <td class="p-2 text-center">{{ item.price }}</td>
+                        <td class="p-2 text-center"><span class="money-auto">{{ item.price }}</span></td>
                         <td class="p-2 text-left">
                             <form method="post" action="{% url 'panel_order_item_delete' order.id item.id %}" onsubmit="return confirm('این قلم حذف شود؟');">
                                 {% csrf_token %}
@@ -99,9 +99,9 @@
             {% if order.shamsi_delivery_date %}
             <div class="flex justify-between"><span>تاریخ تحویل:</span><span class="text-white">{{ order.shamsi_delivery_date }}</span></div>
             {% endif %}
-            <div class="flex justify-between"><span>جمع اقلام:</span><span class="text-white">{{ order.subtotal_amount }}</span></div>
-            <div class="flex justify-between"><span>مالیات:</span><span class="text-white">{{ order.tax_amount }}</span></div>
-            <div class="flex justify-between font-bold text-sm pt-2 border-t border-white/10"><span>مبلغ نهایی:</span><span class="text-[var(--cyan)]">{{ order.total_price }}</span></div>
+            <div class="flex justify-between"><span>جمع اقلام:</span><span class="text-white money-auto">{{ order.subtotal_amount }}</span></div>
+            <div class="flex justify-between"><span>مالیات:</span><span class="text-white money-auto">{{ order.tax_amount }}</span></div>
+            <div class="flex justify-between font-bold text-sm pt-2 border-t border-white/10"><span>مبلغ نهایی:</span><span class="text-[var(--cyan)] money-auto">{{ order.total_price }}</span></div>
         </div>
     </div>
 </div>

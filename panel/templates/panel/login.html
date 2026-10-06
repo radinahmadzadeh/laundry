@@ -1,71 +1,62 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خشکشویی و سفید شویی آرین | پنل مدیریت</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-    <style>
-        :root{ --ink:#eaf3f4; --bg-deep:#070b12; --line:rgba(234,243,244,0.10); --cyan:#49e0d6; --violet:#9b8cfb; }
-        *{ font-family:'Vazirmatn', sans-serif; }
-        body{
-            background-color:var(--bg-deep); color:var(--ink);
-            background-image:
-                radial-gradient(circle at 15% 20%, rgba(73,224,214,0.12), transparent 40%),
-                radial-gradient(circle at 85% 80%, rgba(155,140,251,0.12), transparent 45%);
-        }
-        .panel{
-            background:rgba(13,20,32,0.6);
-            backdrop-filter:blur(20px);
-            border:1px solid var(--line);
-            box-shadow:0 30px 60px -20px rgba(0,0,0,0.65);
-        }
-        .fab-input:focus{ box-shadow:0 0 0 3px rgba(73,224,214,0.35); }
-        ::placeholder{ color:rgba(234,243,244,0.35); }
-        .site-bubbles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-        .bubble{position:absolute;border-radius:50%;border:1px solid rgba(73,224,214,.25);background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.95) 0 10%,rgba(255,255,255,.22) 11% 20%,rgba(73,224,214,.13) 42%,rgba(155,140,251,.12) 68%,transparent 80%);box-shadow:inset -8px -10px 18px rgba(155,140,251,.08),0 14px 35px rgba(73,224,214,.08);will-change:transform,opacity;animation:bubbleFloat 6.2s ease-in-out infinite}
-        .bubble:after{content:'';position:absolute;width:22%;height:22%;left:20%;top:18%;border-radius:50%;background:rgba(255,255,255,.5);filter:blur(1px)}
-        @keyframes bubbleFloat{0%{transform:translate3d(0,35px,0) scale(.9);opacity:.32}25%{transform:translate3d(15px,-4px,0) scale(1.03);opacity:.62}50%{transform:translate3d(-8px,-35px,0) scale(.96);opacity:.85}75%{transform:translate3d(-18px,-8px,0) scale(1.06);opacity:.6}100%{transform:translate3d(4px,28px,0) scale(.9);opacity:.32}}
-        .login-content{position:relative;z-index:2;width:100%;display:flex;align-items:center;justify-content:center;min-height:100dvh}
-        @media(max-width:640px){.login-content{padding:12px}.panel{padding:22px!important;border-radius:24px!important}}
-        @media(prefers-reduced-motion:reduce){.bubble{animation:none}}
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ورود مدیریت | خشکشویی و سفید شویی آرین</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{font-family:Vazirmatn,sans-serif;background:#f5f8fa;overflow-x:hidden}
+.bubble-layer{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.bubble{position:absolute;border-radius:50%;border:1px solid rgba(73,170,205,.35);background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.98) 0 11%,rgba(255,255,255,.55) 12% 20%,rgba(73,224,214,.20) 42%,rgba(155,140,251,.13) 68%,transparent 80%);box-shadow:inset -8px -10px 18px rgba(124,58,237,.06),0 14px 35px rgba(8,145,178,.10);animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translate3d(0,28px,0) scale(.92);opacity:.35}50%{transform:translate3d(-12px,-32px,0) scale(1.05);opacity:.85}}
+.shell{position:relative;z-index:2;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:22px}
+.card{width:min(980px,100%);background:rgba(255,255,255,.93);backdrop-filter:blur(18px);border:1px solid rgba(15,23,42,.08);box-shadow:0 35px 85px -42px rgba(15,23,42,.32);overflow:hidden}
+.field{height:52px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;padding:0 16px;font-size:13px;text-align:right;width:100%;transition:.2s}
+.field:focus{outline:none;border-color:rgba(8,145,178,.45);box-shadow:0 0 0 3px rgba(8,145,178,.10);background:#fff}
+.submit{height:52px;border-radius:16px;border:0;background:linear-gradient(115deg,#9b8cfb,#49e0d6);font-weight:900;color:#0b2430;transition:.25s;box-shadow:0 14px 30px -18px rgba(8,145,178,.5)}
+.submit:hover{transform:translateY(-2px);filter:brightness(1.03)}
+@media(max-width:760px){.shell{padding:14px}.card{border-radius:26px}.hero{min-height:220px!important;padding:30px 22px!important}.form-side{padding:30px 20px!important}}
+@media(prefers-reduced-motion:reduce){.bubble{animation:none}.submit{transition:none}}
+</style>
 </head>
-<body class="min-h-screen p-4">
-    <div class="site-bubbles" aria-hidden="true">
-        <div class="bubble" style="width:118px;height:118px;top:8%;right:7%;animation-duration:6.4s"></div>
-        <div class="bubble" style="width:72px;height:72px;top:27%;left:8%;animation-duration:5.2s;animation-delay:1s"></div>
-        <div class="bubble" style="width:46px;height:46px;top:64%;right:13%;animation-duration:4.8s;animation-delay:.4s"></div>
-        <div class="bubble" style="width:34px;height:34px;top:79%;left:17%;animation-duration:5.8s;animation-delay:1.6s"></div>
-        <div class="bubble" style="width:58px;height:58px;top:47%;right:34%;animation-duration:7s;animation-delay:2s"></div>
-        <div class="bubble" style="width:26px;height:26px;top:18%;right:42%;animation-duration:5.4s;animation-delay:.7s"></div>
-    </div>
-    <div class="login-content">
-    <div class="panel rounded-3xl p-8 w-full max-w-sm">
-        <div class="text-center mb-6">
-            <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-[var(--cyan)] to-[var(--violet)] flex items-center justify-center">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="7" stroke-width="1.6"/>
-                    <path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke-width="1.6" stroke-linecap="round"/>
-                </svg>
-            </div>
-            <h1 class="text-lg font-black">خشکشویی و سفید شویی آرین</h1><p class="text-[11px] text-gray-400 mt-1">ورود به پنل مدیریت</p>
-        </div>
-
-        {% if error %}
-            <div class="bg-red-500/15 border border-red-500/30 text-red-300 px-4 py-3 rounded-xl text-sm font-bold mb-4 text-center">{{ error }}</div>
-        {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <input type="text" name="username" placeholder="نام کاربری" required autofocus
-                   class="fab-input w-full bg-black/40 px-4 py-3.5 rounded-xl border border-white/10 text-sm mb-3 focus:outline-none">
-            <input type="password" name="password" placeholder="رمز عبور" required
-                   class="fab-input w-full bg-black/40 px-4 py-3.5 rounded-xl border border-white/10 text-sm mb-5 focus:outline-none">
-            <button type="submit" class="w-full bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] text-gray-950 font-extrabold py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 hover:brightness-110 transition">ورود</button>
-        </form>
-    </div>
-    </div>
-</body>
-</html>
+<body>
+<div class="bubble-layer" aria-hidden="true">
+<div class="bubble" style="width:118px;height:118px;top:8%;right:7%;animation-duration:6.4s"></div>
+<div class="bubble" style="width:72px;height:72px;top:27%;left:8%;animation-duration:5.2s;animation-delay:1s"></div>
+<div class="bubble" style="width:46px;height:46px;top:66%;right:13%;animation-duration:4.8s;animation-delay:.4s"></div>
+<div class="bubble" style="width:34px;height:34px;top:79%;left:17%;animation-duration:5.8s;animation-delay:1.6s"></div>
+</div>
+<div class="shell">
+<div class="card rounded-[34px] grid md:grid-cols-2 min-h-[560px]">
+<div class="form-side order-2 md:order-1 p-10 md:p-14 flex flex-col justify-center">
+<div class="text-center mb-7">
+<div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-violet-300 flex items-center justify-center shadow-lg shadow-cyan-500/15">
+<svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" stroke-width="1.6"/><path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke-width="1.6" stroke-linecap="round"/></svg>
+</div>
+<h1 class="text-2xl font-black text-slate-900">ورود مدیریت</h1>
+<p class="text-sm text-slate-500 mt-2">برای ورود به پنل مدیریت اطلاعات خود را وارد کنید.</p>
+</div>
+{% if error %}<div class="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3 text-xs font-bold mb-4 text-center">{{ error }}</div>{% endif %}
+<form method="post" class="space-y-3">
+{% csrf_token %}
+<input type="text" name="username" placeholder="نام کاربری" required autofocus class="field" autocomplete="username">
+<input type="password" name="password" placeholder="رمز عبور" required class="field" autocomplete="current-password">
+<button type="submit" class="submit w-full">ورود به پنل</button>
+</form>
+<div class="flex items-center justify-between mt-5 text-xs">
+<a href="/" class="text-slate-500 hover:text-cyan-600">بازگشت به سایت</a>
+<a href="/customer-login/" class="font-bold text-slate-700 hover:text-cyan-600">ورود مشتری</a>
+</div>
+</div>
+<div class="hero order-1 md:order-2 min-h-full p-10 md:p-14 flex flex-col items-center justify-center text-center text-white bg-gradient-to-br from-[#49e0d6] via-[#79ddd7] to-[#9b8cfb]">
+<div class="w-16 h-16 rounded-2xl bg-white/15 border border-white/35 flex items-center justify-center backdrop-blur-sm mb-6">
+<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="1.7" d="M6 4.5h12A1.5 1.5 0 0119.5 6v12A1.5 1.5 0 0118 19.5H6A1.5 1.5 0 014.5 18V6A1.5 1.5 0 016 4.5z"/><path stroke-width="1.7" stroke-linecap="round" d="M8 9h8M8 12.5h6M8 16h4"/></svg>
+</div>
+<h2 class="text-2xl md:text-3xl font-black">مدیریت هوشمند خشکشویی</h2>
+<p class="mt-4 text-sm leading-8 text-white/90 max-w-sm">سفارش‌ها، مشتریان، قیمت‌ها، کیف پول و درخواست‌های پیک را از یک پنل یکپارچه مدیریت کنید.</p>
+<div class="mt-7 px-5 py-2.5 rounded-2xl bg-white/12 border border-white/35 text-xs font-bold">خشکشویی و سفید شویی آرین</div>
+</div>
+</div>
+</div>
+</body></html>

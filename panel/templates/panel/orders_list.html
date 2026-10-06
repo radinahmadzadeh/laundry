@@ -38,7 +38,7 @@
                     <td class="p-3 font-bold">#{{ order.id }}</td>
                     <td class="p-3">{{ order.customer.name }}</td>
                     <td class="p-3 dir-ltr text-gray-400">{{ order.customer.phone }}</td>
-                    <td class="p-3">{{ order.total_price }}</td>
+                    <td class="p-3"><span class="money-auto">{{ order.total_price }}</span> تومان</td>
                     <td class="p-3">
                         <form method="post" action="{% url 'panel_order_status' order.id %}">
                             {% csrf_token %}
