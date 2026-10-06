@@ -262,20 +262,24 @@
         @media (prefers-reduced-motion:reduce){.motion-reveal,.motion-stagger > *{opacity:1;transform:none;filter:none;transition:none}.motion-card,.motion-card svg{transition:none}.motion-card:hover{transform:none}.motion-card:hover svg{transform:none}.gallery-track{animation:none}.gallery-item{transition:none}.gallery-item:hover{transform:none}.gallery-item:hover img{transform:none}}
 
         /* Anchor the oversized track on the left so repeated sets slide into view on this RTL page. */
-        .home-gallery{direction:ltr;overflow:hidden;position:relative;border-radius:30px;padding:0;background:transparent;border:0;box-shadow:none;isolation:isolate;}
+        .home-gallery{--photo-width:clamp(300px,32vw,460px);--photo-overlap:clamp(26px,3vw,44px);direction:ltr;overflow:hidden;position:relative;border-radius:30px;padding:0;background:transparent;border:0;box-shadow:none;isolation:isolate;}
         .home-gallery::before,.home-gallery::after{content:"";position:absolute;top:0;bottom:0;width:2.5%;z-index:4;pointer-events:none;}
         .home-gallery::before{right:0;background:linear-gradient(270deg,rgba(248,250,252,.28),transparent);}
         .home-gallery::after{left:0;background:linear-gradient(90deg,rgba(248,250,252,.28),transparent);}
-        .gallery-track{display:flex;align-items:center;width:max-content;height:100%;direction:ltr;will-change:transform;backface-visibility:hidden;animation:homeGalleryMarquee 34s linear infinite;}
+        .gallery-track{display:flex;align-items:center;width:max-content;padding:30px 0 42px;direction:ltr;will-change:transform;backface-visibility:hidden;animation:homeGalleryMarquee 34s linear infinite;}
+        .home-gallery:hover .gallery-track{animation-play-state:paused;}
         .gallery-set{display:flex;align-items:center;flex:0 0 auto;height:100%;direction:ltr;gap:0;padding:0;}
-        .gallery-item{position:relative;flex:0 0 clamp(300px,32vw,460px);height:clamp(175px,21vw,300px);overflow:hidden;border:0;padding:0;margin:0;background:transparent;cursor:default;transition:filter .35s ease;}
-        .gallery-item::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(73,224,214,.08),transparent 42%,rgba(155,140,251,.12));pointer-events:none;border-radius:18px;}
-        .gallery-item img{width:100%;height:100%;object-fit:cover;display:block;border-radius:18px;box-shadow:0 8px 22px rgba(15,23,42,.22);transition:transform .45s cubic-bezier(.22,.61,.36,1),filter .35s ease;}
-        .gallery-item:hover{transform:translateY(-4px) scale(1.01);z-index:5;filter:saturate(1.04);}
-        .gallery-item:hover img{transform:scale(1.015);filter:saturate(1.06) contrast(1.02);}
+        /* Include the trailing overlap in every set so the last-to-first seam matches the other cards. */
+        .gallery-item{--photo-angle:-2deg;--photo-lift:4px;box-sizing:border-box;position:relative;z-index:1;flex:0 0 auto;width:var(--photo-width);height:clamp(175px,21vw,300px);overflow:hidden;border:5px solid #fff;border-radius:24px;padding:0;margin:0 calc(-1 * var(--photo-overlap)) 0 0;background:#fff;box-shadow:0 16px 30px -14px rgba(15,23,42,.32),0 3px 8px rgba(15,23,42,.08);transform:translateY(var(--photo-lift)) rotate(var(--photo-angle));cursor:default;transition:transform .45s cubic-bezier(.22,.61,.36,1),box-shadow .45s ease;}
+        .gallery-item:nth-child(3n+2){--photo-angle:2deg;--photo-lift:-7px;z-index:2;}
+        .gallery-item:nth-child(3n){--photo-angle:-1deg;--photo-lift:7px;}
+        .gallery-item::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(73,224,214,.1),transparent 42%,rgba(155,140,251,.1));pointer-events:none;border-radius:18px;}
+        .gallery-item img{width:100%;height:100%;object-fit:cover;display:block;border-radius:18px;transition:transform .45s cubic-bezier(.22,.61,.36,1),filter .35s ease;}
+        .gallery-item:hover{transform:translateY(-12px) rotate(0) scale(1.025);z-index:5;box-shadow:0 24px 40px -16px rgba(15,23,42,.38);}
+        .gallery-item:hover img{transform:scale(1.04);filter:saturate(1.06) contrast(1.02);}
         @keyframes homeGalleryMarquee{from{transform:translate3d(0,0,0);}to{transform:translate3d(-33.333333%,0,0);}}
-        @media (prefers-reduced-motion:reduce){.gallery-track{animation:none;}.gallery-item img{transition:none;}}
-        @media (max-width:640px){.home-gallery{border-radius:22px;padding:0;}.gallery-set{gap:0;padding:0;}.gallery-item{flex-basis:78vw;height:45vw;min-height:150px;max-height:210px;border-radius:15px;}}
+        @media (prefers-reduced-motion:reduce){.gallery-track{animation:none;}.gallery-item,.gallery-item img{transition:none;}.gallery-item:hover{transform:translateY(var(--photo-lift)) rotate(var(--photo-angle));}.gallery-item:hover img{transform:none;}}
+        @media (max-width:640px){.home-gallery{--photo-width:78vw;--photo-overlap:26px;border-radius:22px;padding:0;}.gallery-track{padding:24px 0 34px;}.gallery-item{height:45vw;min-height:150px;max-height:210px;border-width:4px;border-radius:20px;}.gallery-item img{border-radius:15px;}}
 
         .clothes-hero-art{ position:relative; }
         .clothes-tag{
