@@ -31,7 +31,7 @@
 
         <div class="panel rounded-2xl p-5 motion-card">
             <div class="flex items-center justify-between mb-4"><h2 class="font-bold text-sm">اقلام سفارش</h2><span class="text-[10px] text-cyan-300">ویرایش مستقیم</span></div>
-            <table class="w-full text-sm mb-4">
+            <div class="overflow-x-auto w-full mb-4"><table class="w-full text-sm mb-0 min-w-[700px]">
                 <thead class="text-gray-400 text-xs border-b border-white/10">
                     <tr><th class="p-2 text-right">شرح</th><th class="p-2 text-center">تعداد</th><th class="p-2 text-center">فی</th><th class="p-2"></th></tr>
                 </thead>
@@ -54,7 +54,7 @@
                     <tr><td colspan="4" class="p-4 text-center text-gray-500 text-xs">هنوز قلمی اضافه نشده.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <form method="post" class="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {% csrf_token %}

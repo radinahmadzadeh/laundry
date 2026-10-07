@@ -17,7 +17,16 @@
 .submit{height:52px;border-radius:16px;border:0;background:linear-gradient(115deg,#9b8cfb,#49e0d6);font-weight:900;color:#0b2430;transition:.25s;box-shadow:0 14px 30px -18px rgba(8,145,178,.5)}
 .submit:hover{transform:translateY(-2px);filter:brightness(1.03)}
 .hero{background:linear-gradient(135deg,#49e0d6 0%,#79ddd7 45%,#9b8cfb 100%);min-height:560px}
-@media(max-width:760px){.shell{padding:14px}.card{border-radius:26px}.form-side{padding:30px 20px}.hero{min-height:250px;padding:32px 22px}}
+@media(max-width:760px){
+.shell{padding:10px;align-items:stretch}.card{border-radius:24px;margin:auto}.form-side{padding:28px 18px}.hero{min-height:230px;padding:28px 18px}
+}
+@media(max-width:420px){
+.shell{padding:7px}.card{border-radius:20px}.form-side{padding:22px 14px}.hero{min-height:210px;padding:24px 14px}
+.field,.submit{height:48px;border-radius:13px}.hero h2{font-size:20px!important}.hero p{font-size:12px;line-height:1.9}.bubble-layer .bubble{transform:scale(.75)}
+}
+@media(max-height:700px) and (min-width:761px){
+.shell{padding:12px}.form-side{padding:28px 38px}.hero{min-height:0;padding:28px 38px}
+}
 @media(prefers-reduced-motion:reduce){.bubble{animation:none}.submit{transition:none}}
 </style>
 </head>
