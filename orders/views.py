@@ -2,7 +2,6 @@
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import transaction
@@ -380,7 +379,19 @@ def pricing_menu(request):
     shop = ShopSettings.load()
     return render(request, 'pricing.html', {'categories': categories, 'shop_name': shop.name})
 
-@csrf_exempt
+def validate_courier_location(lat, lng, postal):
+    """Returns an error message if the courier pickup location/postal code is invalid, else None."""
+    try:
+        float(lat)
+        float(lng)
+    except (TypeError, ValueError):
+        return 'موقعیت مکانی نامعتبر است.'
+    postal_digits = str(postal or '').translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
+    if not postal_digits.isdigit() or len(postal_digits) != 10:
+        return 'کد پستی باید ۱۰ رقم باشد.'
+    return None
+
+
 def request_courier(request):
     if request.method == 'POST':
         try:
@@ -398,6 +409,9 @@ def request_courier(request):
                     'status': 'error',
                     'message': 'درخواست پیک برای این فاکتور قبلاً ثبت شده است و امکان تغییر آدرس وجود ندارد.'
                 })
+            error = validate_courier_location(lat, lng, postal)
+            if error:
+                return JsonResponse({'status': 'error', 'message': error})
             order.courier_requested = True
             order.latitude = lat
             order.longitude = lng
@@ -409,7 +423,6 @@ def request_courier(request):
     return JsonResponse({'status': 'failed', 'message': 'درخواست نامعتبر است.'})
 
 
-@csrf_exempt
 def place_order(request):
     """
     ثبت سفارش آنلاین از فرم «ثبت سفارش» در home.html.
@@ -451,9 +464,10 @@ def place_order(request):
             lat = data.get('lat')
             lng = data.get('lng')
             postal = data.get('postal')
-            if not lat or not postal or len(str(postal)) != 10:
+            error = validate_courier_location(lat, lng, postal)
+            if error:
                 order.delete()
-                return JsonResponse({'status': 'error', 'message': 'اطلاعات پیک ناقص است.'})
+                return JsonResponse({'status': 'error', 'message': error})
             order.courier_requested = True
             order.latitude = lat
             order.longitude = lng

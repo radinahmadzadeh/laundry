@@ -1759,7 +1759,7 @@
 
             fetch('/request-courier/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getOrderCsrfToken() },
                 body: JSON.stringify({ order_id: orderId, lat: lat, lng: lng, postal: postal })
             })
             .then(response => response.json())

@@ -324,6 +324,8 @@ def order_update(request, order_id):
         order.is_paid = request.POST.get('is_paid') == 'on'
         order.courier_requested = request.POST.get('courier_requested') == 'on'
         order.courier_dispatched = request.POST.get('courier_dispatched') == 'on'
+        if order.courier_dispatched and not order.courier_requested:
+            order.courier_requested = True
         order.postal_code = request.POST.get('postal_code', '').strip()
         order.latitude = request.POST.get('latitude', '').strip()
         order.longitude = request.POST.get('longitude', '').strip()
@@ -430,9 +432,12 @@ def courier_requests(request):
 def courier_mark_dispatched(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     if request.method == 'POST':
-        order.courier_dispatched = True
-        order.save()
-        messages.success(request, 'وضعیت پیک به‌روزرسانی شد.')
+        if not order.courier_requested:
+            messages.error(request, 'این سفارش درخواست پیک ثبت‌شده‌ای ندارد.')
+        else:
+            order.courier_dispatched = True
+            order.save()
+            messages.success(request, 'وضعیت پیک به‌روزرسانی شد.')
     return redirect('panel_courier')
 
 
