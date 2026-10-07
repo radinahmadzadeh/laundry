@@ -32,8 +32,6 @@ def home(request):
             )
             if order_id and str(order_id).isdigit():
                 orders = Order.objects.filter(customer=customer, id=int(order_id)).prefetch_related('orderitem_set')
-            else:
-                orders = Order.objects.filter(customer=customer).order_by('-created_at')[:20]
         else:
             request.session.pop('customer_id', None)
             request.session.pop('customer_logged_in', None)
