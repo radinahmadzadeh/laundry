@@ -1187,11 +1187,11 @@
                 <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
                     <div class="category-showcase-image">
                         {% if 'مرد' in category.name %}
-                        <img src="https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?auto=format&fit=crop&w=1200&q=82" alt="پوشاک مردانه">
+                        <img src="{% static 'pricing-categories/men.jpg' %}" alt="پوشاک مردانه">
                         {% elif 'زن' in category.name %}
-                        <img src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1200&q=82" alt="پوشاک زنانه">
+                        <img src="{% static 'pricing-categories/women.jpg' %}" alt="پوشاک زنانه">
                         {% else %}
-                        <img src="https://images.unsplash.com/photo-1549037173-e3b717902c57?auto=format&fit=crop&w=1200&q=82" alt="{{ category.name }}">
+                        <img src="{% static 'pricing-categories/men.jpg' %}" alt="{{ category.name }}">
                         {% endif %}
                         <span class="category-showcase-count">{{ category.items.count }} خدمت</span>
                     </div>
@@ -1207,7 +1207,7 @@
 
                 <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
                     <div class="category-showcase-image">
-                        <img src="https://images.unsplash.com/photo-1741176505025-adc872ca331b?auto=format&fit=crop&w=1200&q=82" alt="منزل و لوازم خانه">
+                        <img src="{% static 'pricing-categories/home.jpg' %}" alt="منزل و لوازم خانه">
                         <span class="category-showcase-count">خدمات منزل</span>
                     </div>
                     <div class="category-showcase-body">
