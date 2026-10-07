@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -56,11 +57,11 @@ body{background:linear-gradient(135deg,#f7fbfc 0%,#eefcf9 48%,#f7f4ff 100%);colo
 <article class="category-card rounded-3xl">
 <div class="category-cover">
 {% if 'مرد' in category.name %}
-<img src="https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?auto=format&fit=crop&w=1200&q=82" alt="پوشاک مردانه">
+<img src="{% static 'pricing-categories/کتشلوارمردانه.png' %}" alt="پوشاک مردانه">
 {% elif 'زن' in category.name %}
-<img src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1200&q=82" alt="پوشاک زنانه">
+<img src="{% static 'pricing-categories/لباسزنانه.png' %}" alt="پوشاک زنانه">
 {% else %}
-<img src="https://images.unsplash.com/photo-1549037173-e3b717902c57?auto=format&fit=crop&w=1200&q=82" alt="{{ category.name }}">
+<img src="{% static 'pricing-categories/حوله.png' %}" alt="{{ category.name }}">
 {% endif %}
 <div class="category-badge">{{ category.items.all|length }} قلم</div>
 <div class="category-title"><h2>{{ category.name }}</h2><p>لیست اقلام و قیمت‌های ثبت‌شده</p></div>
@@ -76,25 +77,7 @@ body{background:linear-gradient(135deg,#f7fbfc 0%,#eefcf9 48%,#f7f4ff 100%);colo
 </article>
 {% endfor %}
 
-<article class="category-card rounded-3xl">
-<div class="category-cover">
-<img src="https://images.unsplash.com/photo-1741176505025-adc872ca331b?auto=format&fit=crop&w=1200&q=82" alt="منزل و لوازم خانه">
-<div class="category-badge">خدمات منزل</div>
-<div class="category-title"><h2>منزل</h2><p>پارچه‌ها و اقلام بزرگ خانه</p></div>
-</div>
-<div class="p-4">
-<div class="info-line">برای اقلام منزل، قیمت بر اساس جنس، ابعاد و نوع لکه یا شست‌وشو تعیین می‌شود و قبل از انجام کار با شما هماهنگ خواهد شد.</div>
-<div class="grid grid-cols-2 gap-2">
-<div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 text-xs font-bold text-gray-700">ملحفه و روتختی</div>
-<div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 text-xs font-bold text-gray-700">حوله</div>
-<div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 text-xs font-bold text-gray-700">پتو</div>
-<div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 text-xs font-bold text-gray-700">پرده</div>
-<div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 text-xs font-bold text-gray-700">روتختی و کاور</div>
-<div class="rounded-xl bg-slate-50 border border-slate-100 px-3 py-3 text-xs font-bold text-gray-700">روکش مبل</div>
-</div>
-<div class="mt-3 text-center text-[10px] font-black text-cyan-700 bg-cyan-50 border border-cyan-100 rounded-xl py-2.5">قیمت با استعلام</div>
-</div>
-</article>
+
 </div>
 
 <div class="text-center text-[10px] text-gray-400 mt-7 mb-2">قیمت‌های پوشاک به تومان نمایش داده می‌شوند. اقلام منزل پس از بررسی اعلام قیمت می‌شوند.</div>

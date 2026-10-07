@@ -1187,11 +1187,11 @@
                 <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
                     <div class="category-showcase-image">
                         {% if 'مرد' in category.name %}
-                        <img src="{% static 'pricing-categories/men.jpg' %}" alt="پوشاک مردانه">
+                        <img src="{% static 'pricing-categories/کتشلوارمردانه.png' %}" alt="پوشاک مردانه">
                         {% elif 'زن' in category.name %}
-                        <img src="{% static 'pricing-categories/women.jpg' %}" alt="پوشاک زنانه">
+                        <img src="{% static 'pricing-categories/لباسزنانه.png' %}" alt="پوشاک زنانه">
                         {% else %}
-                        <img src="{% static 'pricing-categories/men.jpg' %}" alt="{{ category.name }}">
+                        <img src="{% static 'pricing-categories/حوله.png' %}" alt="{{ category.name }}">
                         {% endif %}
                         <span class="category-showcase-count">{{ category.items.count }} خدمت</span>
                     </div>
@@ -1204,20 +1204,6 @@
                     </div>
                 </a>
                 {% endfor %}
-
-                <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
-                    <div class="category-showcase-image">
-                        <img src="{% static 'pricing-categories/home.jpg' %}" alt="منزل و لوازم خانه">
-                        <span class="category-showcase-count">خدمات منزل</span>
-                    </div>
-                    <div class="category-showcase-body">
-                        <div>
-                            <h4 class="font-black text-base mb-1">منزل</h4>
-                            <p class="text-gray-500 text-xs">پرده، پتو، ملحفه، حوله و اقلام منزل</p>
-                        </div>
-                        <span class="category-showcase-arrow">←</span>
-                    </div>
-                </a>
             </div>
         </div>
         {% endif %}
