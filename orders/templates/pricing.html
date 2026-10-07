@@ -57,9 +57,9 @@ body{background:linear-gradient(135deg,#f7fbfc 0%,#eefcf9 48%,#f7f4ff 100%);colo
 <article class="category-card rounded-3xl">
 <div class="category-cover">
 {% if 'مرد' in category.name %}
-<img src="{% static 'pricing-categories/کتشلوارمردانه.png' %}" alt="پوشاک مردانه">
+<img src="{% static 'pricing-categories/کت_شلوار_مردانه.png' %}" alt="پوشاک مردانه">
 {% elif 'زن' in category.name %}
-<img src="{% static 'pricing-categories/لباسزنانه.png' %}" alt="پوشاک زنانه">
+<img src="{% static 'pricing-categories/لباس_زنانه.png' %}" alt="پوشاک زنانه">
 {% else %}
 <img src="{% static 'pricing-categories/حوله.png' %}" alt="{{ category.name }}">
 {% endif %}
