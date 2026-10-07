@@ -16,6 +16,7 @@ def home(request):
     customer_name = None
     order_id = request.GET.get('order_id')
     orders = None
+    customer_orders = None
     wallet = None
 
     if customer_logged_in:
@@ -24,8 +25,13 @@ def home(request):
             phone_number = customer.phone
             customer_name = customer.name
             wallet, _ = Wallet.objects.get_or_create(customer=customer)
+            customer_orders = list(
+                Order.objects.filter(customer=customer)
+                .prefetch_related('orderitem_set')
+                .order_by('-created_at')[:30]
+            )
             if order_id and str(order_id).isdigit():
-                orders = Order.objects.filter(customer=customer, id=int(order_id))
+                orders = Order.objects.filter(customer=customer, id=int(order_id)).prefetch_related('orderitem_set')
             else:
                 orders = Order.objects.filter(customer=customer).order_by('-created_at')[:20]
         else:
@@ -37,6 +43,7 @@ def home(request):
     categories = list(PriceCategory.objects.prefetch_related('items').all())
     return render(request, 'home.html', {
         'orders': orders,
+        'customer_orders': customer_orders,
         'phone': phone_number,
         'customer_name': customer_name,
         'customer_logged_in': customer_logged_in,
