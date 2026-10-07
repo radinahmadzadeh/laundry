@@ -397,10 +397,35 @@
             .header-actions > a,.header-actions > button{padding:7px 7px!important;}
             main{padding-left:7px!important;padding-right:7px!important;}
         }
+        .category-showcase{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(248,250,252,.90));border:1px solid rgba(15,23,42,.06);box-shadow:0 28px 70px -42px rgba(15,23,42,.28)}
+        .category-showcase:before,.category-showcase:after{content:"";position:absolute;border-radius:999px;pointer-events:none;filter:blur(2px)}
+        .category-showcase:before{width:220px;height:220px;left:-110px;top:-130px;background:radial-gradient(circle,rgba(34,211,238,.18),transparent 68%)}
+        .category-showcase:after{width:240px;height:240px;right:-120px;bottom:-150px;background:radial-gradient(circle,rgba(167,139,250,.16),transparent 68%)}
+        .category-showcase-card{position:relative;display:block;box-shadow:0 20px 48px -34px rgba(15,23,42,.32);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s ease,border-color .45s ease}
+        .category-showcase-card:hover{transform:translateY(-7px);box-shadow:0 30px 62px -36px rgba(15,23,42,.38);border-color:rgba(34,211,238,.35)}
+        .category-showcase-image{position:relative;height:190px;overflow:hidden;background:#e2e8f0}
+        .category-showcase-image:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,23,.03) 20%,rgba(2,6,23,.66) 100%)}
+        .category-showcase-image img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1),filter .5s ease}
+        .category-showcase-card:hover .category-showcase-image img{transform:scale(1.055);filter:saturate(1.08) contrast(1.02)}
+        .category-showcase-count{position:absolute;z-index:2;left:13px;top:13px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.90);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.75);font-size:10px;font-weight:900;color:#0f172a}
+        .category-showcase-body{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;background:linear-gradient(135deg,#fff,rgba(248,250,252,.92))}
+        .category-showcase-arrow{width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ecfeff,#eff6ff);color:#0284c7;font-size:18px;font-weight:900;transition:transform .4s ease,background .4s ease}
+        .category-showcase-card:hover .category-showcase-arrow{transform:translateX(-3px) scale(1.06);background:linear-gradient(135deg,#cffafe,#e0e7ff)}
         @media (max-width:640px){
             .site-header-inner{ min-height:62px; }
             .header-actions{ gap:5px; }
             .header-actions > a, .header-actions > button{ min-height:38px; padding:8px 10px; }
+            .category-showcase{border-radius:24px!important}
+            .category-showcase-image{height:165px}
+            .category-showcase-body{padding:13px 14px}
+        }
+        @media (max-width:380px){
+            .category-showcase-image{height:145px}
+            .category-showcase-body{padding:12px}
+            .category-showcase-arrow{width:34px;height:34px;flex-basis:34px}
+        }
+        @media (prefers-reduced-motion:reduce){
+            .category-showcase-card,.category-showcase-image img,.category-showcase-arrow{transition:none}
         }
     </style>
 </head>
@@ -1145,26 +1170,54 @@
         </div>
 
         {% if categories %}
-        <div class="panel rounded-3xl p-6 sm:p-8">
-            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+        <div class="panel category-showcase rounded-[30px] p-5 sm:p-7">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-7">
                 <div>
-                    <h3 class="text-lg sm:text-xl font-black mb-1.5">دسته‌بندی خدمات و قیمت‌ها</h3>
-                    <p class="text-gray-500 text-sm">برای دیدن اقلام هر دسته و قیمت دقیق، دسته موردنظر را انتخاب کنید.</p>
+                    <div class="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 border border-cyan-100 rounded-full px-3 py-1.5 text-[10px] font-black mb-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> خدمات آرین
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-black mb-2">دسته‌بندی خدمات و قیمت‌ها</h3>
+                    <p class="text-gray-500 text-sm leading-7">برای دیدن اقلام هر دسته و قیمت دقیق، دسته موردنظر را انتخاب کنید.</p>
                 </div>
-                <a href="{% url 'pricing' %}" class="btn-motion inline-flex items-center justify-center gap-2 bg-gray-950 text-white font-bold text-xs px-5 py-3 rounded-xl">مشاهده لیست کامل قیمت‌ها ←</a>
+                <a href="{% url 'pricing' %}" class="btn-motion shrink-0 inline-flex items-center justify-center gap-2 bg-gray-950 text-white font-bold text-xs px-5 py-3.5 rounded-xl">مشاهده لیست کامل قیمت‌ها ←</a>
             </div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for category in categories %}
-                <a href="{% url 'pricing' %}" class="rounded-xl border border-gray-100 bg-gray-50/70 hover:bg-white hover:border-cyan-200 p-4 transition-all">
-                    <div class="flex items-center justify-between gap-3">
+                <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
+                    <div class="category-showcase-image">
+                        {% if 'مرد' in category.name %}
+                        <img src="https://images.unsplash.com/photo-1490578474895-699cd4e2cf59?auto=format&fit=crop&w=1200&q=82" alt="پوشاک مردانه">
+                        {% elif 'زن' in category.name %}
+                        <img src="https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?auto=format&fit=crop&w=1200&q=82" alt="پوشاک زنانه">
+                        {% else %}
+                        <img src="https://images.unsplash.com/photo-1549037173-e3b717902c57?auto=format&fit=crop&w=1200&q=82" alt="{{ category.name }}">
+                        {% endif %}
+                        <span class="category-showcase-count">{{ category.items.count }} خدمت</span>
+                    </div>
+                    <div class="category-showcase-body">
                         <div>
-                            <h4 class="font-bold text-sm mb-1">{{ category.name }}</h4>
-                            <p class="text-gray-500 text-xs">{{ category.items.count }} خدمت در این دسته</p>
+                            <h4 class="font-black text-base mb-1">{{ category.name }}</h4>
+                            <p class="text-gray-500 text-xs">مشاهده اقلام و قیمت‌های این دسته</p>
                         </div>
-                        <span class="text-cyan-600 font-black">←</span>
+                        <span class="category-showcase-arrow">←</span>
                     </div>
                 </a>
                 {% endfor %}
+
+                <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
+                    <div class="category-showcase-image">
+                        <img src="https://images.unsplash.com/photo-1741176505025-adc872ca331b?auto=format&fit=crop&w=1200&q=82" alt="منزل و لوازم خانه">
+                        <span class="category-showcase-count">خدمات منزل</span>
+                    </div>
+                    <div class="category-showcase-body">
+                        <div>
+                            <h4 class="font-black text-base mb-1">منزل</h4>
+                            <p class="text-gray-500 text-xs">پرده، پتو، ملحفه، حوله و اقلام منزل</p>
+                        </div>
+                        <span class="category-showcase-arrow">←</span>
+                    </div>
+                </a>
             </div>
         </div>
         {% endif %}
