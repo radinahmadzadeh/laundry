@@ -1008,6 +1008,60 @@
     </section>
     {% endif %}
 
+    {% if not customer_logged_in %}
+    <section id="order-section" class="max-w-6xl mx-auto px-5 mb-20 relative z-10">
+        <div class="text-center mb-8">
+            <span class="enter inline-block bg-cyan-50 text-cyan-700 border border-cyan-200 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
+                دسته‌بندی خدمات و قیمت‌ها
+            </span>
+            <h2 class="enter text-2xl sm:text-3xl font-black mb-2">خدمات ما را ببینید و قیمت هر قلم را بدانید</h2>
+            <p class="enter text-gray-500 text-sm">برای ثبت سفارش، ابتدا وارد حساب مشتری خود شوید یا ثبت‌نام کنید.</p>
+        </div>
+
+        <div class="panel category-showcase enter rounded-[30px] p-5 sm:p-7">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-7">
+                <div>
+                    <div class="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 border border-cyan-100 rounded-full px-3 py-1.5 text-[10px] font-black mb-3">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> خدمات آرین
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-black mb-2">دسته‌بندی خدمات و قیمت‌ها</h3>
+                    <p class="text-gray-500 text-sm leading-7">برای دیدن اقلام هر دسته و قیمت دقیق، دسته موردنظر را انتخاب کنید.</p>
+                </div>
+                <a href="{% url 'pricing' %}" class="btn-motion shrink-0 inline-flex items-center justify-center gap-2 bg-gray-950 text-white font-bold text-xs px-5 py-3.5 rounded-xl">مشاهده لیست کامل قیمت‌ها ←</a>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for category in categories %}
+                <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
+                    <div class="category-showcase-image">
+                        {% if 'مرد' in category.name %}
+                        <img src="{% static 'pricing-categories/کت_شلوار_مردانه.png' %}" alt="پوشاک مردانه">
+                        {% elif 'زن' in category.name %}
+                        <img src="{% static 'pricing-categories/لباس_زنانه.png' %}" alt="پوشاک زنانه">
+                        {% else %}
+                        <img src="{% static 'pricing-categories/حوله.png' %}" alt="{{ category.name }}">
+                        {% endif %}
+                        <span class="category-showcase-count">{{ category.items.count }} خدمت</span>
+                    </div>
+                    <div class="category-showcase-body">
+                        <div>
+                            <h4 class="font-black text-base mb-1">{{ category.name }}</h4>
+                            <p class="text-gray-500 text-xs">مشاهده اقلام و قیمت‌های این دسته</p>
+                        </div>
+                        <span class="category-showcase-arrow">←</span>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="text-center text-gray-400 text-sm py-8 sm:col-span-2 lg:col-span-3">
+                    فعلاً دسته‌بندی‌ای ثبت نشده است.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if customer_logged_in %}
     <section id="order-section" class="max-w-5xl mx-auto px-5 mb-20 relative z-10">
         <div class="text-center mb-8">
             <span class="enter inline-block bg-violet-50 text-violet-700 border border-violet-200 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
@@ -1183,6 +1237,7 @@
             </div>
         </form>
     </section>
+    {% endif %}
 
     <section class="max-w-6xl mx-auto px-5 mb-20">
         <div class="text-center mb-10">
@@ -1322,7 +1377,7 @@
             </div>
         </div>
 
-        {% if categories %}
+        {% if categories and customer_logged_in %}
         <div class="panel category-showcase rounded-[30px] p-5 sm:p-7">
             <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-7">
                 <div>
