@@ -627,7 +627,8 @@
                 <p class="text-gray-500 text-xs sm:text-sm mt-2">{% if customer_logged_in %}شماره فاکتور سفارش را وارد کنید{% else %}برای پیگیری، ابتدا وارد حساب مشتری شوید{% endif %}</p>
             </div>
             <form method="GET" action="#track-section" class="flex flex-col sm:flex-row gap-3">
-                <input type="number" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" required
+                <input type="number" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" required min="1" step="1"
+                       onkeydown="if(['-','+','e','E','.'].includes(event.key)) event.preventDefault();"
                        class="w-full sm:flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
                 <button type="submit" class="btn-motion bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 whitespace-nowrap">
                     پیگیری کن
@@ -878,12 +879,12 @@
                     {% endfor %}
                 </div>
 
-            {% elif phone and order_id %}
+            {% elif tracking_error %}
                 <div class="panel enter border-red-200 text-red-700 px-6 py-8 rounded-2xl w-full text-center flex flex-col items-center gap-3 relative z-10">
                     <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 7l8-3 8 3M4 7v10a1 1 0 001 1h14a1 1 0 001-1V7M4 7l8 4 8-4"/>
+                        <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9l-7.2 12.5A1.5 1.5 0 004.4 18.7h15.2a1.5 1.5 0 001.3-2.3L13.7 3.9a2 2 0 00-3.4 0z"/>
                     </svg>
-                    <p class="font-medium">فاکتور موردنظر پیدا نشد.</p>
+                    <p class="font-medium">{{ tracking_error }}</p>
                     <p class="text-red-400 text-xs font-light">لطفاً شماره فاکتور را بررسی و دوباره امتحان کنید.</p>
                 </div>
             {% endif %}

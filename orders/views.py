@@ -18,6 +18,7 @@ def home(request):
     orders = None
     customer_orders = None
     wallet = None
+    tracking_error = None
 
     if customer_logged_in:
         customer = Customer.objects.filter(id=customer_id).first()
@@ -30,8 +31,17 @@ def home(request):
                 .prefetch_related('orderitem_set')
                 .order_by('-created_at')[:30]
             )
-            if order_id and str(order_id).isdigit():
-                orders = Order.objects.filter(customer=customer, id=int(order_id)).prefetch_related('orderitem_set')
+            if order_id is not None:
+                normalized_order_id = str(order_id).translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789')).strip()
+                if not normalized_order_id.isdigit() or int(normalized_order_id) <= 0:
+                    tracking_error = 'شماره فاکتور باید یک عدد مثبت باشد.'
+                else:
+                    orders = Order.objects.filter(
+                        customer=customer,
+                        id=int(normalized_order_id),
+                    ).prefetch_related('orderitem_set')
+                    if not orders.exists():
+                        tracking_error = 'شماره فاکتور اشتباه است یا این فاکتور متعلق به حساب شما نیست.'
         else:
             request.session.pop('customer_id', None)
             request.session.pop('customer_logged_in', None)
@@ -51,6 +61,7 @@ def home(request):
         'shop_address': shop.address,
         'categories': categories,
         'wallet': wallet,
+        'tracking_error': tracking_error,
     })
 
 def wallet_page(request):
