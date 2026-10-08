@@ -25,17 +25,37 @@
             --amber-soft:#ffc266;
         }
         *{ font-family:'Vazirmatn', sans-serif; }
+        html{ background:#f5f8fa; }
         body{
+            position:relative;
             color:var(--ink);
+            background:transparent;
+            overflow-x:hidden;
+        }
+        body::before{
+            content:"";
+            position:fixed;
+            inset:-28px;
+            z-index:-2;
+            pointer-events:none;
             background:
-                radial-gradient(900px 520px at 92% 8%, rgba(73,224,214,.10), transparent 68%),
-                radial-gradient(820px 560px at 8% 34%, rgba(155,140,251,.07), transparent 70%),
-                linear-gradient(180deg, #f5f8fa 0%, #f8fbfd 48%, #f3f7fa 100%);
-            background-attachment:fixed;
+                linear-gradient(180deg, rgba(248,250,252,.82), rgba(248,250,252,.92)),
+                url("{% static 'hero/White shirt and folded linens.png' %}") center center / cover no-repeat;
+            filter:blur(15px);
+            transform:scale(1.035);
+            opacity:.72;
+        }
+        body::after{
+            content:"";
+            position:fixed;
+            inset:0;
+            z-index:-1;
+            pointer-events:none;
+            background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(248,250,252,.54) 58%, rgba(245,248,250,.82));
         }
 
         .weave{
-            position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.018;
+            position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.012;
             background-image:
                 repeating-linear-gradient(45deg, var(--ink) 0 1px, transparent 1px 6px),
                 repeating-linear-gradient(-45deg, var(--ink) 0 1px, transparent 1px 6px);
