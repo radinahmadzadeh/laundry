@@ -291,6 +291,10 @@
             background-position:center center;
             background-repeat:no-repeat;
             border-bottom:1px solid rgba(226,232,240,.75);
+            border-bottom-left-radius:56px;
+            border-bottom-right-radius:56px;
+            box-shadow:0 24px 60px -48px rgba(15,23,42,.45);
+            overflow:hidden;
         }
         .hero-content{
             position:relative;
@@ -308,6 +312,8 @@
         @media (max-width:760px){
             .hero-section{
                 min-height:440px;
+                border-bottom-left-radius:38px;
+                border-bottom-right-radius:38px;
                 background-position:62% center;
                 background-image:
                     linear-gradient(90deg, rgba(248,250,252,.98) 0%, rgba(248,250,252,.92) 48%, rgba(248,250,252,.58) 78%, rgba(248,250,252,.22) 100%),
@@ -318,6 +324,8 @@
         @media (max-width:480px){
             .hero-section{
                 min-height:410px;
+                border-bottom-left-radius:28px;
+                border-bottom-right-radius:28px;
                 background-position:60% center;
             }
         }
