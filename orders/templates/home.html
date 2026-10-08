@@ -281,6 +281,47 @@
         @media (prefers-reduced-motion:reduce){.gallery-track{animation:none;}.gallery-item,.gallery-item img{transition:none;}.gallery-item:hover{transform:translateY(var(--photo-lift)) rotate(var(--photo-angle));}.gallery-item:hover img{transform:none;}}
         @media (max-width:640px){.home-gallery{--photo-width:78vw;--photo-overlap:26px;border-radius:22px;padding:0;}.gallery-track{padding:24px 0 34px;}.gallery-item{height:45vw;min-height:150px;max-height:210px;border-width:4px;border-radius:20px;}.gallery-item img{border-radius:15px;}}
 
+        /* Hero background: the laundry photo stays behind the public landing content. */
+        .hero-section{
+            min-height:620px;
+            background-image:
+                linear-gradient(90deg, rgba(248,250,252,.98) 0%, rgba(248,250,252,.94) 34%, rgba(248,250,252,.78) 57%, rgba(248,250,252,.36) 78%, rgba(248,250,252,.10) 100%),
+                url("{% static 'hero/White shirt and folded linens.png' %}");
+            background-size:cover;
+            background-position:center center;
+            background-repeat:no-repeat;
+            border-bottom:1px solid rgba(226,232,240,.75);
+        }
+        .hero-content{
+            position:relative;
+            z-index:2;
+            max-width:760px;
+            margin-inline:auto;
+        }
+        .hero-section .welcome-card,
+        .hero-section h1,
+        .hero-section > div > p,
+        .hero-section > div > div > a{
+            text-shadow:0 1px 18px rgba(255,255,255,.72);
+        }
+        .hero-section .clothes-hero-art{ display:none; }
+        @media (max-width:760px){
+            .hero-section{
+                min-height:590px;
+                background-position:62% center;
+                background-image:
+                    linear-gradient(90deg, rgba(248,250,252,.98) 0%, rgba(248,250,252,.92) 48%, rgba(248,250,252,.58) 78%, rgba(248,250,252,.22) 100%),
+                    url("{% static 'hero/White shirt and folded linens.png' %}");
+            }
+            .hero-content{ max-width:100%; }
+        }
+        @media (max-width:480px){
+            .hero-section{
+                min-height:560px;
+                background-position:60% center;
+            }
+        }
+
         .clothes-hero-art{ position:relative; }
         .clothes-tag{
             position:absolute; background:#fff; border:1px solid var(--line); border-radius:14px;
@@ -512,8 +553,8 @@
 
     </div>
 
-    <section class="relative overflow-hidden">
-        <div class="max-w-6xl mx-auto px-5 pt-12 pb-14 sm:pt-20 sm:pb-16 relative z-10 text-center">
+    <section class="hero-section relative overflow-hidden">
+        <div class="hero-content max-w-6xl mx-auto px-5 pt-14 pb-16 sm:pt-20 sm:pb-20 relative z-10 text-center">
             {% if customer_logged_in and customer_name %}
             <div class="welcome-card enter max-w-xl mx-auto mb-7 rounded-2xl px-5 py-4 sm:px-6 sm:py-4 text-right" style="animation-delay:40ms">
                 <div class="relative z-10 flex items-center gap-3">
