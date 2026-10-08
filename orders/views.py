@@ -404,7 +404,12 @@ def request_courier(request):
                 return JsonResponse({'status': 'error', 'message': 'برای درخواست پیک ابتدا وارد حساب مشتری شوید.'}, status=403)
 
             order = get_object_or_404(Order, id=order_id, customer_id=request.session.get('customer_id'))
-            if order.courier_requested:
+            if order.status != 'ready':
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'این سفارش هنوز آماده تحویل نیست.'
+                })
+            if order.delivery_courier_requested:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'درخواست پیک برای این فاکتور قبلاً ثبت شده است و امکان تغییر آدرس وجود ندارد.'
@@ -412,10 +417,10 @@ def request_courier(request):
             error = validate_courier_location(lat, lng, postal)
             if error:
                 return JsonResponse({'status': 'error', 'message': error})
-            order.courier_requested = True
-            order.latitude = lat
-            order.longitude = lng
-            order.postal_code = postal
+            order.delivery_courier_requested = True
+            order.delivery_latitude = lat
+            order.delivery_longitude = lng
+            order.delivery_postal_code = postal
             order.save()
             return JsonResponse({'status': 'success', 'message': 'درخواست پیک با موفقیت ثبت شد.'})
         except Exception as e:

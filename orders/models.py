@@ -60,11 +60,20 @@ class Order(models.Model):
     delivery_date = models.DateField(null=True, blank=True, verbose_name='تاریخ تحویل')
     total_price = models.DecimalField(max_digits=10, decimal_places=0, default=0)
     is_paid = models.BooleanField(default=False, verbose_name='پرداخت شده')
-    courier_requested = models.BooleanField(default=False, verbose_name='درخواست پیک')
-    courier_dispatched = models.BooleanField(default=False, verbose_name='پیک ارسال شد')
-    latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی (Lat)')
-    longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی (Lng)')
-    postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی')
+
+    # پیک دریافت: وقتی سفارش جدید ثبت می‌شه و مشتری می‌خواد پیک لباس‌های کثیف رو از خونه‌اش تحویل بگیره
+    courier_requested = models.BooleanField(default=False, verbose_name='درخواست پیک (دریافت لباس)')
+    courier_dispatched = models.BooleanField(default=False, verbose_name='پیک دریافت ارسال شد')
+    latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی دریافت (Lat)')
+    longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی دریافت (Lng)')
+    postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی دریافت')
+
+    # پیک تحویل: وقتی سفارش آماده تحویله و مشتری می‌خواد لباس تمیز با پیک برایش ارسال شود
+    delivery_courier_requested = models.BooleanField(default=False, verbose_name='درخواست پیک (تحویل لباس)')
+    delivery_courier_dispatched = models.BooleanField(default=False, verbose_name='پیک تحویل ارسال شد')
+    delivery_latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی تحویل (Lat)')
+    delivery_longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی تحویل (Lng)')
+    delivery_postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی تحویل')
 
     @property
     def shamsi_date(self):
