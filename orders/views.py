@@ -116,7 +116,7 @@ def recharge_wallet(request):
     if request.method != 'POST':
         return redirect('wallet')
     try:
-        amount = int(request.POST.get('amount', '0').replace(',', '').strip())
+        amount = int(request.POST.get('amount', '0').replace(',', '').replace('.', '').strip())
     except (TypeError, ValueError):
         amount = 0
     if amount < 10000:

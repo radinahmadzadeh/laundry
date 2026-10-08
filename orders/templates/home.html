@@ -702,7 +702,7 @@
                                                 <div class="flex justify-between items-center text-gray-600 text-sm">
                                                     <div class="flex items-center gap-3">
                                                         <span class="text-gray-900">{{ item.item_name }}</span>
-                                                        <span class="text-xs text-gray-400 font-light hidden sm:inline-block">({{ item.price }} تومان)</span>
+                                                        <span class="text-xs text-gray-400 font-light hidden sm:inline-block">(<span class="money-value">{{ item.price }}</span> تومان)</span>
                                                     </div>
                                                     <div class="flex items-center gap-4">
                                                         <span class="text-xs text-[var(--cyan)] sm:hidden"><span class="money-value">{{ item.price }}</span> تومان</span>
@@ -1216,7 +1216,7 @@
                 <input type="checkbox" id="use-wallet" class="w-4 h-4 accent-emerald-600" checked>
                 <span class="min-w-0 flex-1">
                     <span class="block text-xs font-black text-emerald-800">اگر موجودی کافی باشد، از کیف پول پرداخت شود</span>
-                    <span class="block text-[10px] text-emerald-700/70 mt-0.5">موجودی فعلی: {{ wallet.balance|default:0 }} تومان</span>
+                    <span class="block text-[10px] text-emerald-700/70 mt-0.5">موجودی فعلی: <span class="money-value">{{ wallet.balance|default:0 }}</span> تومان</span>
                 </span>
                 <a href="{% url 'wallet' %}" onclick="event.stopPropagation()" class="text-[10px] font-black text-emerald-700 whitespace-nowrap">مدیریت کیف پول</a>
             </label>
@@ -1815,7 +1815,7 @@
                 } else {
                     var lineTotal = it.price * it.qty;
                     total += lineTotal;
-                    lineText = lineTotal.toLocaleString('en-US') + ' تومان';
+                    lineText = lineTotal.toLocaleString('de-DE') + ' تومان';
                 }
                 html += '<li class="flex justify-between items-center text-sm">' +
                             '<span class="text-gray-600">' + it.name + ' × ' + it.qty + '</span>' +
@@ -1823,7 +1823,7 @@
                         '</li>';
             });
             listEl.innerHTML = html;
-            totalEl.textContent = (hasUnknown ? '~ ' : '') + total.toLocaleString('en-US') + ' تومان';
+            totalEl.textContent = (hasUnknown ? '~ ' : '') + total.toLocaleString('de-DE') + ' تومان';
             if (noteEl) noteEl.classList.toggle('hidden', !hasUnknown);
         }
 
@@ -1837,7 +1837,7 @@
             var priceLabel = document.getElementById('price-label-' + itemId);
             if (!cardEl) return;
             var priceRaw = checked ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice;
-            if (priceLabel) priceLabel.textContent = Number(parsePrice(priceRaw)).toLocaleString('en-US') + ' تومان';
+            if (priceLabel) priceLabel.textContent = Number(parsePrice(priceRaw)).toLocaleString('de-DE') + ' تومان';
 
             if (cart[itemId]){
                 var name = cardEl.dataset.name + (checked ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
@@ -1947,9 +1947,10 @@
         function formatVisibleMoney(){
             document.querySelectorAll('.money-value').forEach(function(el){
                 var raw = String(el.textContent || '').replace(/[^0-9]/g, '');
-                if (raw) el.textContent = Number(raw).toLocaleString('en-US');
+                if (raw) el.textContent = Number(raw).toLocaleString('de-DE');
             });
         }
+        formatVisibleMoney();
 
         window.addEventListener('load', function(){
             var indicators = document.querySelectorAll('.delivery-indicator');
