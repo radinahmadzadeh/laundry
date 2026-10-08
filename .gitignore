@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 db.sqlite3
+
+# Local inspection script
+inspect_motion.py
