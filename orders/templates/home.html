@@ -41,7 +41,7 @@
             pointer-events:none;
             background-image:
                 linear-gradient(135deg, rgba(8,145,178,.07), rgba(124,58,237,.06)),
-                linear-gradient(rgba(247,250,252,.18), rgba(247,250,252,.18)),
+                linear-gradient(rgba(247,250,252,.12), rgba(247,250,252,.12)),
                 url("{% static 'hero/White shirt and folded linens.png' %}");
             background-position:center center;
             background-size:cover;
@@ -52,12 +52,12 @@
         }
         @media (max-width:760px){
             .page-background{
-                inset:-16px;
-                background-position:66% center;
+                inset:-12px;
+                background-position:60% center;
                 background-size:cover;
-                filter:blur(4px) saturate(1.04);
+                filter:blur(5px) saturate(1.06);
                 transform:translateZ(0) scale(1.045);
-                opacity:.92;
+                opacity:.96;
             }
         }
         @media (prefers-reduced-motion:reduce){
@@ -638,7 +638,7 @@
             {% endif %}
         </div>
 
-        <div class="max-w-4xl mx-auto px-5 pb-16 sm:pb-20 relative z-10">
+        <div class="max-w-4xl mx-auto px-5 pb-20 sm:pb-24 relative z-10">
             <div class="clothes-hero-art enter" style="animation-delay:280ms">
                 <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
                     <!-- پیراهن -->
