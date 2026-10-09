@@ -41,12 +41,12 @@
             pointer-events:none;
             background-image:
                 linear-gradient(135deg, rgba(8,145,178,.07), rgba(124,58,237,.06)),
-                linear-gradient(rgba(247,250,252,.30), rgba(247,250,252,.30)),
+                linear-gradient(rgba(247,250,252,.18), rgba(247,250,252,.18)),
                 url("{% static 'hero/White shirt and folded linens.png' %}");
             background-position:center center;
             background-size:cover;
             background-repeat:no-repeat;
-            filter:blur(11px) saturate(1.08);
+            filter:blur(5px) saturate(1.06);
             transform:translateZ(0) scale(1.035);
             opacity:.96;
         }
@@ -55,7 +55,7 @@
                 inset:-16px;
                 background-position:66% center;
                 background-size:cover;
-                filter:blur(9px) saturate(1.05);
+                filter:blur(4px) saturate(1.04);
                 transform:translateZ(0) scale(1.045);
                 opacity:.92;
             }
@@ -299,11 +299,11 @@
         @media (prefers-reduced-motion:reduce){.motion-reveal,.motion-stagger > *{opacity:1;transform:none;filter:none;transition:none}.motion-card,.motion-card svg{transition:none}.motion-card:hover{transform:none}.motion-card:hover svg{transform:none}.gallery-track{animation:none}.gallery-item{transition:none}.gallery-item:hover{transform:none}.gallery-item:hover img{transform:none}}
 
         /* Anchor the oversized track on the left so repeated sets slide into view on this RTL page. */
-        .home-gallery{--photo-width:clamp(300px,32vw,460px);--photo-overlap:clamp(26px,3vw,44px);direction:ltr;overflow:hidden;position:relative;border-radius:30px;padding:0;background:transparent;border:0;box-shadow:none;isolation:isolate;}
+        .home-gallery{--photo-width:clamp(300px,32vw,460px);--photo-overlap:clamp(26px,3vw,44px);direction:ltr;overflow:hidden;position:relative;border-radius:0;padding:0;background:transparent;border:0;box-shadow:none;isolation:isolate;}
         .home-gallery::before,.home-gallery::after{content:"";position:absolute;top:0;bottom:0;width:2.5%;z-index:4;pointer-events:none;}
         .home-gallery::before{right:0;background:linear-gradient(270deg,rgba(248,250,252,.28),transparent);}
         .home-gallery::after{left:0;background:linear-gradient(90deg,rgba(248,250,252,.28),transparent);}
-        .gallery-track{display:flex;align-items:center;width:max-content;padding:30px 0 42px;direction:ltr;will-change:transform;backface-visibility:hidden;animation:homeGalleryMarquee 34s linear infinite;}
+        .gallery-track{display:flex;align-items:center;width:max-content;padding:8px 0 42px;direction:ltr;will-change:transform;backface-visibility:hidden;animation:homeGalleryMarquee 34s linear infinite;}
         .home-gallery:hover .gallery-track{animation-play-state:paused;}
         .gallery-set{display:flex;align-items:center;flex:0 0 auto;height:100%;direction:ltr;gap:0;padding:0;}
         /* Include the trailing overlap in every set so the last-to-first seam matches the other cards. */
@@ -316,16 +316,16 @@
         .gallery-item:hover img{transform:scale(1.04);filter:saturate(1.06) contrast(1.02);}
         @keyframes homeGalleryMarquee{from{transform:translate3d(0,0,0);}to{transform:translate3d(-33.333333%,0,0);}}
         @media (prefers-reduced-motion:reduce){.gallery-track{animation:none;}.gallery-item,.gallery-item img{transition:none;}.gallery-item:hover{transform:translateY(var(--photo-lift)) rotate(var(--photo-angle));}.gallery-item:hover img{transform:none;}}
-        @media (max-width:640px){.home-gallery{--photo-width:78vw;--photo-overlap:26px;border-radius:22px;padding:0;}.gallery-track{padding:24px 0 34px;}.gallery-item{height:45vw;min-height:150px;max-height:210px;border-width:4px;border-radius:20px;}.gallery-item img{border-radius:15px;}}
+        @media (max-width:640px){.home-gallery{--photo-width:78vw;--photo-overlap:26px;border-radius:0;padding:0;}.gallery-track{padding:6px 0 34px;}.gallery-item{height:45vw;min-height:150px;max-height:210px;border-width:4px;border-radius:20px;}.gallery-item img{border-radius:15px;}}
 
         /* Hero background: keep the visual focus tight and remove the oversized empty area. */
         .hero-section{
             min-height:460px;
             background:linear-gradient(180deg, rgba(248,250,252,.22), rgba(248,250,252,.42));
-            border-bottom:1px solid rgba(226,232,240,.75);
+            border-bottom:0;
             border-bottom-left-radius:0;
             border-bottom-right-radius:0;
-            box-shadow:0 24px 60px -48px rgba(15,23,42,.45);
+            box-shadow:none;
             overflow:hidden;
         }
         .hero-content{
