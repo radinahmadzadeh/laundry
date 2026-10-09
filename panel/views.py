@@ -3,6 +3,7 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
+from django.db import transaction
 from django.db.models import Q, Sum, Count
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -10,6 +11,7 @@ from django.utils import timezone
 from orders.models import (
     Customer,
     Wallet,
+    WalletTransaction,
     Order,
     OrderItem,
     PriceCategory,
@@ -274,29 +276,49 @@ def customer_update(request, customer_id):
         name = request.POST.get('name', '').strip()
         phone = request.POST.get('phone', '').strip()
         password = request.POST.get('password', '')
-        wallet_balance = request.POST.get('wallet_balance', '').strip()
+        raw_wallet_balance = request.POST.get('wallet_balance', '').strip()
+        wallet_value = None
+
         if not name or len(name) < 2 or not phone:
             messages.error(request, 'نام و شماره موبایل الزامی است.')
             return redirect('panel_customer_detail', customer_id=customer.id)
         if Customer.objects.exclude(id=customer.id).filter(phone=phone).exists():
             messages.error(request, 'این شماره موبایل برای مشتری دیگری ثبت شده است.')
             return redirect('panel_customer_detail', customer_id=customer.id)
-        customer.name, customer.phone = name, phone
+
+        if raw_wallet_balance:
+            digit_map = str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789')
+            normalized_balance = raw_wallet_balance.translate(digit_map)
+            for separator in (',', '٬', '،', '.', '٫', ' '):
+                normalized_balance = normalized_balance.replace(separator, '')
+            if not normalized_balance.isdigit() or len(normalized_balance) > 12:
+                messages.error(request, 'موجودی کیف پول نامعتبر است. مبلغ را به تومان و بدون علامت منفی وارد کنید.')
+                return redirect('panel_customer_detail', customer_id=customer.id)
+            from decimal import Decimal
+            wallet_value = Decimal(normalized_balance)
+
         if password:
             from django.contrib.auth.hashers import make_password
             customer.password_hash = make_password(password)
-        customer.save()
-        wallet, _ = Wallet.objects.get_or_create(customer=customer)
-        if wallet_balance:
-            try:
-                from decimal import Decimal
-                value = Decimal(wallet_balance.replace(',', '').replace('٬', '').strip())
-                if value < 0: raise ValueError
-                wallet.balance = value
-                wallet.save()
-            except Exception:
-                messages.error(request, 'موجودی کیف پول نامعتبر است.')
-                return redirect('panel_customer_detail', customer_id=customer.id)
+
+        with transaction.atomic():
+            customer.name, customer.phone = name, phone
+            customer.save()
+            wallet, _ = Wallet.objects.select_for_update().get_or_create(customer=customer)
+            if wallet_value is not None and wallet_value != wallet.balance:
+                difference = wallet_value - wallet.balance
+                wallet.balance = wallet_value
+                wallet.save(update_fields=['balance', 'updated_at'])
+                WalletTransaction.objects.create(
+                    wallet=wallet,
+                    transaction_type='credit' if difference > 0 else 'debit',
+                    amount=abs(difference),
+                    description=(
+                        'شارژ دستی توسط مدیریت'
+                        if difference > 0
+                        else 'کاهش دستی موجودی توسط مدیریت'
+                    ),
+                )
         messages.success(request, 'اطلاعات مشتری با موفقیت ویرایش شد.')
     return redirect('panel_customer_detail', customer_id=customer.id)
 

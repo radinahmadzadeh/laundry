@@ -1,6 +1,7 @@
 ﻿import json
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
@@ -81,18 +82,19 @@ def wallet_pay_order(request, order_id):
         return redirect('home')
 
     order = get_object_or_404(Order, id=order_id, customer_id=customer_id)
+    invoice_url = f"{reverse('home')}?order_id={order.id}#track-section"
     if order.is_paid:
         messages.info(request, 'این فاکتور قبلاً پرداخت شده است.')
-        return redirect('home')
+        return redirect(invoice_url)
     if order.total_price <= 0:
         messages.error(request, 'مبلغ این فاکتور برای پرداخت با کیف پول معتبر نیست.')
-        return redirect('home')
+        return redirect(invoice_url)
 
     with transaction.atomic():
         wallet, _ = Wallet.objects.select_for_update().get_or_create(customer_id=customer_id)
         if wallet.balance < order.total_price:
             messages.error(request, f'موجودی کیف پول کافی نیست. موجودی فعلی: {wallet.balance:,} تومان')
-            return redirect('home')
+            return redirect(invoice_url)
         wallet.balance -= order.total_price
         wallet.save(update_fields=['balance', 'updated_at'])
         WalletTransaction.objects.create(
@@ -106,7 +108,7 @@ def wallet_pay_order(request, order_id):
         order.save(update_fields=['is_paid'])
 
     messages.success(request, f'فاکتور شماره {order.id} با موفقیت از کیف پول پرداخت شد.')
-    return redirect('home')
+    return redirect(invoice_url)
 
 
 def recharge_wallet(request):

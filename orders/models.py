@@ -35,7 +35,7 @@ class WalletTransaction(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=0)
     description = models.CharField(max_length=255, blank=True, default='')
     order = models.ForeignKey('Order', null=True, blank=True, on_delete=models.SET_NULL, related_name='wallet_transactions')
-    authority = models.CharField(max_length=64, blank=True, default='', unique=True, null=True)
+    authority = models.CharField(max_length=64, blank=True, default=None, unique=True, null=True)
     reference_id = models.CharField(max_length=100, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 
