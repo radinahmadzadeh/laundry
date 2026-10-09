@@ -197,12 +197,8 @@ def normalize_phone(raw):
     return digits
 
 def valid_password(password):
-    return (
-        len(password) >= 8
-        and bool(re.search(r'[A-Za-z]', password))
-        and bool(re.search(r'\d', password))
-        and bool(re.search(r'[^A-Za-z0-9]', password))
-    )
+    # Keep registration simple: accept any password of at least 8 characters.
+    return len(password) >= 8
 
 def customer_login(request):
     error = None
@@ -226,8 +222,6 @@ def customer_register(request):
         name = request.POST.get('name', '').strip()
         phone = normalize_phone(request.POST.get('phone'))
         password = request.POST.get('password', '')
-        password_confirm = request.POST.get('password_confirm', '')
-        order_id = request.POST.get('order_id', '').strip()
 
         if not name or len(name) < 2:
             error = 'لطفاً نام و نام‌خانوادگی معتبر وارد کنید.'
@@ -236,9 +230,7 @@ def customer_register(request):
         elif Customer.objects.filter(phone=phone).exists():
             error = 'این شماره موبایل قبلاً ثبت شده است. اگر حساب قدیمی دارید، از گزینه فعال‌سازی حساب قدیمی استفاده کنید.'
         elif not valid_password(password):
-            error = 'رمز عبور باید حداقل ۸ کاراکتر و شامل حروف انگلیسی، عدد و یک نماد باشد.'
-        elif password != password_confirm:
-            error = 'تکرار رمز عبور با رمز اصلی یکسان نیست.'
+            error = 'رمز عبور باید حداقل ۸ کاراکتر باشد.'
         else:
             customer = Customer.objects.create(
                 name=name,

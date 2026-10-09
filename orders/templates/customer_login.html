@@ -51,7 +51,10 @@
 <form method="post" class="space-y-3">
 {% csrf_token %}
 <input name="phone" type="tel" inputmode="numeric" maxlength="11" required placeholder="شماره موبایل، مثال ۰۹۱۲..." class="field text-center" autocomplete="tel">
-<input name="password" type="password" minlength="8" required placeholder="رمز عبور" class="field text-center" autocomplete="current-password">
+<div>
+<input name="password" id="login-password" type="password" required placeholder="رمز عبور" class="field text-center" autocomplete="current-password">
+<label for="show-login-password" class="mt-2 inline-flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none"><input id="show-login-password" type="checkbox" class="accent-cyan-600 w-4 h-4"> نمایش رمز عبور</label>
+</div>
 <button type="submit" class="submit w-full">ورود به حساب</button>
 </form>
 <p class="mt-4 text-[11px] text-slate-400 text-center leading-6">با ورود، سفارش‌ها، فاکتورها و کیف پول شما در همین حساب در دسترس خواهند بود.</p>
@@ -67,4 +70,15 @@
 </div>
 </div>
 </div>
+<script>
+(function () {
+  const password = document.getElementById('login-password');
+  const toggle = document.getElementById('show-login-password');
+  if (password && toggle) {
+    toggle.addEventListener('change', function () {
+      password.type = toggle.checked ? 'text' : 'password';
+    });
+  }
+})();
+</script>
 </body></html>
