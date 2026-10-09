@@ -28,6 +28,10 @@
         <label class="text-[10px] text-gray-500">شماره موبایل<input name="phone" value="{{ customer.phone }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
         <label class="text-[10px] text-gray-500">رمز عبور جدید<input name="password" type="password" placeholder="برای تغییر وارد کنید" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
         <label class="text-[10px] text-gray-500">موجودی کیف پول<input name="wallet_balance" value="{{ wallet.balance|default:0 }}" inputmode="numeric" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+        <label class="text-[10px] text-gray-500 sm:col-span-2 xl:col-span-4">آدرس ثبت‌شده مشتری<textarea name="address" rows="2" class="mt-1 w-full rounded-xl px-3 py-2">{{ customer.address }}</textarea></label>
+        <label class="text-[10px] text-gray-500">کد پستی آدرس<input name="address_postal_code" value="{{ customer.address_postal_code }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+        <label class="text-[10px] text-gray-500">عرض جغرافیایی<input name="address_latitude" value="{{ customer.address_latitude }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+        <label class="text-[10px] text-gray-500">طول جغرافیایی<input name="address_longitude" value="{{ customer.address_longitude }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
         <button class="btn-primary rounded-xl px-5 py-3 text-xs font-black sm:col-span-2 xl:col-span-4">ذخیره تغییرات مشتری</button>
     </form>
 </div>
@@ -39,6 +43,7 @@
         <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">نام و نام‌خانوادگی</p><p class="font-bold text-white mt-1">{{ customer.name }}</p></div>
         <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">شماره موبایل</p><p class="font-bold text-white mt-1 dir-ltr text-right">{{ customer.phone }}</p></div>
         <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">وضعیت حساب</p><p class="font-bold mt-1 {% if customer.password_hash %}text-emerald-300{% else %}text-amber-300{% endif %}">{% if customer.password_hash %}فعال{% else %}بدون رمز عبور{% endif %}</p></div>
+        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4 sm:col-span-2 xl:col-span-4"><p class="text-[10px] text-gray-500">آدرس ثبت‌شده</p>{% if customer.address or customer.has_saved_address %}<p class="font-bold text-white mt-1">{{ customer.address|default:"(آدرس متنی ثبت نشده)" }}</p><p class="text-xs text-gray-400 mt-1">کد پستی: <span class="dir-ltr">{{ customer.address_postal_code|default:"-" }}</span>{% if customer.has_saved_address %} · <a href="https://www.google.com/maps?q={{ customer.address_latitude }},{{ customer.address_longitude }}" target="_blank" rel="noopener" class="text-cyan-300 font-bold hover:underline">مشاهده روی نقشه</a>{% endif %}</p>{% else %}<p class="text-gray-500 mt-1 text-sm">آدرسی ثبت نشده است.</p>{% endif %}</div>
     </div>
 </div>
 

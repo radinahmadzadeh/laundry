@@ -1,4 +1,4 @@
-﻿from datetime import date, timedelta
+from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -300,6 +300,12 @@ def customer_update(request, customer_id):
         if password:
             from django.contrib.auth.hashers import make_password
             customer.password_hash = make_password(password)
+
+        digit_map_fa = str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789')
+        customer.address = request.POST.get('address', '').strip()[:1000]
+        customer.address_latitude = request.POST.get('address_latitude', '').strip()
+        customer.address_longitude = request.POST.get('address_longitude', '').strip()
+        customer.address_postal_code = request.POST.get('address_postal_code', '').strip().translate(digit_map_fa)
 
         with transaction.atomic():
             customer.name, customer.phone = name, phone

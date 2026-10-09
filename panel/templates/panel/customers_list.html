@@ -26,7 +26,7 @@
     <div class="overflow-x-auto">
         <table class="w-full text-sm text-right min-w-[1080px]">
             <thead class="text-gray-400 text-[11px] border-b border-white/10 bg-white/[0.02]">
-                <tr><th class="p-4">شناسه</th><th class="p-4">نام و نام‌خانوادگی</th><th class="p-4">شماره تماس</th><th class="p-4">حساب</th><th class="p-4">کیف پول</th><th class="p-4">سفارش‌ها</th><th class="p-4">مجموع سفارش‌ها</th><th class="p-4"></th></tr>
+                <tr><th class="p-4">شناسه</th><th class="p-4">نام و نام‌خانوادگی</th><th class="p-4">شماره تماس</th><th class="p-4">حساب</th><th class="p-4">آدرس</th><th class="p-4">کیف پول</th><th class="p-4">سفارش‌ها</th><th class="p-4">مجموع سفارش‌ها</th><th class="p-4"></th></tr>
             </thead>
             <tbody>
                 {% for c in customers %}
@@ -35,12 +35,13 @@
                     <td class="p-4 font-bold text-white">{{ c.name }}</td>
                     <td class="p-4 dir-ltr text-gray-300">{{ c.phone }}</td>
                     <td class="p-4">{% if c.password_hash %}<span class="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">فعال</span>{% else %}<span class="inline-flex px-2.5 py-1 rounded-lg text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/20">بدون رمز</span>{% endif %}</td>
+                    <td class="p-4 text-gray-300 text-xs max-w-[220px] truncate" title="{{ c.address }}">{% if c.address or c.has_saved_address %}{{ c.address|default:"ثبت‌شده روی نقشه" }}{% else %}<span class="text-gray-500">-</span>{% endif %}</td>
                     <td class="p-4 font-black text-emerald-300"><span class="money-auto">{{ c.wallet.balance|default:0 }}</span> تومان</td>
                     <td class="p-4 text-cyan-300 font-bold">{{ c.order_count }}</td>
                     <td class="p-4 text-gray-300"><span class="money-auto">{{ c.total_spent|default:0 }}</span> تومان</td>
                     <td class="p-4"><a href="{% url 'panel_customer_detail' c.id %}" class="px-3 py-2 rounded-lg bg-cyan-400/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold hover:bg-cyan-400/15 transition">جزئیات کامل</a></td>
                 </tr>
-                {% empty %}<tr><td colspan="8" class="p-10 text-center text-gray-500">مشتری‌ای پیدا نشد.</td></tr>{% endfor %}
+                {% empty %}<tr><td colspan="9" class="p-10 text-center text-gray-500">مشتری‌ای پیدا نشد.</td></tr>{% endfor %}
             </tbody>
         </table>
     </div>

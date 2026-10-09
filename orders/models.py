@@ -1,4 +1,4 @@
-﻿from django.db import models
+from django.db import models
 import jdatetime
 from datetime import date
 
@@ -6,6 +6,14 @@ class Customer(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, unique=True)
     password_hash = models.CharField(max_length=128, blank=True, default='')
+    address = models.TextField(blank=True, default='', verbose_name='آدرس ثبت‌شده')
+    address_latitude = models.CharField(max_length=50, blank=True, default='', verbose_name='عرض جغرافیایی آدرس')
+    address_longitude = models.CharField(max_length=50, blank=True, default='', verbose_name='طول جغرافیایی آدرس')
+    address_postal_code = models.CharField(max_length=10, blank=True, default='', verbose_name='کد پستی آدرس')
+
+    @property
+    def has_saved_address(self):
+        return bool(self.address_latitude and self.address_longitude)
 
     @property
     def wallet_balance(self):

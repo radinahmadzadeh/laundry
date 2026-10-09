@@ -62,7 +62,68 @@ def home(request):
         'categories': categories,
         'wallet': wallet,
         'tracking_error': tracking_error,
+        'saved_address': customer if customer_logged_in and customer.has_saved_address else None,
     })
+
+def account_page(request):
+    customer_id = request.session.get('customer_id')
+    if not request.session.get('customer_logged_in') or not customer_id:
+        return redirect('customer_login')
+    customer = get_object_or_404(Customer, id=customer_id)
+
+    if request.method == 'POST':
+        form_type = request.POST.get('form_type')
+        if form_type == 'profile':
+            name = request.POST.get('name', '').strip()
+            phone = normalize_phone(request.POST.get('phone'))
+            current_password = request.POST.get('current_password', '')
+            new_password = request.POST.get('new_password', '')
+            error = None
+            if len(name) < 2:
+                error = 'لطفاً نام و نام‌خانوادگی معتبر وارد کنید.'
+            elif len(phone) != 11 or not phone.startswith('09'):
+                error = 'شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد.'
+            elif Customer.objects.exclude(id=customer.id).filter(phone=phone).exists():
+                error = 'این شماره موبایل برای حساب دیگری ثبت شده است.'
+            elif new_password:
+                if not customer.password_hash or not check_password(current_password, customer.password_hash):
+                    error = 'رمز عبور فعلی صحیح نیست.'
+                elif not valid_password(new_password):
+                    error = 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد.'
+            if error:
+                messages.error(request, error)
+            else:
+                customer.name = name
+                customer.phone = phone
+                if new_password:
+                    customer.password_hash = make_password(new_password)
+                customer.save()
+                if new_password:
+                    request.session.cycle_key()
+                messages.success(request, 'اطلاعات حساب شما ذخیره شد.')
+        elif form_type == 'address':
+            lat = request.POST.get('lat', '').strip()
+            lng = request.POST.get('lng', '').strip()
+            postal = request.POST.get('postal', '').strip().translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
+            address = request.POST.get('address', '').strip()[:1000]
+            error = validate_courier_location(lat, lng, postal)
+            if error:
+                messages.error(request, error)
+            else:
+                customer.address = address
+                customer.address_latitude = lat
+                customer.address_longitude = lng
+                customer.address_postal_code = postal
+                customer.save()
+                messages.success(request, 'آدرس شما ذخیره شد و در ثبت سفارش‌ها قابل استفاده است.')
+        elif form_type == 'address_delete':
+            customer.address = customer.address_latitude = customer.address_longitude = customer.address_postal_code = ''
+            customer.save()
+            messages.success(request, 'آدرس ثبت‌شده حذف شد.')
+        return redirect('account')
+
+    return render(request, 'account.html', {'customer': customer})
+
 
 def wallet_page(request):
     customer_id = request.session.get('customer_id')
