@@ -8,9 +8,25 @@
 <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
 <style>
 *{box-sizing:border-box;font-family:Vazirmatn,sans-serif}
+html{background:transparent}
 html,body{margin:0;overflow-x:hidden}
-body{background:linear-gradient(135deg,#f7fbfc 0%,#eefcf9 48%,#f7f4ff 100%);color:#0f172a}
-.wrap{width:min(1180px,100%);margin:auto;padding:18px}
+body{position:relative;isolation:isolate;background:transparent;color:#0f172a}
+.page-background{
+position:fixed;inset:-20px;z-index:-1;pointer-events:none;
+background-image:linear-gradient(135deg,rgba(8,145,178,.07),rgba(124,58,237,.06)),linear-gradient(rgba(247,250,252,.12),rgba(247,250,252,.12)),url("{% static 'hero/White shirt and folded linens.png' %}");
+background-position:center center;background-size:cover;background-repeat:no-repeat;
+filter:blur(5px) saturate(1.06);transform:translateZ(0) scale(1.035);opacity:.96
+}
+.weave{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.008;background-image:repeating-linear-gradient(45deg,#101828 0 1px,transparent 1px 6px),repeating-linear-gradient(-45deg,#101828 0 1px,transparent 1px 6px)}
+.site-bubbles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.bubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.98) 0 10%,rgba(255,255,255,.58) 11% 18%,rgba(73,224,214,.20) 40%,rgba(155,140,251,.12) 68%,transparent 78%);border:1px solid rgba(73,170,205,.42);box-shadow:inset -8px -10px 18px rgba(124,58,237,.08),0 12px 30px rgba(8,145,178,.10);animation:bubbleFloat 6.5s ease-in-out infinite;will-change:transform,opacity;pointer-events:none}
+@keyframes bubbleFloat{0%{transform:translate3d(0,34px,0) scale(.88);opacity:.28}18%{opacity:.82}50%{transform:translate3d(18px,-16px,0) scale(1.05);opacity:1}82%{opacity:.72}100%{transform:translate3d(-10px,-62px,0) scale(.9);opacity:.22}}
+.bubble::after{content:'';position:absolute;width:22%;height:22%;left:20%;top:18%;border-radius:50%;background:rgba(255,255,255,.78);filter:blur(1px)}
+.site-bubbles .bubble:nth-child(1){width:78px;height:78px;top:12%;right:max(10px,calc((100vw - 1200px)/2 - 18px))}
+.site-bubbles .bubble:nth-child(2){width:48px;height:48px;top:56%;right:max(8px,calc((100vw - 1200px)/2 - 4px))}
+.site-bubbles .bubble:nth-child(3){width:54px;height:54px;top:28%;left:max(10px,calc((100vw - 1200px)/2 - 18px))}
+.site-bubbles .bubble:nth-child(4){width:36px;height:36px;top:72%;left:max(8px,calc((100vw - 1200px)/2 - 2px))}
+.wrap{position:relative;z-index:2;width:min(1180px,100%);margin:auto;padding:18px}
 .hero{position:relative;overflow:hidden;border:1px solid rgba(15,23,42,.06);background:rgba(255,255,255,.82);backdrop-filter:blur(18px);box-shadow:0 28px 70px -42px rgba(15,23,42,.28)}
 .hero:before{content:"";position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(73,224,214,.20),transparent 68%);left:-100px;top:-120px}
 .hero:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(155,140,251,.18),transparent 68%);right:-90px;bottom:-130px}
@@ -32,12 +48,29 @@ body{background:linear-gradient(135deg,#f7fbfc 0%,#eefcf9 48%,#f7f4ff 100%);colo
 .iron-value{font-size:10px;white-space:nowrap;color:#64748b}
 .price-head{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;padding:10px 16px;background:#f8fafc;border-bottom:1px solid #eef2f7;color:#94a3b8;font-size:9px;font-weight:800}
 .info-line{margin:0 16px 14px;padding:10px 12px;border-radius:12px;background:linear-gradient(135deg,#f0fdfa,#f5f3ff);border:1px solid rgba(8,145,178,.10);font-size:10px;color:#64748b;line-height:1.9}
-@media(max-width:760px){.wrap{padding:10px}.category-cover{height:165px}.category-title h2{font-size:19px}.price-row{padding:11px 12px;gap:7px}.price-head{padding:9px 12px;gap:7px}.price-name{font-size:11px}}
+@media(max-width:760px){
+.page-background{inset:-12px;background-position:60% center;background-size:cover;filter:blur(5px) saturate(1.06);transform:translateZ(0) scale(1.045);opacity:.96}
+.wrap{padding:10px}.category-cover{height:165px}.category-title h2{font-size:19px}.price-row{padding:11px 12px;gap:7px}.price-head{padding:9px 12px;gap:7px}.price-name{font-size:11px}
+}
+@media(max-width:640px){
+.site-bubbles .bubble:nth-child(1){width:54px;height:54px;top:10%;right:3px}
+.site-bubbles .bubble:nth-child(2){width:32px;height:32px;top:52%;right:2px}
+.site-bubbles .bubble:nth-child(3){width:40px;height:40px;top:27%;left:3px}
+.site-bubbles .bubble:nth-child(4){width:26px;height:26px;top:73%;left:2px}
+}
 @media(max-width:430px){.hero{border-radius:20px!important}.category-card{border-radius:18px!important}.category-cover{height:145px}.price-row{grid-template-columns:minmax(0,1fr) auto}.price-row .iron-value{display:none}.price-head{grid-template-columns:minmax(0,1fr) auto auto}.wrap{padding:7px}}
-@media(prefers-reduced-motion:reduce){.category-card,.category-cover img{transition:none}}
+@media(prefers-reduced-motion:reduce){.category-card,.category-cover img,.bubble{transition:none;animation:none}.page-background{transform:scale(1.04)}}
 </style>
 </head>
 <body class="min-h-screen">
+<div class="page-background" aria-hidden="true"></div>
+<div class="weave" aria-hidden="true"></div>
+<div class="site-bubbles" aria-hidden="true">
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+<div class="bubble"></div>
+</div>
 <div class="wrap">
 <header class="hero rounded-[30px] p-5 sm:p-7 mb-7">
 <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
