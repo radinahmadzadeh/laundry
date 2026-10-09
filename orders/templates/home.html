@@ -1597,7 +1597,9 @@
             <div>
                 <h4 class="font-bold mb-3">لینک‌های سریع</h4>
                 <ul class="space-y-2 text-gray-500">
+                    {% if customer_logged_in %}
                     <li><a href="#track-section" class="hover:text-gray-900">پیگیری سفارش</a></li>
+                    {% endif %}
                     <li><a href="{% url 'pricing' %}" class="hover:text-gray-900">لیست قیمت</a></li>
                     <li><a href="#faq" class="hover:text-gray-900">سوالات متداول</a></li>
                 </ul>
