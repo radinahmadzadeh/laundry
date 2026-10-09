@@ -414,6 +414,8 @@
         .welcome-card::before{ content:''; position:absolute; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle, rgba(73,224,214,.22), transparent 68%); top:-80px; left:-35px; }
         .welcome-card::after{ content:''; position:absolute; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle, rgba(155,140,251,.18), transparent 68%); bottom:-80px; right:-30px; }
         .welcome-name{ background:linear-gradient(90deg, var(--cyan), var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .addr-choice{ font-size:11px; font-weight:800; padding:10px 8px; border-radius:12px; border:1px solid #d1fae5; background:#fff; color:#475569; transition:all .2s ease; }
+        .addr-choice.active{ background:linear-gradient(115deg,var(--cyan-soft),var(--violet-soft)); border-color:transparent; color:#04141a; box-shadow:0 8px 18px -10px rgba(8,145,178,.6); }
         .wallet-nav{ transition:transform .2s ease, box-shadow .2s ease; }
         .wallet-nav:hover{ transform:translateY(-1px); box-shadow:0 10px 22px -14px rgba(16,185,129,.5); }
         .item-section-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
@@ -868,8 +870,21 @@
                                                     <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
 
                                                     <div id="interactive-map-{{ order.id }}" class="interactive-map map-frame w-full h-48 sm:h-64 rounded-xl mb-2"></div>
-                                                    {% if saved_address %}<button type="button" onclick="useSavedAddress('{{ order.id }}')" class="w-full mb-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs py-2.5 rounded-xl hover:bg-emerald-100 transition-colors">استفاده از آدرس ثبت‌شده من</button>
-                    {% endif %}<button type="button" onclick="locateCourier('{{ order.id }}')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
+                                                    {% if saved_address %}
+                <div class="saved-addr-card rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 mb-3 text-right">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-xs font-black text-emerald-800">آدرس ثبت‌شده شما</span>
+                        <a href="{% url 'account' %}" class="text-[10px] font-bold text-emerald-700 underline">ویرایش</a>
+                    </div>
+                    <p class="text-xs text-gray-700 leading-6">{{ saved_address.address|default:"آدرس متنی ثبت نشده است (فقط موقعیت روی نقشه)." }}</p>
+                    <p class="text-[11px] text-gray-500 mt-1">کد پستی: <span class="font-bold text-gray-700">{{ saved_address.address_postal_code|default:"-" }}</span></p>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button type="button" id="addr-btn-saved-{{ order.id }}" onclick="useSavedAddress('{{ order.id }}')" class="addr-choice">ارسال به این آدرس</button>
+                        <button type="button" id="addr-btn-new-{{ order.id }}" onclick="useNewLocation('{{ order.id }}')" class="addr-choice">لوکیشن جدید</button>
+                    </div>
+                    <p id="addr-status-{{ order.id }}" class="text-[11px] font-bold text-emerald-700 mt-2"></p>
+                </div>
+                {% endif %}<button type="button" onclick="locateCourier('{{ order.id }}')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
 
                                                     <input type="hidden" id="lat-{{ order.id }}">
                                                     <input type="hidden" id="lng-{{ order.id }}">
@@ -1275,7 +1290,20 @@
             <div id="section-courier-neworder" class="hidden">
                 <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
                 <div id="interactive-map-neworder" class="interactive-map map-frame w-full h-40 sm:h-56 rounded-xl mb-2"></div>
-                {% if saved_address %}<button type="button" onclick="useSavedAddress('neworder')" class="w-full mb-2 bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-xs py-2.5 rounded-xl hover:bg-emerald-100 transition-colors">استفاده از آدرس ثبت‌شده من</button>
+                {% if saved_address %}
+                <div class="saved-addr-card rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 mb-3 text-right">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <span class="text-xs font-black text-emerald-800">آدرس ثبت‌شده شما</span>
+                        <a href="{% url 'account' %}" class="text-[10px] font-bold text-emerald-700 underline">ویرایش</a>
+                    </div>
+                    <p class="text-xs text-gray-700 leading-6">{{ saved_address.address|default:"آدرس متنی ثبت نشده است (فقط موقعیت روی نقشه)." }}</p>
+                    <p class="text-[11px] text-gray-500 mt-1">کد پستی: <span class="font-bold text-gray-700">{{ saved_address.address_postal_code|default:"-" }}</span></p>
+                    <div class="grid grid-cols-2 gap-2 mt-3">
+                        <button type="button" id="addr-btn-saved-neworder" onclick="useSavedAddress('neworder')" class="addr-choice">ارسال به این آدرس</button>
+                        <button type="button" id="addr-btn-new-neworder" onclick="useNewLocation('neworder')" class="addr-choice">لوکیشن جدید</button>
+                    </div>
+                    <p id="addr-status-neworder" class="text-[11px] font-bold text-emerald-700 mt-2"></p>
+                </div>
                 {% endif %}<button type="button" onclick="locateCourier('neworder')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
                 <input type="hidden" id="lat-neworder">
                 <input type="hidden" id="lng-neworder">
@@ -1731,6 +1759,7 @@
                             courierMarkers[orderId] = L.marker(latlng).addTo(map);
                             document.getElementById('lat-' + orderId).value = latlng.lat;
                             document.getElementById('lng-' + orderId).value = latlng.lng;
+                            setAddrMode(orderId, 'new');
                         }
 
                         map.on('click', function(e){ setCourierPoint(e.latlng); });
@@ -1752,7 +1781,7 @@
             positionDeliveryIndicator(orderId, btn || (type === 'pickup' ? btnPickup : btnCourier));
         }
 
-        var SAVED_ADDRESS = {% if saved_address %}{lat: "{{ saved_address.address_latitude|escapejs }}", lng: "{{ saved_address.address_longitude|escapejs }}", postal: "{{ saved_address.address_postal_code|escapejs }}"}{% else %}null{% endif %};
+        var SAVED_ADDRESS = {% if saved_address %}{lat: "{{ saved_address.address_latitude|escapejs }}", lng: "{{ saved_address.address_longitude|escapejs }}", postal: "{{ saved_address.address_postal_code|escapejs }}", text: "{{ saved_address.address|escapejs }}"}{% else %}null{% endif %};
 
         function useSavedAddress(orderId){
             var map = courierMaps[orderId];
@@ -1764,6 +1793,30 @@
             document.getElementById('lat-' + orderId).value = point.lat;
             document.getElementById('lng-' + orderId).value = point.lng;
             if (SAVED_ADDRESS.postal) document.getElementById('postal-' + orderId).value = SAVED_ADDRESS.postal;
+            setAddrMode(orderId, 'saved');
+        }
+
+        function setAddrMode(orderId, mode){
+            var b1 = document.getElementById('addr-btn-saved-' + orderId);
+            var b2 = document.getElementById('addr-btn-new-' + orderId);
+            var st = document.getElementById('addr-status-' + orderId);
+            if (!b1 || !b2) return;
+            b1.classList.toggle('active', mode === 'saved');
+            b2.classList.toggle('active', mode === 'new');
+            if (st) st.textContent = mode === 'saved'
+                ? '✓ این سفارش به آدرس ثبت‌شده شما ارسال می‌شود' + (SAVED_ADDRESS && SAVED_ADDRESS.text ? ': ' + SAVED_ADDRESS.text : '.')
+                : '✓ این سفارش به لوکیشن جدیدی که روی نقشه انتخاب می‌کنید ارسال می‌شود.';
+        }
+
+        function useNewLocation(orderId){
+            var map = courierMaps[orderId];
+            if (!map) return;
+            if (courierMarkers[orderId]){ map.removeLayer(courierMarkers[orderId]); delete courierMarkers[orderId]; }
+            document.getElementById('lat-' + orderId).value = '';
+            document.getElementById('lng-' + orderId).value = '';
+            document.getElementById('postal-' + orderId).value = '';
+            setAddrMode(orderId, 'new');
+            showToast('نقطه جدید را روی نقشه انتخاب کنید یا از موقعیت فعلی استفاده کنید.');
         }
 
         function locateCourier(orderId){
@@ -1784,6 +1837,7 @@
                 courierMarkers[orderId] = L.marker(point).addTo(map);
                 document.getElementById('lat-' + orderId).value = point.lat;
                 document.getElementById('lng-' + orderId).value = point.lng;
+                setAddrMode(orderId, 'new');
                 showToast('موقعیت شما روی نقشه ثبت شد.');
             }, function(){
                 showToast('دسترسی به موقعیت مکانی ممکن نشد؛ لطفاً روی نقشه نقطه را انتخاب کنید.');
