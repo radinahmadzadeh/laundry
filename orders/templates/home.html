@@ -320,7 +320,7 @@
 
         /* Hero background: keep the visual focus tight and remove the oversized empty area. */
         .hero-section{
-            min-height:435px;
+            min-height:0;
             background:transparent;
             border-bottom:0;
             border-bottom-left-radius:0;
@@ -343,7 +343,7 @@
         .hero-section .clothes-hero-art{ display:none; }
         @media (max-width:760px){
             .hero-section{
-                min-height:415px;
+                min-height:0;
                 border-bottom-left-radius:0;
                 border-bottom-right-radius:0;
                 background:transparent;
@@ -352,7 +352,7 @@
         }
         @media (max-width:480px){
             .hero-section{
-                min-height:390px;
+                min-height:0;
                 border-bottom-left-radius:0;
                 border-bottom-right-radius:0;
                 background:transparent;
@@ -597,7 +597,7 @@
     </div>
 
     <section class="hero-section relative overflow-hidden">
-        <div class="hero-content max-w-6xl mx-auto px-5 pt-14 pb-16 sm:pt-20 sm:pb-20 relative z-10 text-center">
+        <div class="hero-content max-w-6xl mx-auto px-5 pt-14 pb-6 sm:pt-20 sm:pb-8 relative z-10 text-center">
             {% if customer_logged_in and customer_name %}
             <div class="welcome-card enter max-w-xl mx-auto mb-7 rounded-2xl px-5 py-4 sm:px-6 sm:py-4 text-right" style="animation-delay:40ms">
                 <div class="relative z-10 flex items-center gap-3">
@@ -638,7 +638,7 @@
             {% endif %}
         </div>
 
-        <div class="max-w-4xl mx-auto px-5 pb-20 sm:pb-24 relative z-10">
+        <div class="max-w-4xl mx-auto px-5 pb-6 sm:pb-8 relative z-10">
             <div class="clothes-hero-art enter" style="animation-delay:280ms">
                 <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4">
                     <!-- پیراهن -->
