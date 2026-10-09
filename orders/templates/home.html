@@ -28,22 +28,28 @@
         html{ background:#f5f8fa; }
         body{
             position:relative;
+            isolation:isolate;
             color:var(--ink);
             background:transparent;
-            overflow-x:hidden;
+            overflow-x:clip;
         }
+        /* A single viewport-fixed, blurred photo layer behind every page section. */
         body::before{
             content:"";
             position:fixed;
-            inset:-28px;
-            z-index:-2;
+            inset:-32px;
+            z-index:-1;
             pointer-events:none;
-            background:
-                linear-gradient(180deg, rgba(248,250,252,.82), rgba(248,250,252,.92)),
-                url("{% static 'hero/White shirt and folded linens.png' %}") center center / cover no-repeat;
-            filter:blur(15px);
-            transform:scale(1.035);
-            opacity:.72;
+            background-image:
+                linear-gradient(rgba(247,250,252,.72), rgba(247,250,252,.72)),
+                url("{% static 'hero/White shirt and folded linens.png' %}");
+            background-position:center center;
+            background-size:cover;
+            background-repeat:no-repeat;
+            filter:blur(17px);
+            transform:translateZ(0) scale(1.04);
+            opacity:.88;
+            will-change:transform;
         }
         body::after{
             content:"";
@@ -51,7 +57,23 @@
             inset:0;
             z-index:-1;
             pointer-events:none;
-            background:linear-gradient(180deg, rgba(255,255,255,.18), rgba(248,250,252,.54) 58%, rgba(245,248,250,.82));
+            background:linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(248,250,252,.20) 52%, rgba(245,248,250,.38) 100%);
+        }
+        @media (max-width:760px){
+            body::before{
+                inset:-24px;
+                background-position:64% center;
+                background-size:auto 100%;
+                filter:blur(13px);
+                transform:translateZ(0) scale(1.06);
+                opacity:.82;
+            }
+            body::after{
+                background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(248,250,252,.28) 55%, rgba(245,248,250,.46));
+            }
+        }
+        @media (prefers-reduced-motion:reduce){
+            body::before{ will-change:auto; }
         }
 
         .weave{
