@@ -27,6 +27,7 @@ urlpatterns = [
     path('pricing/item/<int:item_id>/edit/', views.price_item_update, name='panel_price_item_update'),
     path('pricing/item/<int:item_id>/delete/', views.price_item_delete, name='panel_price_item_delete'),
 
+    path('orders/<int:order_id>/courier-state/', views.order_courier_state, name='panel_order_courier_state'),
     path('courier/', views.courier_requests, name='panel_courier'),
     path('courier/<int:order_id>/dispatch/', views.courier_mark_dispatched, name='panel_courier_dispatch'),
 

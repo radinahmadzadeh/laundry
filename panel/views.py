@@ -353,17 +353,9 @@ def order_update(request, order_id):
         if status in dict(Order.STATUS_CHOICES):
             order.status = status
         order.is_paid = request.POST.get('is_paid') == 'on'
-        order.courier_requested = request.POST.get('courier_requested') == 'on'
-        order.courier_dispatched = request.POST.get('courier_dispatched') == 'on'
-        if order.courier_dispatched and not order.courier_requested:
-            order.courier_requested = True
         order.postal_code = request.POST.get('postal_code', '').strip()
         order.latitude = request.POST.get('latitude', '').strip()
         order.longitude = request.POST.get('longitude', '').strip()
-        order.delivery_courier_requested = request.POST.get('delivery_courier_requested') == 'on'
-        order.delivery_courier_dispatched = request.POST.get('delivery_courier_dispatched') == 'on'
-        if order.delivery_courier_dispatched and not order.delivery_courier_requested:
-            order.delivery_courier_requested = True
         order.delivery_postal_code = request.POST.get('delivery_postal_code', '').strip()
         order.delivery_latitude = request.POST.get('delivery_latitude', '').strip()
         order.delivery_longitude = request.POST.get('delivery_longitude', '').strip()
@@ -458,6 +450,25 @@ def price_item_delete(request, item_id):
         item.delete()
         messages.success(request, 'قلم حذف شد.')
     return redirect('panel_pricing')
+
+
+@staff_required
+def order_courier_state(request, order_id):
+    """Set one courier flow (pickup/delivery) to exactly one state: none, requested or dispatched."""
+    order = get_object_or_404(Order, id=order_id)
+    if request.method == 'POST':
+        kind = request.POST.get('kind')
+        state = request.POST.get('state')
+        if kind in ('pickup', 'delivery') and state in ('none', 'requested', 'dispatched'):
+            requested = state in ('requested', 'dispatched')
+            dispatched = state == 'dispatched'
+            if kind == 'pickup':
+                order.courier_requested, order.courier_dispatched = requested, dispatched
+            else:
+                order.delivery_courier_requested, order.delivery_courier_dispatched = requested, dispatched
+            order.save()
+            messages.success(request, 'وضعیت پیک ذخیره شد.')
+    return redirect('panel_order_detail', order_id=order.id)
 
 
 @staff_required
