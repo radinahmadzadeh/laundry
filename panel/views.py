@@ -56,7 +56,8 @@ def dashboard(request):
     ]
 
     ready_orders = Order.objects.filter(status='ready').select_related('customer')
-    pending_courier = Order.objects.filter(courier_requested=True, courier_dispatched=False)
+    pending_pickup = Order.objects.filter(courier_requested=True, courier_dispatched=False)
+    pending_delivery = Order.objects.filter(delivery_courier_requested=True, delivery_courier_dispatched=False)
 
     context = {
         'active': 'dashboard',
@@ -64,7 +65,9 @@ def dashboard(request):
         'revenue_today': revenue_today,
         'status_summary': status_summary,
         'ready_orders': ready_orders,
-        'pending_courier': pending_courier,
+        'pending_pickup_count': pending_pickup.count(),
+        'pending_delivery_count': pending_delivery.count(),
+        'pending_courier_count': pending_pickup.count() + pending_delivery.count(),
     }
     return render(request, 'panel/dashboard.html', context)
 
@@ -357,6 +360,13 @@ def order_update(request, order_id):
         order.postal_code = request.POST.get('postal_code', '').strip()
         order.latitude = request.POST.get('latitude', '').strip()
         order.longitude = request.POST.get('longitude', '').strip()
+        order.delivery_courier_requested = request.POST.get('delivery_courier_requested') == 'on'
+        order.delivery_courier_dispatched = request.POST.get('delivery_courier_dispatched') == 'on'
+        if order.delivery_courier_dispatched and not order.delivery_courier_requested:
+            order.delivery_courier_requested = True
+        order.delivery_postal_code = request.POST.get('delivery_postal_code', '').strip()
+        order.delivery_latitude = request.POST.get('delivery_latitude', '').strip()
+        order.delivery_longitude = request.POST.get('delivery_longitude', '').strip()
         order.save()
         messages.success(request, 'اطلاعات سفارش با موفقیت ویرایش شد.')
     return redirect('panel_order_detail', order_id=order.id)
@@ -452,20 +462,41 @@ def price_item_delete(request, item_id):
 
 @staff_required
 def courier_requests(request):
-    orders = Order.objects.filter(courier_requested=True).select_related('customer').order_by('-created_at')
-    return render(request, 'panel/courier_requests.html', {'active': 'courier', 'orders': orders})
+    """Both courier request kinds, each tagged so pickup (dirty clothes) and delivery (clean clothes) are never mixed up."""
+    requests_list = []
+    for order in Order.objects.filter(courier_requested=True).select_related('customer'):
+        requests_list.append({
+            'kind': 'pickup', 'order': order, 'postal': order.postal_code,
+            'lat': order.latitude, 'lng': order.longitude, 'dispatched': order.courier_dispatched,
+        })
+    for order in Order.objects.filter(delivery_courier_requested=True).select_related('customer'):
+        requests_list.append({
+            'kind': 'delivery', 'order': order, 'postal': order.delivery_postal_code,
+            'lat': order.delivery_latitude, 'lng': order.delivery_longitude, 'dispatched': order.delivery_courier_dispatched,
+        })
+    requests_list.sort(key=lambda r: (r['dispatched'], -r['order'].id))
+    return render(request, 'panel/courier_requests.html', {'active': 'courier', 'requests': requests_list})
 
 
 @staff_required
 def courier_mark_dispatched(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     if request.method == 'POST':
-        if not order.courier_requested:
-            messages.error(request, 'این سفارش درخواست پیک ثبت‌شده‌ای ندارد.')
+        kind = request.POST.get('kind', 'pickup')
+        if kind == 'delivery':
+            if not order.delivery_courier_requested:
+                messages.error(request, 'این سفارش درخواست پیک تحویل ثبت‌شده‌ای ندارد.')
+            else:
+                order.delivery_courier_dispatched = True
+                order.save()
+                messages.success(request, 'وضعیت پیک تحویل لباس تمیز به‌روزرسانی شد.')
         else:
-            order.courier_dispatched = True
-            order.save()
-            messages.success(request, 'وضعیت پیک به‌روزرسانی شد.')
+            if not order.courier_requested:
+                messages.error(request, 'این سفارش درخواست پیک دریافت ثبت‌شده‌ای ندارد.')
+            else:
+                order.courier_dispatched = True
+                order.save()
+                messages.success(request, 'وضعیت پیک دریافت لباس کثیف به‌روزرسانی شد.')
     return redirect('panel_courier')
 
 

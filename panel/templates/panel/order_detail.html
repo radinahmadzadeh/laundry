@@ -21,10 +21,23 @@
                 <label class="text-[10px] text-gray-500">مشتری<select name="customer_id" class="mt-1 w-full rounded-xl px-3 py-2">{% for c in customers %}<option value="{{ c.id }}" {% if c.id == order.customer_id %}selected{% endif %}>{{ c.name }} — {{ c.phone }}</option>{% endfor %}</select></label>
                 <label class="text-[10px] text-gray-500">تاریخ تحویل<input type="date" name="delivery_date" value="{{ order.delivery_date|date:'Y-m-d' }}" class="mt-1 w-full rounded-xl px-3 py-2"></label>
                 <label class="text-[10px] text-gray-500">وضعیت<select name="status" class="mt-1 w-full rounded-xl px-3 py-2">{% for code,label in status_choices %}<option value="{{ code }}" {% if code == order.status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-                <label class="text-[10px] text-gray-500">کد پستی<input name="postal_code" value="{{ order.postal_code|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
-                <label class="text-[10px] text-gray-500">عرض جغرافیایی<input name="latitude" value="{{ order.latitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
-                <label class="text-[10px] text-gray-500">طول جغرافیایی<input name="longitude" value="{{ order.longitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
-                <div class="sm:col-span-2 flex flex-wrap gap-4 pt-2 text-xs"><label><input type="checkbox" name="is_paid" {% if order.is_paid %}checked{% endif %}> پرداخت شده</label><label><input type="checkbox" name="courier_requested" {% if order.courier_requested %}checked{% endif %}> درخواست پیک</label><label><input type="checkbox" name="courier_dispatched" {% if order.courier_dispatched %}checked{% endif %}> پیک ارسال شده</label></div>
+                <div class="sm:col-span-2 flex flex-wrap gap-4 pt-2 text-xs"><label><input type="checkbox" name="is_paid" {% if order.is_paid %}checked{% endif %}> پرداخت شده</label></div>
+                <div class="sm:col-span-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <p class="sm:col-span-2 text-[11px] font-black text-amber-300">📥 پیک دریافت — دریافت لباس کثیف از مشتری (شروع سفارش)</p>
+                    <label class="text-[10px] text-gray-500">کد پستی دریافت<input name="postal_code" value="{{ order.postal_code|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                    <span></span>
+                    <label class="text-[10px] text-gray-500">عرض جغرافیایی دریافت<input name="latitude" value="{{ order.latitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                    <label class="text-[10px] text-gray-500">طول جغرافیایی دریافت<input name="longitude" value="{{ order.longitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                    <div class="sm:col-span-2 flex flex-wrap gap-4 text-xs"><label><input type="checkbox" name="courier_requested" {% if order.courier_requested %}checked{% endif %}> درخواست پیک دریافت</label><label><input type="checkbox" name="courier_dispatched" {% if order.courier_dispatched %}checked{% endif %}> پیک دریافت ارسال شده</label></div>
+                </div>
+                <div class="sm:col-span-2 rounded-xl border border-emerald-400/20 bg-emerald-400/5 p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <p class="sm:col-span-2 text-[11px] font-black text-emerald-300">📤 پیک تحویل — رساندن لباس تمیز به مشتری (بعد از خشکشویی)</p>
+                    <label class="text-[10px] text-gray-500">کد پستی تحویل<input name="delivery_postal_code" value="{{ order.delivery_postal_code|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                    <span></span>
+                    <label class="text-[10px] text-gray-500">عرض جغرافیایی تحویل<input name="delivery_latitude" value="{{ order.delivery_latitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                    <label class="text-[10px] text-gray-500">طول جغرافیایی تحویل<input name="delivery_longitude" value="{{ order.delivery_longitude|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
+                    <div class="sm:col-span-2 flex flex-wrap gap-4 text-xs"><label><input type="checkbox" name="delivery_courier_requested" {% if order.delivery_courier_requested %}checked{% endif %}> درخواست پیک تحویل</label><label><input type="checkbox" name="delivery_courier_dispatched" {% if order.delivery_courier_dispatched %}checked{% endif %}> پیک تحویل ارسال شده</label></div>
+                </div>
                 <button class="btn-primary rounded-xl px-5 py-3 text-xs font-black sm:col-span-2">ذخیره تغییرات سفارش</button>
             </form>
         </div>
@@ -72,11 +85,23 @@
         </div>
 
         {% if order.courier_requested %}
-        <div class="panel rounded-2xl p-5">
-            <h2 class="font-bold mb-3 text-sm">اطلاعات پیک</h2>
-            <p class="text-xs text-gray-400 mb-3">کد پستی: <span class="text-white font-bold dir-ltr">{{ order.postal_code }}</span></p>
+        <div class="panel rounded-2xl p-5 border-r-4 border-r-amber-400">
+            <h2 class="font-bold mb-1 text-sm text-amber-300">📥 پیک دریافت — دریافت لباس کثیف از مشتری</h2>
+            <p class="text-[11px] text-gray-500 mb-3">پیک باید برای گرفتن لباس‌ها به این آدرس برود. {% if order.courier_dispatched %}<span class="text-green-300 font-bold">ارسال شده ✓</span>{% else %}<span class="text-amber-300 font-bold">هنوز ارسال نشده</span>{% endif %}</p>
+            <p class="text-xs text-gray-400 mb-3">کد پستی: <span class="text-white font-bold dir-ltr">{{ order.postal_code|default:"-" }}</span></p>
             {% if order.latitude and order.longitude %}
-                <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}" target="_blank"
+                <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}" target="_blank" rel="noopener"
+                   class="inline-block bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% if order.delivery_courier_requested %}
+        <div class="panel rounded-2xl p-5 border-r-4 border-r-emerald-400">
+            <h2 class="font-bold mb-1 text-sm text-emerald-300">📤 پیک تحویل — رساندن لباس تمیز به مشتری</h2>
+            <p class="text-[11px] text-gray-500 mb-3">این مشخصات مربوط به زمان تحویل لباس‌های شسته‌شده است، نه دریافت. {% if order.delivery_courier_dispatched %}<span class="text-green-300 font-bold">ارسال شده ✓</span>{% else %}<span class="text-amber-300 font-bold">هنوز ارسال نشده</span>{% endif %}</p>
+            <p class="text-xs text-gray-400 mb-3">کد پستی: <span class="text-white font-bold dir-ltr">{{ order.delivery_postal_code|default:"-" }}</span></p>
+            {% if order.delivery_latitude and order.delivery_longitude %}
+                <a href="https://www.google.com/maps?q={{ order.delivery_latitude }},{{ order.delivery_longitude }}" target="_blank" rel="noopener"
                    class="inline-block bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
             {% endif %}
         </div>

@@ -1,25 +1,33 @@
 {% extends 'panel/base.html' %}
 {% block title %}درخواست پیک | پنل مدیریت{% endblock %}
 {% block content %}
-<h1 class="text-2xl font-black mb-6">درخواست‌های پیک</h1>
+<h1 class="text-2xl font-black mb-2">درخواست‌های پیک</h1>
+<p class="text-xs text-gray-400 mb-6">هر درخواست با برچسب مشخص شده است: <span class="text-amber-300 font-bold">دریافت لباس کثیف از مشتری</span> یا <span class="text-emerald-300 font-bold">تحویل لباس تمیز به مشتری</span>.</p>
 
 <div class="space-y-4">
-    {% for order in orders %}
-    <div class="panel rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+    {% for r in requests %}
+    <div class="panel rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 border-r-4 {% if r.kind == 'pickup' %}border-r-amber-400{% else %}border-r-emerald-400{% endif %}">
         <div>
-            <p class="font-bold text-sm mb-1">سفارش #{{ order.id }} — {{ order.customer.name }}</p>
-            <p class="text-xs text-gray-400">شماره تماس: <span class="dir-ltr">{{ order.customer.phone }}</span> · کد پستی: <span class="dir-ltr">{{ order.postal_code }}</span></p>
+            {% if r.kind == 'pickup' %}
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/30 mb-2">📥 پیک دریافت — رفتن به آدرس مشتری و گرفتن لباس کثیف</span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-black bg-emerald-400/10 text-emerald-300 border border-emerald-400/30 mb-2">📤 پیک تحویل — بردن لباس تمیز به آدرس مشتری</span>
+            {% endif %}
+            <p class="font-bold text-sm mb-1">سفارش #{{ r.order.id }} — {{ r.order.customer.name }}</p>
+            <p class="text-xs text-gray-400">شماره تماس: <span class="dir-ltr">{{ r.order.customer.phone }}</span> · کد پستی: <span class="dir-ltr">{{ r.postal|default:"-" }}</span></p>
+            <a href="{% url 'panel_order_detail' r.order.id %}" class="text-[11px] text-cyan-300 font-bold hover:underline">جزئیات سفارش</a>
         </div>
         <div class="flex items-center gap-3">
-            {% if order.latitude and order.longitude %}
-                <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}" target="_blank"
+            {% if r.lat and r.lng %}
+                <a href="https://www.google.com/maps?q={{ r.lat }},{{ r.lng }}" target="_blank" rel="noopener"
                    class="bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
             {% endif %}
-            {% if order.courier_dispatched %}
+            {% if r.dispatched %}
                 <span class="bg-green-500/15 text-green-300 border border-green-500/30 px-4 py-2 rounded-xl text-xs font-bold">ارسال شد ✓</span>
             {% else %}
-                <form method="post" action="{% url 'panel_courier_dispatch' order.id %}">
+                <form method="post" action="{% url 'panel_courier_dispatch' r.order.id %}">
                     {% csrf_token %}
+                    <input type="hidden" name="kind" value="{{ r.kind }}">
                     <button class="btn-primary px-4 py-2 rounded-xl text-xs">علامت به ارسال‌شده</button>
                 </form>
             {% endif %}
