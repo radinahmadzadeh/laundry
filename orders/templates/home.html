@@ -820,6 +820,44 @@
                                     </div>
                                 </div>
 
+{% if order.courier_requested %}
+{% if order.courier_dispatched %}
+<div class="courier-status-banner sent rounded-2xl p-4 mt-4 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک دریافت برای شما ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">پیک در حال حرکت به سمت آدرس شماست تا لباس‌هایتان را تحویل بگیرد. لطفاً لباس‌ها را آماده و در دسترس نگه دارید.</p>
+    </div>
+</div>
+{% else %}
+<div class="courier-status-banner rounded-2xl p-4 mt-4 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک دریافت ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">به‌محض ارسال پیک، وضعیت آن را همین‌جا می‌بینید.</p>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+{% if order.delivery_courier_requested %}
+{% if order.delivery_courier_dispatched %}
+<div class="courier-status-banner sent rounded-2xl p-4 mt-4 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک تحویل ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">لباس‌های تمیز و اتوشده شما به پیک سپرده شد و پیک در مسیر رساندن آن‌ها به آدرس شماست. لطفاً در دسترس باشید.</p>
+    </div>
+</div>
+{% else %}
+<div class="courier-status-banner rounded-2xl p-4 mt-4 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک تحویل ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">لباس‌های شما به‌زودی با پیک ارسال می‌شود و وضعیت آن را همین‌جا می‌بینید.</p>
+    </div>
+</div>
+{% endif %}
+{% endif %}
                                 {% if order.status == 'ready' %}
                                     <div class="method-panel mt-4 bg-gray-50 border border-gray-100 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
                                         <div class="flex items-center gap-2 mb-4 text-gray-700">
@@ -859,10 +897,10 @@
                                                             <path class="checkmark-path" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                                                         </svg>
                                                     </div>
-                                                    <h4 class="font-black text-green-700 text-sm sm:text-base">درخواست پیک شما ثبت شده است</h4>
+                                                    <h4 class="font-black text-green-700 text-sm sm:text-base">{% if order.delivery_courier_dispatched %}پیک شما ارسال شده است{% else %}درخواست پیک شما ثبت شده است{% endif %}</h4>
                                                     <div class="eta-badge inline-flex items-center gap-2 bg-white border border-green-200 px-4 py-2 rounded-full text-xs sm:text-sm text-green-700 font-bold">
                                                         <svg class="w-4 h-4 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
-                                                        ارسال طی ۳ تا ۵ روز کاری
+                                                        {% if order.delivery_courier_dispatched %}پیک در مسیر رسیدن به شماست{% else %}ارسال طی ۳ تا ۵ روز کاری{% endif %}
                                                     </div>
                                                 </div>
                                             {% else %}
@@ -1062,6 +1100,45 @@
                                     <strong><span class="money-value">{{ order.total_price }}</span> تومان</strong>
                                 </div>
                             </div>
+
+                            {% if order.courier_requested %}
+{% if order.courier_dispatched %}
+<div class="courier-status-banner sent rounded-2xl p-4 mb-3 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک دریافت برای شما ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">پیک در حال حرکت به سمت آدرس شماست تا لباس‌هایتان را تحویل بگیرد. لطفاً لباس‌ها را آماده و در دسترس نگه دارید.</p>
+    </div>
+</div>
+{% else %}
+<div class="courier-status-banner rounded-2xl p-4 mb-3 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک دریافت ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">به‌محض ارسال پیک، وضعیت آن را همین‌جا می‌بینید.</p>
+    </div>
+</div>
+{% endif %}
+{% endif %}
+{% if order.delivery_courier_requested %}
+{% if order.delivery_courier_dispatched %}
+<div class="courier-status-banner sent rounded-2xl p-4 mb-3 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک تحویل ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">لباس‌های تمیز و اتوشده شما به پیک سپرده شد و پیک در مسیر رساندن آن‌ها به آدرس شماست. لطفاً در دسترس باشید.</p>
+    </div>
+</div>
+{% else %}
+<div class="courier-status-banner rounded-2xl p-4 mb-3 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک تحویل ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">لباس‌های شما به‌زودی با پیک ارسال می‌شود و وضعیت آن را همین‌جا می‌بینید.</p>
+    </div>
+</div>
+{% endif %}
+{% endif %}
 
                             <div class="rounded-2xl bg-gray-50 border border-gray-100 p-4">
                                 <div class="flex items-center justify-between gap-3 mb-3">
@@ -1804,8 +1881,8 @@
             b1.classList.toggle('active', mode === 'saved');
             b2.classList.toggle('active', mode === 'new');
             if (st) st.textContent = mode === 'saved'
-                ? '✓ این سفارش به آدرس ثبت‌شده شما ارسال می‌شود' + (SAVED_ADDRESS && SAVED_ADDRESS.text ? ': ' + SAVED_ADDRESS.text : '.')
-                : '✓ این سفارش به لوکیشن جدیدی که روی نقشه انتخاب می‌کنید ارسال می‌شود.';
+                ? 'این سفارش به آدرس ثبت‌شده شما ارسال می‌شود' + (SAVED_ADDRESS && SAVED_ADDRESS.text ? ': ' + SAVED_ADDRESS.text : '.')
+                : 'این سفارش به لوکیشن جدیدی که روی نقشه انتخاب می‌کنید ارسال می‌شود.';
         }
 
         function useNewLocation(orderId){
