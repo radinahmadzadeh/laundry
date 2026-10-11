@@ -34,6 +34,10 @@ INSTALLED_APPS = [
     'pwa',
 ]
 
+# OpenStreetMap map tiles / geocoding reject requests without a Referer ("Access blocked").
+# Send only our origin (no path or query string) to other sites — the same as the browsers' default.
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',

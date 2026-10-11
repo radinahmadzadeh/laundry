@@ -76,6 +76,7 @@ class Order(models.Model):
     latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی دریافت (Lat)')
     longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی دریافت (Lng)')
     postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی دریافت')
+    address = models.CharField(max_length=500, blank=True, default='', verbose_name='آدرس دریافت')
     # «بدون درخواست» فقط وقتی True است که ادمین صریحاً انتخابش کرده؛ در غیر این صورت وضعیت پیک خنثی (تعیین‌نشده) است
     courier_declined = models.BooleanField(default=False, verbose_name='پیک دریافت: بدون درخواست')
 
@@ -85,6 +86,7 @@ class Order(models.Model):
     delivery_latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی تحویل (Lat)')
     delivery_longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی تحویل (Lng)')
     delivery_postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی تحویل')
+    delivery_address = models.CharField(max_length=500, blank=True, default='', verbose_name='آدرس تحویل')
     delivery_courier_declined = models.BooleanField(default=False, verbose_name='پیک تحویل: بدون درخواست')
 
     @property

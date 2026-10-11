@@ -15,6 +15,7 @@
             {% endif %}
             <p class="font-bold text-sm mb-1">سفارش #{{ r.order.id }} — {{ r.order.customer.name }}</p>
             <p class="text-xs text-gray-400">شماره تماس: <span class="dir-ltr">{{ r.order.customer.phone }}</span> · کد پستی: <span class="dir-ltr">{{ r.postal|default:"-" }}</span></p>
+            {% if r.address %}<p class="text-xs text-gray-200 mt-1 leading-6">آدرس: {{ r.address }}</p>{% endif %}
             <a href="{% url 'panel_order_detail' r.order.id %}" class="text-[11px] text-cyan-300 font-bold hover:underline">جزئیات سفارش</a>
         </div>
         <div class="flex items-center gap-3">

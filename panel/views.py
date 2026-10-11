@@ -480,12 +480,12 @@ def courier_requests(request):
     requests_list = []
     for order in Order.objects.filter(courier_requested=True).select_related('customer'):
         requests_list.append({
-            'kind': 'pickup', 'order': order, 'postal': order.postal_code,
+            'kind': 'pickup', 'order': order, 'postal': order.postal_code, 'address': order.address,
             'lat': order.latitude, 'lng': order.longitude, 'dispatched': order.courier_dispatched,
         })
     for order in Order.objects.filter(delivery_courier_requested=True).select_related('customer'):
         requests_list.append({
-            'kind': 'delivery', 'order': order, 'postal': order.delivery_postal_code,
+            'kind': 'delivery', 'order': order, 'postal': order.delivery_postal_code, 'address': order.delivery_address,
             'lat': order.delivery_latitude, 'lng': order.delivery_longitude, 'dispatched': order.delivery_courier_dispatched,
         })
     requests_list.sort(key=lambda r: (r['dispatched'], -r['order'].id))

@@ -486,6 +486,16 @@
         @keyframes readyOut{ to{ opacity:0; transform:translateY(-12px) scale(.97); } }
         @keyframes readyPop{ from{ transform:scale(.3); opacity:0; } to{ transform:none; opacity:1; } }
         @media (prefers-reduced-motion: reduce){ .ready-notice, .ready-notice.leaving, .ready-notice-icon svg{ animation:none; } }
+        .addr-preview{ display:flex; align-items:flex-start; gap:10px; text-align:right; padding:11px 13px; margin:2px 0 10px; border-radius:14px; border:1px dashed #cbd5e1; background:#f8fafc; transition:border-color .25s ease, background .25s ease; }
+        .addr-preview-icon{ flex:none; width:30px; height:30px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#94a3b8; background:#fff; border:1px solid #e2e8f0; transition:color .25s ease, background .25s ease; }
+        .addr-preview-text{ font-size:12px; font-weight:700; color:#64748b; line-height:1.8; margin-top:1px; word-break:break-word; }
+        .addr-preview[data-state="found"]{ border-style:solid; border-color:rgba(8,145,178,.3); background:linear-gradient(115deg, rgba(73,224,214,.08), rgba(155,140,251,.08)); }
+        .addr-preview[data-state="found"] .addr-preview-icon{ color:#fff; border-color:transparent; background:linear-gradient(135deg,var(--cyan),var(--violet)); }
+        .addr-preview[data-state="found"] .addr-preview-text{ color:#0f172a; }
+        .addr-preview[data-state="loading"] .addr-preview-icon{ color:var(--cyan); animation:addrPulse 1s ease-in-out infinite; }
+        .addr-preview[data-state="loading"] .addr-preview-text{ color:transparent; border-radius:6px; background:linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%); background-size:200% 100%; animation:addrShimmer 1.1s linear infinite; }
+        @keyframes addrPulse{ 50%{ transform:translateY(-2px); } }
+        @keyframes addrShimmer{ to{ background-position:-200% 0; } }
         .addr-option{ display:flex; align-items:flex-start; gap:10px; width:100%; text-align:right; padding:12px 14px; border-radius:14px; border:1px solid #e2e8f0; background:#fff; transition:border-color .2s ease, background .2s ease, box-shadow .2s ease; }
         .addr-option:hover{ border-color:rgba(8,145,178,.35); }
         .addr-option.active{ border-color:rgba(8,145,178,.55); background:linear-gradient(115deg, rgba(73,224,214,.09), rgba(155,140,251,.09)); box-shadow:0 10px 22px -16px rgba(8,145,178,.7); }
@@ -986,6 +996,15 @@
                                                     <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
 
                                                     <div id="interactive-map-{{ order.id }}" class="interactive-map map-frame w-full h-48 sm:h-64 rounded-xl mb-2"></div>
+                <div id="addr-preview-{{ order.id }}" class="addr-preview" data-state="empty">
+                    <span class="addr-preview-icon" aria-hidden="true"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" stroke-width="2"/></svg></span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[10px] font-bold text-gray-400">آدرس نقطه انتخاب‌شده</p>
+                        <p id="addr-text-{{ order.id }}" class="addr-preview-text">روی نقشه بزنید تا آدرس نمایش داده شود.</p>
+                    </div>
+                </div>
+                <input type="text" id="addr-detail-{{ order.id }}" maxlength="150" placeholder="پلاک، واحد، زنگ (اختیاری)"
+                       class="fab-input w-full bg-white px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-xs mb-3 focus:outline-none">
                                                     {% if saved_address %}
                 <div class="addr-picker mt-3 mb-3 text-right">
                     <div class="flex items-center justify-between gap-2 mb-2">
@@ -1454,6 +1473,15 @@
             <div id="section-courier-neworder" class="hidden">
                 <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
                 <div id="interactive-map-neworder" class="interactive-map map-frame w-full h-40 sm:h-56 rounded-xl mb-2"></div>
+                <div id="addr-preview-neworder" class="addr-preview" data-state="empty">
+                    <span class="addr-preview-icon" aria-hidden="true"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" stroke-width="2"/></svg></span>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-[10px] font-bold text-gray-400">آدرس نقطه انتخاب‌شده</p>
+                        <p id="addr-text-neworder" class="addr-preview-text">روی نقشه بزنید تا آدرس نمایش داده شود.</p>
+                    </div>
+                </div>
+                <input type="text" id="addr-detail-neworder" maxlength="150" placeholder="پلاک، واحد، زنگ (اختیاری)"
+                       class="fab-input w-full bg-white px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-xs mb-3 focus:outline-none">
                 {% if saved_address %}
                 <div class="addr-picker mt-3 mb-3 text-right">
                     <div class="flex items-center justify-between gap-2 mb-2">
@@ -1990,17 +2018,16 @@
                         // Map fallback center is only a safe Tehran-area fallback; the customer can
                         // select the exact point manually or use the browser's current location.
                         var map = L.map('interactive-map-' + orderId).setView([35.7262837, 51.2922665], 15);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '© OpenStreetMap contributors',
-                            maxZoom: 19
+                            maxZoom: 19,
+                            referrerPolicy: 'strict-origin-when-cross-origin'
                         }).addTo(map);
 
                         function setCourierPoint(latlng){
-                            if (courierMarkers[orderId]) map.removeLayer(courierMarkers[orderId]);
-                            courierMarkers[orderId] = L.marker(latlng).addTo(map);
-                            document.getElementById('lat-' + orderId).value = latlng.lat;
-                            document.getElementById('lng-' + orderId).value = latlng.lng;
+                            placeCourierMarker(orderId, latlng);
                             setAddrMode(orderId, 'new');
+                            lookupAddress(orderId, latlng);
                         }
 
                         map.on('click', function(e){ setCourierPoint(e.latlng); });
@@ -2029,12 +2056,113 @@
             if (!SAVED_ADDRESS || !map) return;
             var point = L.latLng(parseFloat(SAVED_ADDRESS.lat), parseFloat(SAVED_ADDRESS.lng));
             map.setView(point, 17);
-            if (courierMarkers[orderId]) map.removeLayer(courierMarkers[orderId]);
-            courierMarkers[orderId] = L.marker(point).addTo(map);
-            document.getElementById('lat-' + orderId).value = point.lat;
-            document.getElementById('lng-' + orderId).value = point.lng;
+            placeCourierMarker(orderId, point);
             if (SAVED_ADDRESS.postal) document.getElementById('postal-' + orderId).value = SAVED_ADDRESS.postal;
             setAddrMode(orderId, 'saved');
+            if (SAVED_ADDRESS.text){
+                addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+                setAddrPreview(orderId, 'found', SAVED_ADDRESS.text);
+            } else {
+                lookupAddress(orderId, point);
+            }
+        }
+
+        // ---------- Point on map → readable address (reverse geocoding) ----------
+        var addrCache = {}, addrSeq = {}, addrTimers = {};
+
+        function placeCourierMarker(orderId, latlng){
+            var map = courierMaps[orderId];
+            if (courierMarkers[orderId]) map.removeLayer(courierMarkers[orderId]);
+            var marker = L.marker(latlng, { draggable: true }).addTo(map);
+            marker.on('dragend', function(){
+                var p = marker.getLatLng();
+                document.getElementById('lat-' + orderId).value = p.lat;
+                document.getElementById('lng-' + orderId).value = p.lng;
+                setAddrMode(orderId, 'new');
+                lookupAddress(orderId, p);
+            });
+            courierMarkers[orderId] = marker;
+            document.getElementById('lat-' + orderId).value = latlng.lat;
+            document.getElementById('lng-' + orderId).value = latlng.lng;
+        }
+
+        function setAddrPreview(orderId, state, text){
+            var box = document.getElementById('addr-preview-' + orderId);
+            var el = document.getElementById('addr-text-' + orderId);
+            if (!box || !el) return;
+            box.setAttribute('data-state', state);
+            el.textContent = text;
+        }
+
+        function joinAddressParts(parts){
+            var seen = {};
+            return parts.filter(function(p){
+                p = (p || '').trim();
+                if (!p || seen[p]) return false;
+                seen[p] = true;
+                return true;
+            }).join('، ');
+        }
+
+        // Persian addresses go from general to specific: city، neighbourhood، street، number
+        function formatNominatim(data){
+            var a = (data && data.address) || {};
+            var city = a.city || a.town || a.village || a.county || a.state || '';
+            var area = a.neighbourhood || a.suburb || a.quarter || a.city_district || '';
+            var road = a.road || a.pedestrian || a.residential || a.footway || '';
+            var place = a.amenity || a.shop || a.building || '';
+            var num = a.house_number ? 'پلاک ' + a.house_number : '';
+            return joinAddressParts([city, area, road, num, place]);
+        }
+
+        function formatPhoton(data){
+            var p = (data && data.features && data.features[0] && data.features[0].properties) || {};
+            var num = p.housenumber ? 'پلاک ' + p.housenumber : '';
+            return joinAddressParts([p.city || p.county || p.state, p.locality || p.district, p.street, num, p.name]);
+        }
+
+        function fetchAddress(lat, lng){
+            var nominatim = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=fa&lat=' + lat + '&lon=' + lng;
+            var photon = 'https://photon.komoot.io/reverse?lang=default&limit=1&lat=' + lat + '&lon=' + lng;
+            return fetch(nominatim, { referrerPolicy: 'strict-origin-when-cross-origin' })
+                .then(function(r){ if (!r.ok) throw new Error('nominatim ' + r.status); return r.json(); })
+                .then(function(d){ var t = formatNominatim(d); if (!t) throw new Error('empty'); return t; })
+                .catch(function(){
+                    return fetch(photon).then(function(r){ if (!r.ok) throw new Error('photon'); return r.json(); }).then(formatPhoton);
+                });
+        }
+
+        function lookupAddress(orderId, latlng){
+            var lat = Number(latlng.lat).toFixed(5), lng = Number(latlng.lng).toFixed(5);
+            var key = lat + ',' + lng;
+            var seq = addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+            clearTimeout(addrTimers[orderId]);
+            if (addrCache[key]){ setAddrPreview(orderId, 'found', addrCache[key]); return; }
+            setAddrPreview(orderId, 'loading', 'در حال پیدا کردن آدرس…');
+            // Short debounce: fast repeated taps/drags send only one request (Nominatim allows ~1 req/s).
+            addrTimers[orderId] = setTimeout(function(){
+                fetchAddress(lat, lng).then(function(text){
+                    if (seq !== addrSeq[orderId]) return;
+                    if (text){
+                        addrCache[key] = text;
+                        setAddrPreview(orderId, 'found', text);
+                    } else {
+                        setAddrPreview(orderId, 'empty', 'آدرس این نقطه پیدا نشد؛ لطفاً جزئیات را در کادر زیر بنویسید.');
+                    }
+                }).catch(function(){
+                    if (seq !== addrSeq[orderId]) return;
+                    setAddrPreview(orderId, 'empty', 'دریافت آدرس ممکن نشد؛ موقعیت روی نقشه ثبت شده است. جزئیات را در کادر زیر بنویسید.');
+                });
+            }, 450);
+        }
+
+        // Address text sent with the courier request: found address + the customer's extra details.
+        function getCourierAddress(orderId){
+            var box = document.getElementById('addr-preview-' + orderId);
+            var auto = box && box.getAttribute('data-state') === 'found' ? document.getElementById('addr-text-' + orderId).textContent : '';
+            var detailEl = document.getElementById('addr-detail-' + orderId);
+            var detail = detailEl ? detailEl.value.trim() : '';
+            return joinAddressParts([auto, detail]).slice(0, 500);
         }
 
         function setAddrMode(orderId, mode){
@@ -2056,6 +2184,8 @@
             document.getElementById('lat-' + orderId).value = '';
             document.getElementById('lng-' + orderId).value = '';
             document.getElementById('postal-' + orderId).value = '';
+            addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+            setAddrPreview(orderId, 'empty', 'روی نقشه بزنید تا آدرس نمایش داده شود.');
             setAddrMode(orderId, 'new');
             showToast('نقطه جدید را روی نقشه انتخاب کنید یا از موقعیت فعلی استفاده کنید.');
         }
@@ -2074,11 +2204,9 @@
             navigator.geolocation.getCurrentPosition(function(position){
                 var point = L.latLng(position.coords.latitude, position.coords.longitude);
                 map.setView(point, 17);
-                if (courierMarkers[orderId]) map.removeLayer(courierMarkers[orderId]);
-                courierMarkers[orderId] = L.marker(point).addTo(map);
-                document.getElementById('lat-' + orderId).value = point.lat;
-                document.getElementById('lng-' + orderId).value = point.lng;
+                placeCourierMarker(orderId, point);
                 setAddrMode(orderId, 'new');
+                lookupAddress(orderId, point);
                 showToast('موقعیت شما روی نقشه ثبت شد.');
             }, function(){
                 showToast('دسترسی به موقعیت مکانی ممکن نشد؛ لطفاً روی نقشه نقطه را انتخاب کنید.');
@@ -2466,7 +2594,7 @@
             fetch('/request-courier/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getOrderCsrfToken() },
-                body: JSON.stringify({ order_id: orderId, lat: lat, lng: lng, postal: postal })
+                body: JSON.stringify({ order_id: orderId, lat: lat, lng: lng, postal: postal, address: getCourierAddress(orderId) })
             })
             .then(response => response.json())
             .then(data => {
@@ -2612,7 +2740,7 @@
                 var postal = document.getElementById('postal-neworder').value;
                 if (!lat){ flashInvalid(document.getElementById('interactive-map-neworder'), 'لطفاً موقعیت خود را روی نقشه انتخاب کنید.'); return; }
                 if (!postal || postal.length !== 10){ flashInvalid(document.getElementById('postal-neworder'), 'لطفاً کد پستی ۱۰ رقمی خود را به‌درستی وارد کنید.'); return; }
-                payload.lat = lat; payload.lng = lng; payload.postal = postal;
+                payload.lat = lat; payload.lng = lng; payload.postal = postal; payload.address = getCourierAddress('neworder');
             }
 
             var btn = document.getElementById('submit-order-btn');

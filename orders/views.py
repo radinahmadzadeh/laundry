@@ -549,6 +549,7 @@ def request_courier(request):
             order.delivery_latitude = lat
             order.delivery_longitude = lng
             order.delivery_postal_code = postal
+            order.delivery_address = str(data.get('address') or '').strip()[:500]
             order.save()
             return JsonResponse({'status': 'success', 'message': 'درخواست پیک با موفقیت ثبت شد.'})
         except Exception as e:
@@ -608,6 +609,7 @@ def place_order(request):
             order.latitude = lat
             order.longitude = lng
             order.postal_code = postal
+            order.address = str(data.get('address') or '').strip()[:500]
             order.save()
 
         for item in items:

@@ -110,13 +110,39 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
   var hasSaved = latEl.value && lngEl.value;
   var start = hasSaved ? [parseFloat(latEl.value), parseFloat(lngEl.value)] : [35.7262837, 51.2922665];
   var map = L.map('map').setView(start, hasSaved ? 17 : 15);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap contributors', maxZoom:19}).addTo(map);
-  var marker = hasSaved ? L.marker(start).addTo(map) : null;
-  function setPoint(ll){
-    if (marker) map.removeLayer(marker);
-    marker = L.marker(ll).addTo(map);
-    latEl.value = ll.lat; lngEl.value = ll.lng;
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap contributors', maxZoom:19, referrerPolicy:'strict-origin-when-cross-origin'}).addTo(map);
+  var addrEl = document.querySelector('#address-form textarea[name="address"]');
+  var lastAuto = '', seq = 0, timer = null;
+  function join(parts){ var seen = {}; return parts.filter(function(p){ p = (p || '').trim(); if (!p || seen[p]) return false; seen[p] = true; return true; }).join('، '); }
+  function fromNominatim(d){ var a = (d && d.address) || {}; return join([a.city || a.town || a.village || a.county || a.state, a.neighbourhood || a.suburb || a.quarter || a.city_district, a.road || a.pedestrian || a.residential, a.house_number ? 'پلاک ' + a.house_number : '']); }
+  function fromPhoton(d){ var p = (d && d.features && d.features[0] && d.features[0].properties) || {}; return join([p.city || p.county || p.state, p.locality || p.district, p.street, p.housenumber ? 'پلاک ' + p.housenumber : '']); }
+  // Fill the address box from the chosen point, unless the customer has written their own text.
+  function lookup(ll){
+    var my = ++seq; clearTimeout(timer);
+    if (addrEl.value.trim() && addrEl.value !== lastAuto) return;
+    addrEl.placeholder = 'در حال پیدا کردن آدرس…';
+    timer = setTimeout(function(){
+      var lat = ll.lat.toFixed(5), lng = ll.lng.toFixed(5);
+      fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=fa&lat=' + lat + '&lon=' + lng, {referrerPolicy:'strict-origin-when-cross-origin'})
+        .then(function(r){ if (!r.ok) throw 0; return r.json(); }).then(function(d){ var t = fromNominatim(d); if (!t) throw 0; return t; })
+        .catch(function(){ return fetch('https://photon.komoot.io/reverse?lang=default&limit=1&lat=' + lat + '&lon=' + lng).then(function(r){ return r.json(); }).then(fromPhoton); })
+        .then(function(t){
+          if (my !== seq) return;
+          addrEl.placeholder = 'آدرس متنی (خیابان، کوچه، پلاک، واحد)';
+          if (t && (!addrEl.value.trim() || addrEl.value === lastAuto)){ addrEl.value = lastAuto = t + '، '; }
+        })
+        .catch(function(){ addrEl.placeholder = 'آدرس متنی (خیابان، کوچه، پلاک، واحد)'; });
+    }, 450);
   }
+  var marker = null;
+  function setPoint(ll, skipLookup){
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(ll, {draggable:true}).addTo(map);
+    marker.on('dragend', function(){ var p = marker.getLatLng(); latEl.value = p.lat; lngEl.value = p.lng; lookup(p); });
+    latEl.value = ll.lat; lngEl.value = ll.lng;
+    if (!skipLookup) lookup(ll);
+  }
+  if (hasSaved) setPoint(L.latLng(start[0], start[1]), true);
   map.on('click', function(e){ setPoint(e.latlng); });
   document.getElementById('locate-btn').addEventListener('click', function(){
     if (!navigator.geolocation){ alert('مرورگر شما امکان دریافت موقعیت را ندارد؛ نقطه را روی نقشه انتخاب کنید.'); return; }
