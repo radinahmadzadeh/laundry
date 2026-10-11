@@ -114,14 +114,28 @@ PWA_APP_BACKGROUND_COLOR = '#070b12'
 PWA_APP_DISPLAY = 'standalone'
 PWA_APP_SCOPE = '/'
 PWA_APP_ORIENTATION = 'portrait'
-PWA_APP_START_URL = '/track/'
+PWA_APP_START_URL = '/'
 PWA_APP_DIR = 'rtl'
 PWA_APP_LANG = 'fa'
+PWA_APP_DEBUG_MODE = DEBUG
 PWA_APP_ICONS = [
+    {
+        'src': '/static/pwa/icon-192.png',
+        'sizes': '192x192',
+        'type': 'image/png'
+    },
     {
         'src': '/static/icon.png',
         'sizes': '512x512',
         'type': 'image/png'
     }
 ]
-PWA_APP_ICONS_APPLE = PWA_APP_ICONS
+PWA_APP_ICONS_APPLE = [
+    {
+        'src': '/static/pwa/icon-180.png',
+        'sizes': '180x180'
+    }
+]
+# The package defaults point at splash images that do not exist (404s on iOS).
+PWA_APP_SPLASH_SCREEN = []
+PWA_SERVICE_WORKER_PATH = BASE_DIR / 'static' / 'pwa' / 'serviceworker.js'
