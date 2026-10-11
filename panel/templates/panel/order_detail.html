@@ -114,6 +114,8 @@
             {% if order.latitude and order.longitude %}
                 <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}" target="_blank" rel="noopener"
                    class="inline-block bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
+            {% else %}
+                <p class="text-[11px] text-red-300 font-bold">لوکیشن دریافت ثبت نشده است (درخواست از پنل ثبت شده)؛ برای گرفتن آدرس با مشتری تماس بگیرید.</p>
             {% endif %}
         </div>
         {% endif %}
@@ -125,6 +127,8 @@
             {% if order.delivery_latitude and order.delivery_longitude %}
                 <a href="https://www.google.com/maps?q={{ order.delivery_latitude }},{{ order.delivery_longitude }}" target="_blank" rel="noopener"
                    class="inline-block bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
+            {% else %}
+                <p class="text-[11px] text-red-300 font-bold">لوکیشن تحویل ثبت نشده است (درخواست از پنل ثبت شده)؛ برای گرفتن آدرس با مشتری تماس بگیرید.</p>
             {% endif %}
         </div>
         {% endif %}

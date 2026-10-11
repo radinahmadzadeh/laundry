@@ -62,7 +62,12 @@
                     <td class="p-4 text-gray-400">{{ order.shamsi_delivery_date|default:"-" }}</td>
                     <td class="p-4 text-gray-300">{{ order.get_status_display }}</td>
                     <td class="p-4">{% if order.is_paid %}<span class="text-emerald-300 font-bold">پرداخت شده</span>{% else %}<span class="text-amber-300 font-bold">پرداخت نشده</span>{% endif %}</td>
-                    <td class="p-4">{% if order.courier_requested %}{% if order.courier_dispatched %}<span class="text-cyan-300">ارسال شده</span>{% else %}<span class="text-amber-300">درخواست شده</span>{% endif %}{% else %}<span class="text-gray-500">ندارد</span>{% endif %}</td>
+                    <td class="p-4 text-[11px] leading-6">
+                        {% if order.courier_requested or order.delivery_courier_requested %}
+                            {% if order.courier_requested %}<div>دریافت: {% if order.courier_dispatched %}<span class="text-cyan-300">ارسال شده</span>{% else %}<span class="text-amber-300">درخواست شده</span>{% endif %}</div>{% endif %}
+                            {% if order.delivery_courier_requested %}<div>تحویل: {% if order.delivery_courier_dispatched %}<span class="text-cyan-300">ارسال شده</span>{% else %}<span class="text-amber-300">درخواست شده</span>{% endif %}</div>{% endif %}
+                        {% else %}<span class="text-gray-500">ندارد</span>{% endif %}
+                    </td>
                     <td class="p-4 font-bold text-white"><span class="money-auto">{{ order.total_price }}</span> تومان</td>
                     <td class="p-4"><a href="{% url 'panel_order_detail' order.id %}" class="text-cyan-300 text-xs font-bold hover:underline">جزئیات</a></td>
                 </tr>

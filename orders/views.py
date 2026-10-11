@@ -47,6 +47,10 @@ def home(request):
             request.session.pop('customer_logged_in', None)
             customer_logged_in = False
 
+    courier_watch = {}
+    for o in list(customer_orders or []) + list(orders or []):
+        courier_watch[str(o.id)] = courier_state(o)
+
     shop = ShopSettings.load()
     categories = list(PriceCategory.objects.prefetch_related('items').all())
     return render(request, 'home.html', {
@@ -63,7 +67,26 @@ def home(request):
         'wallet': wallet,
         'tracking_error': tracking_error,
         'saved_address': customer if customer_logged_in and customer.has_saved_address else None,
+        'courier_watch': courier_watch,
     })
+
+
+def courier_state(order):
+    """Courier flags the customer page watches: [requested, dispatched] for pickup and delivery."""
+    return {
+        'pickup': [order.courier_requested, order.courier_dispatched],
+        'delivery': [order.delivery_courier_requested, order.delivery_courier_dispatched],
+    }
+
+
+def courier_status(request):
+    """Lightweight poll so the customer page can show 'courier dispatched' as soon as the admin marks it."""
+    customer_id = request.session.get('customer_id')
+    if not request.session.get('customer_logged_in') or not customer_id:
+        return JsonResponse({'status': 'error'}, status=403)
+    ids = [i for i in request.GET.get('ids', '').split(',') if i.isdigit()][:50]
+    orders = Order.objects.filter(customer_id=customer_id, id__in=ids)
+    return JsonResponse({'status': 'success', 'orders': {str(o.id): courier_state(o) for o in orders}})
 
 def account_page(request):
     customer_id = request.session.get('customer_id')
