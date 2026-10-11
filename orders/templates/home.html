@@ -414,6 +414,23 @@
         .welcome-card::before{ content:''; position:absolute; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle, rgba(73,224,214,.22), transparent 68%); top:-80px; left:-35px; }
         .welcome-card::after{ content:''; position:absolute; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle, rgba(155,140,251,.18), transparent 68%); bottom:-80px; right:-30px; }
         .welcome-name{ background:linear-gradient(90deg, var(--cyan), var(--violet)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        @media (max-width:520px){
+            .steps-6 > .node > span{ white-space:normal; max-width:50px; text-align:center; line-height:1.35; font-size:9px; padding-left:3px; padding-right:3px; }
+        }
+        .ready-notices{ position:fixed; top:calc(env(safe-area-inset-top, 0px) + 14px); left:50%; transform:translateX(-50%); z-index:90; width:min(420px, calc(100% - 32px)); display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+        .ready-notice{ pointer-events:auto; position:relative; overflow:hidden; display:flex; gap:12px; align-items:flex-start; text-align:right; padding:14px 14px 14px 12px; border-radius:20px; background:rgba(255,255,255,.97); border:1px solid rgba(8,145,178,.16); box-shadow:0 22px 50px -24px rgba(15,23,42,.45), 0 6px 16px -10px rgba(8,145,178,.35); backdrop-filter:blur(10px); animation:readyIn .55s cubic-bezier(.2,.9,.25,1.15) both; }
+        .ready-notice::before{ content:''; position:absolute; inset:0 0 0 auto; width:4px; background:linear-gradient(180deg,var(--cyan),var(--violet)); }
+        .ready-notice.leaving{ animation:readyOut .3s ease forwards; }
+        .ready-notice-icon{ flex:none; width:42px; height:42px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#fff; background:linear-gradient(135deg,#34d399,#0d9488); box-shadow:0 10px 20px -10px rgba(16,185,129,.8); }
+        .ready-notice-icon svg{ animation:readyPop .6s .25s cubic-bezier(.3,1.6,.5,1) both; }
+        .ready-notice-close{ flex:none; width:28px; height:28px; border-radius:10px; color:#94a3b8; display:flex; align-items:center; justify-content:center; transition:background .2s ease, color .2s ease; }
+        .ready-notice-close:hover{ background:#f1f5f9; color:#334155; }
+        .ready-notice-cta{ display:inline-flex; align-items:center; gap:6px; margin-top:10px; font-size:11px; font-weight:800; color:#04141a; padding:7px 12px; border-radius:11px; background:linear-gradient(115deg,var(--cyan-soft),var(--violet-soft)); box-shadow:0 8px 18px -12px rgba(8,145,178,.7); transition:transform .2s ease; }
+        .ready-notice-cta:hover{ transform:translateY(-1px); }
+        @keyframes readyIn{ from{ opacity:0; transform:translateY(-18px) scale(.96); } to{ opacity:1; transform:none; } }
+        @keyframes readyOut{ to{ opacity:0; transform:translateY(-12px) scale(.97); } }
+        @keyframes readyPop{ from{ transform:scale(.3); opacity:0; } to{ transform:none; opacity:1; } }
+        @media (prefers-reduced-motion: reduce){ .ready-notice, .ready-notice.leaving, .ready-notice-icon svg{ animation:none; } }
         .addr-option{ display:flex; align-items:flex-start; gap:10px; width:100%; text-align:right; padding:12px 14px; border-radius:14px; border:1px solid #e2e8f0; background:#fff; transition:border-color .2s ease, background .2s ease, box-shadow .2s ease; }
         .addr-option:hover{ border-color:rgba(8,145,178,.35); }
         .addr-option.active{ border-color:rgba(8,145,178,.55); background:linear-gradient(115deg, rgba(73,224,214,.09), rgba(155,140,251,.09)); box-shadow:0 10px 22px -16px rgba(8,145,178,.7); }
@@ -748,13 +765,20 @@
                                 </div>
 
                                 <div class="mb-12 mt-10 px-1" dir="rtl">
-                                    <div class="flex items-center justify-between relative">
+                                    <div class="flex items-center justify-between relative {% if order.courier_requested or order.status == 'collecting' %}steps-6{% endif %}">
                                         <div class="absolute right-0 top-2 w-full h-[2px] clothesline z-0"></div>
                                         <div class="absolute right-0 top-2 h-[2px] bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] rounded-full z-0 transition-all duration-1000 ease-out"
-                                             style="width: {% if order.status == 'received' %}0%{% elif order.status == 'washing' %}25%{% elif order.status == 'ironing' %}50%{% elif order.status == 'ready' %}75%{% elif order.status == 'delivered' %}100%{% endif %}"></div>
+                                             style="width: {% if order.courier_requested or order.status == 'collecting' %}{% if order.status == 'collecting' %}0%{% elif order.status == 'received' %}20%{% elif order.status == 'washing' %}40%{% elif order.status == 'ironing' %}60%{% elif order.status == 'ready' %}80%{% elif order.status == 'delivered' %}100%{% endif %}{% else %}{% if order.status == 'received' %}0%{% elif order.status == 'washing' %}25%{% elif order.status == 'ironing' %}50%{% elif order.status == 'ready' %}75%{% elif order.status == 'delivered' %}100%{% endif %}{% endif %}"></div>
+
+                                        {% if order.courier_requested or order.status == 'collecting' %}
+                                        <div class="node relative z-10 flex flex-col items-center {% if order.status == 'collecting' %}node-active{% endif %}">
+                                            <svg class="w-4 h-4 text-[var(--cyan)] {% if order.status == 'collecting' %}truck-bounce{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+                                            <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'collecting' %}bg-cyan-100 text-cyan-800 font-bold{% else %}text-gray-400{% endif %}">جمع‌آوری</span>
+                                        </div>
+                                        {% endif %}
 
                                         <div class="node relative z-10 flex flex-col items-center {% if order.status == 'received' %}node-active{% endif %}">
-                                            <svg class="w-4 h-4 {% if order.status in 'received,washing,ironing,ready,delivered' %}text-[var(--cyan)]{% else %}text-gray-300{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2zm1 4V4h0v2z"/></svg>
+                                            <svg class="w-4 h-4 {% if order.status != 'collecting' %}text-[var(--cyan)]{% else %}text-gray-300{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2zm1 4V4h0v2z"/></svg>
                                             <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'received' %}bg-cyan-100 text-cyan-800 font-bold{% else %}text-gray-400{% endif %}">دریافت</span>
                                         </div>
 
@@ -825,7 +849,7 @@
                                     </div>
                                 </div>
 
-{% if order.courier_requested %}
+{% if order.courier_requested and order.status == 'collecting' %}
 <div data-courier-banner="{{ order.id }}-pickup" data-state="sent" class="{% if not order.courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mt-4 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
     <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
     <div class="min-w-0">
@@ -841,7 +865,7 @@
     </div>
 </div>
 {% endif %}
-{% if order.delivery_courier_requested %}
+{% if order.delivery_courier_requested and order.status == 'ready' %}
 <div data-courier-banner="{{ order.id }}-delivery" data-state="sent" class="{% if not order.delivery_courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mt-4 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
     <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
     <div class="min-w-0">
@@ -1111,7 +1135,7 @@
                                 </div>
                             </div>
 
-                            {% if order.courier_requested %}
+                            {% if order.courier_requested and order.status == 'collecting' %}
 <div data-courier-banner="{{ order.id }}-pickup" data-state="sent" class="{% if not order.courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mb-3 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
     <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
     <div class="min-w-0">
@@ -1127,7 +1151,7 @@
     </div>
 </div>
 {% endif %}
-{% if order.delivery_courier_requested %}
+{% if order.delivery_courier_requested and order.status == 'ready' %}
 <div data-courier-banner="{{ order.id }}-delivery" data-state="sent" class="{% if not order.delivery_courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mb-3 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
     <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
     <div class="min-w-0">
@@ -1783,7 +1807,9 @@
             <p class="text-center text-[10px] text-gray-400 mt-6">انتخاب کنید تا به صفحه ورود مربوط منتقل شوید.</p>
         </div>
     </div>
+    <div id="ready-notices" class="ready-notices" aria-live="polite"></div>
     {{ courier_watch|json_script:"courier-watch-data" }}
+    {{ status_labels|json_script:"status-labels-data" }}
     <script>
         function openLoginChooser(){
             var modal = document.getElementById('login-chooser');
@@ -1976,13 +2002,84 @@
         // Courier status watcher: as soon as the admin marks a courier as dispatched, the
         // customer page updates in place and shows a toast (no reload, so open forms are kept).
         var COURIER_WATCH = JSON.parse(document.getElementById('courier-watch-data').textContent || '{}');
+        var STATUS_LABELS = JSON.parse(document.getElementById('status-labels-data').textContent || '{}');
         var courierPollTimer = null;
 
+        // Keep polling while something can still change for the customer: a courier that has not left yet,
+        // or an order that has not reached "ready" yet.
         function courierHasPending(){
             return Object.keys(COURIER_WATCH).some(function(id){
                 var s = COURIER_WATCH[id];
-                return (s.pickup[0] && !s.pickup[1]) || (s.delivery[0] && !s.delivery[1]);
+                return (s.pickup[0] && !s.pickup[1]) || (s.delivery[0] && !s.delivery[1]) ||
+                       (s.status !== 'ready' && s.status !== 'delivered');
             });
+        }
+
+        function readyNoticeSeen(orderId){
+            try { return localStorage.getItem('readyNoticeSeen:' + orderId) === '1'; } catch (e) { return false; }
+        }
+
+        function dismissReadyNotice(orderId){
+            try { localStorage.setItem('readyNoticeSeen:' + orderId, '1'); } catch (e) {}
+            var el = document.getElementById('ready-notice-' + orderId);
+            if (!el) return;
+            el.classList.add('leaving');
+            setTimeout(function(){ el.remove(); }, 300);
+        }
+
+        function openReadyOrder(orderId){
+            var panel = document.getElementById('delivery-track-' + orderId);
+            dismissReadyNotice(orderId);
+            if (panel){
+                panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                window.location.href = '{% url "home" %}?order_id=' + encodeURIComponent(orderId) + '#track-section';
+            }
+        }
+
+        function showReadyNotice(orderId){
+            var box = document.getElementById('ready-notices');
+            if (!box || readyNoticeSeen(orderId) || document.getElementById('ready-notice-' + orderId)) return;
+            if (box.children.length >= 3) return;
+            var s = COURIER_WATCH[orderId] || {};
+            var note = (s.delivery && s.delivery[0])
+                ? 'لباس‌ها شسته و اتو شده‌اند و به‌زودی تحویل پیک می‌شوند.'
+                : 'لباس‌ها شسته و اتو شده‌اند. می‌توانید حضوری تحویل بگیرید یا ارسال با پیک را انتخاب کنید.';
+            var el = document.createElement('div');
+            el.className = 'ready-notice';
+            el.id = 'ready-notice-' + orderId;
+            el.setAttribute('role', 'status');
+            el.innerHTML =
+                '<div class="ready-notice-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"/></svg></div>' +
+                '<div class="min-w-0 flex-1">' +
+                    '<p class="text-[10px] font-bold text-emerald-600 mb-0.5">اعلان سفارش</p>' +
+                    '<p class="text-sm font-black text-gray-900">سفارش #' + orderId + ' آماده تحویل است</p>' +
+                    '<p class="text-[11px] text-gray-500 leading-5 mt-1">' + note + '</p>' +
+                    '<button type="button" class="ready-notice-cta" data-ready-open>مشاهده سفارش' +
+                        '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M15 19l-7-7 7-7"/></svg>' +
+                    '</button>' +
+                '</div>' +
+                '<button type="button" class="ready-notice-close" aria-label="بستن اعلان" data-ready-close>' +
+                    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2.2" d="M6 6l12 12M18 6L6 18"/></svg>' +
+                '</button>';
+            el.querySelector('[data-ready-open]').addEventListener('click', function(){ openReadyOrder(orderId); });
+            el.querySelector('[data-ready-close]').addEventListener('click', function(){ dismissReadyNotice(orderId); });
+            box.appendChild(el);
+        }
+
+        function hideCourierBanners(orderId, kind){
+            document.querySelectorAll('[data-courier-banner="' + orderId + '-' + kind + '"]').forEach(function(el){ el.classList.add('hidden'); });
+        }
+
+        function applyStatusChange(orderId, oldStatus, newStatus){
+            // Pickup courier info only matters before the clothes reach us; delivery info only while ready.
+            if (oldStatus === 'collecting') hideCourierBanners(orderId, 'pickup');
+            if (oldStatus === 'ready') hideCourierBanners(orderId, 'delivery');
+            if (newStatus === 'ready'){
+                showReadyNotice(orderId);
+            } else {
+                showToast('وضعیت سفارش #' + orderId + ': ' + (STATUS_LABELS[newStatus] || newStatus), 5000);
+            }
         }
 
         function applyCourierDispatched(orderId, kind){
@@ -2008,8 +2105,10 @@
                     Object.keys(data.orders).forEach(function(id){
                         var oldS = COURIER_WATCH[id], newS = data.orders[id];
                         if (!oldS) return;
+                        if (oldS.status !== newS.status) applyStatusChange(id, oldS.status, newS.status);
                         ['pickup', 'delivery'].forEach(function(kind){
-                            if (oldS[kind][0] && !oldS[kind][1] && newS[kind][0] && newS[kind][1]) applyCourierDispatched(id, kind);
+                            var stillRelevant = kind === 'pickup' ? newS.status === 'collecting' : newS.status === 'ready';
+                            if (stillRelevant && oldS[kind][0] && !oldS[kind][1] && newS[kind][0] && newS[kind][1]) applyCourierDispatched(id, kind);
                         });
                         COURIER_WATCH[id] = newS;
                     });
@@ -2024,6 +2123,9 @@
 
         document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') pollCourierStatus(); });
         startCourierWatch();
+        Object.keys(COURIER_WATCH).forEach(function(id, i){
+            if (COURIER_WATCH[id].status === 'ready') setTimeout(function(){ showReadyNotice(id); }, 700 + i * 180);
+        });
 
         function showCourierSuccess(orderId){
             var wrapper = document.getElementById('courier-form-' + orderId);

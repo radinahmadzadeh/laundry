@@ -68,12 +68,14 @@ def home(request):
         'tracking_error': tracking_error,
         'saved_address': customer if customer_logged_in and customer.has_saved_address else None,
         'courier_watch': courier_watch,
+        'status_labels': dict(Order.STATUS_CHOICES),
     })
 
 
 def courier_state(order):
-    """Courier flags the customer page watches: [requested, dispatched] for pickup and delivery."""
+    """Order status plus courier flags the customer page watches: [requested, dispatched] for pickup and delivery."""
     return {
+        'status': order.status,
         'pickup': [order.courier_requested, order.courier_dispatched],
         'delivery': [order.delivery_courier_requested, order.delivery_courier_dispatched],
     }
@@ -496,6 +498,7 @@ def request_courier(request):
             if error:
                 return JsonResponse({'status': 'error', 'message': error})
             order.delivery_courier_requested = True
+            order.delivery_courier_declined = False
             order.delivery_latitude = lat
             order.delivery_longitude = lng
             order.delivery_postal_code = postal
@@ -551,7 +554,10 @@ def place_order(request):
             if error:
                 order.delete()
                 return JsonResponse({'status': 'error', 'message': error})
+            # لباس‌ها هنوز دست ما نرسیده؛ تا وقتی پیک آن‌ها را بیاورد سفارش در مرحله «جمع‌آوری» است
+            order.status = 'collecting'
             order.courier_requested = True
+            order.courier_declined = False
             order.latitude = lat
             order.longitude = lng
             order.postal_code = postal

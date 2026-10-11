@@ -84,13 +84,16 @@
 
         <div class="panel rounded-2xl p-5">
             <h2 class="font-bold mb-1 text-sm">وضعیت پیک</h2>
-            <p class="text-[11px] text-gray-500 mb-4">برای هر پیک فقط یک وضعیت قابل انتخاب است. با کلیک، بلافاصله ذخیره می‌شود و به مشتری نمایش داده می‌شود.</p>
+            <p class="text-[11px] text-gray-500 mb-4">برای هر پیک یکی از سه وضعیت را انتخاب کنید یا با «خنثی کردن» آن را تعیین‌نشده بگذارید. با کلیک، بلافاصله ذخیره می‌شود و به مشتری نمایش داده می‌شود.</p>
             <form method="post" action="{% url 'panel_order_courier_state' order.id %}" class="mb-4 last:mb-0">
                 {% csrf_token %}
                 <input type="hidden" name="kind" value="pickup">
-                <p class="text-[11px] font-black text-amber-300 mb-2">پیک دریافت: گرفتن لباس کثیف از مشتری</p>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <p class="text-[11px] font-black text-amber-300">پیک دریافت: گرفتن لباس کثیف از مشتری</p>
+                    {% if order.courier_requested or order.courier_declined %}<button name="state" value="unset" class="text-[10px] font-bold text-gray-400 hover:text-white border border-white/10 hover:border-white/30 rounded-lg px-2 py-1 transition">خنثی کردن</button>{% else %}<span class="text-[10px] text-gray-500">تعیین نشده</span>{% endif %}
+                </div>
                 <div class="flex gap-2">
-                    <button name="state" value="none" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if not order.courier_requested %}bg-amber-400 text-black border-amber-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">بدون درخواست</button>
+                    <button name="state" value="none" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if order.courier_declined and not order.courier_requested %}bg-amber-400 text-black border-amber-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">بدون درخواست</button>
                     <button name="state" value="requested" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if order.courier_requested and not order.courier_dispatched %}bg-amber-400 text-black border-amber-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">درخواست شده</button>
                     <button name="state" value="dispatched" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if order.courier_dispatched %}bg-amber-400 text-black border-amber-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">ارسال شد</button>
                 </div>
@@ -98,9 +101,12 @@
             <form method="post" action="{% url 'panel_order_courier_state' order.id %}" class="mb-4 last:mb-0">
                 {% csrf_token %}
                 <input type="hidden" name="kind" value="delivery">
-                <p class="text-[11px] font-black text-emerald-300 mb-2">پیک تحویل: رساندن لباس تمیز به مشتری</p>
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <p class="text-[11px] font-black text-emerald-300">پیک تحویل: رساندن لباس تمیز به مشتری</p>
+                    {% if order.delivery_courier_requested or order.delivery_courier_declined %}<button name="state" value="unset" class="text-[10px] font-bold text-gray-400 hover:text-white border border-white/10 hover:border-white/30 rounded-lg px-2 py-1 transition">خنثی کردن</button>{% else %}<span class="text-[10px] text-gray-500">تعیین نشده</span>{% endif %}
+                </div>
                 <div class="flex gap-2">
-                    <button name="state" value="none" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if not order.delivery_courier_requested %}bg-emerald-400 text-black border-emerald-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">بدون درخواست</button>
+                    <button name="state" value="none" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if order.delivery_courier_declined and not order.delivery_courier_requested %}bg-emerald-400 text-black border-emerald-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">بدون درخواست</button>
                     <button name="state" value="requested" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if order.delivery_courier_requested and not order.delivery_courier_dispatched %}bg-emerald-400 text-black border-emerald-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">درخواست شده</button>
                     <button name="state" value="dispatched" class="flex-1 text-center text-[11px] font-black rounded-lg px-2 py-2 border transition {% if order.delivery_courier_dispatched %}bg-emerald-400 text-black border-emerald-400{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">ارسال شد</button>
                 </div>

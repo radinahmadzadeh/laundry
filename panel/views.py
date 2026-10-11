@@ -454,20 +454,22 @@ def price_item_delete(request, item_id):
 
 @staff_required
 def order_courier_state(request, order_id):
-    """Set one courier flow (pickup/delivery) to exactly one state: none, requested or dispatched."""
+    """Set one courier flow (pickup/delivery) to one state: none, requested, dispatched,
+    or 'unset' (neutral — nothing selected)."""
     order = get_object_or_404(Order, id=order_id)
     if request.method == 'POST':
         kind = request.POST.get('kind')
         state = request.POST.get('state')
-        if kind in ('pickup', 'delivery') and state in ('none', 'requested', 'dispatched'):
+        if kind in ('pickup', 'delivery') and state in ('unset', 'none', 'requested', 'dispatched'):
             requested = state in ('requested', 'dispatched')
             dispatched = state == 'dispatched'
+            declined = state == 'none'
             if kind == 'pickup':
-                order.courier_requested, order.courier_dispatched = requested, dispatched
+                order.courier_requested, order.courier_dispatched, order.courier_declined = requested, dispatched, declined
             else:
-                order.delivery_courier_requested, order.delivery_courier_dispatched = requested, dispatched
+                order.delivery_courier_requested, order.delivery_courier_dispatched, order.delivery_courier_declined = requested, dispatched, declined
             order.save()
-            messages.success(request, 'وضعیت پیک ذخیره شد.')
+            messages.success(request, 'وضعیت پیک خنثی شد.' if state == 'unset' else 'وضعیت پیک ذخیره شد.')
     return redirect('panel_order_detail', order_id=order.id)
 
 
@@ -499,6 +501,7 @@ def courier_mark_dispatched(request, order_id):
                 messages.error(request, 'این سفارش درخواست پیک تحویل ثبت‌شده‌ای ندارد.')
             else:
                 order.delivery_courier_dispatched = True
+                order.delivery_courier_declined = False
                 order.save()
                 messages.success(request, 'وضعیت پیک تحویل لباس تمیز به‌روزرسانی شد.')
         else:
@@ -506,6 +509,7 @@ def courier_mark_dispatched(request, order_id):
                 messages.error(request, 'این سفارش درخواست پیک دریافت ثبت‌شده‌ای ندارد.')
             else:
                 order.courier_dispatched = True
+                order.courier_declined = False
                 order.save()
                 messages.success(request, 'وضعیت پیک دریافت لباس کثیف به‌روزرسانی شد.')
     return redirect('panel_courier')

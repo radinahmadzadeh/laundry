@@ -55,6 +55,7 @@ class WalletTransaction(models.Model):
 
 class Order(models.Model):
     STATUS_CHOICES = (
+        ('collecting', 'در انتظار جمع‌آوری لباس'),
         ('received', 'دریافت شده'),
         ('washing', 'در حال شستشو'),
         ('ironing', 'در حال اتوکشی'),
@@ -75,6 +76,8 @@ class Order(models.Model):
     latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی دریافت (Lat)')
     longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی دریافت (Lng)')
     postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی دریافت')
+    # «بدون درخواست» فقط وقتی True است که ادمین صریحاً انتخابش کرده؛ در غیر این صورت وضعیت پیک خنثی (تعیین‌نشده) است
+    courier_declined = models.BooleanField(default=False, verbose_name='پیک دریافت: بدون درخواست')
 
     # پیک تحویل: وقتی سفارش آماده تحویله و مشتری می‌خواد لباس تمیز با پیک برایش ارسال شود
     delivery_courier_requested = models.BooleanField(default=False, verbose_name='درخواست پیک (تحویل لباس)')
@@ -82,6 +85,7 @@ class Order(models.Model):
     delivery_latitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='عرض جغرافیایی تحویل (Lat)')
     delivery_longitude = models.CharField(max_length=50, null=True, blank=True, verbose_name='طول جغرافیایی تحویل (Lng)')
     delivery_postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی تحویل')
+    delivery_courier_declined = models.BooleanField(default=False, verbose_name='پیک تحویل: بدون درخواست')
 
     @property
     def shamsi_date(self):
