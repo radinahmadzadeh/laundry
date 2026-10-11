@@ -5,3 +5,6 @@ db.sqlite3
 
 # Local inspection script
 inspect_motion.py
+
+# Security audit report (keep local, do not push)
+SECURITY_AUDIT.md
