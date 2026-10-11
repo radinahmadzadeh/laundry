@@ -7,7 +7,8 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import transaction
 import re
-from .models import Order, OrderItem, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
+from .models import Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
+from django.db.models import Avg, Count
 
 def home(request):
     customer_id = request.session.get('customer_id')
@@ -28,6 +29,7 @@ def home(request):
             wallet, _ = Wallet.objects.get_or_create(customer=customer)
             customer_orders = list(
                 Order.objects.filter(customer=customer)
+                .select_related('review')
                 .prefetch_related('orderitem_set')
                 .order_by('-created_at')[:30]
             )
@@ -39,7 +41,7 @@ def home(request):
                     orders = Order.objects.filter(
                         customer=customer,
                         id=int(normalized_order_id),
-                    ).prefetch_related('orderitem_set')
+                    ).select_related('review').prefetch_related('orderitem_set')
                     if not orders.exists():
                         tracking_error = 'شماره فاکتور اشتباه است یا این فاکتور متعلق به حساب شما نیست.'
         else:
@@ -50,6 +52,13 @@ def home(request):
     courier_watch = {}
     for o in list(customer_orders or []) + list(orders or []):
         courier_watch[str(o.id)] = courier_state(o)
+
+    visible_reviews = OrderReview.objects.filter(is_hidden=False)
+    review_stats = visible_reviews.aggregate(avg=Avg('rating'), count=Count('id'))
+    featured_reviews = list(
+        visible_reviews.filter(rating__gte=OrderReview.FEATURE_MIN_RATING)
+        .exclude(comment='').select_related('customer')[:6]
+    )
 
     shop = ShopSettings.load()
     categories = list(PriceCategory.objects.prefetch_related('items').all())
@@ -69,6 +78,10 @@ def home(request):
         'saved_address': customer if customer_logged_in and customer.has_saved_address else None,
         'courier_watch': courier_watch,
         'status_labels': dict(Order.STATUS_CHOICES),
+        'featured_reviews': featured_reviews,
+        'review_avg': round(review_stats['avg'] or 0, 1),
+        'review_count': review_stats['count'],
+        'review_tags': OrderReview.TAG_CHOICES,
     })
 
 
@@ -76,6 +89,7 @@ def courier_state(order):
     """Order status plus courier flags the customer page watches: [requested, dispatched] for pickup and delivery."""
     return {
         'status': order.status,
+        'reviewed': hasattr(order, 'review'),
         'pickup': [order.courier_requested, order.courier_dispatched],
         'delivery': [order.delivery_courier_requested, order.delivery_courier_dispatched],
     }
@@ -87,7 +101,7 @@ def courier_status(request):
     if not request.session.get('customer_logged_in') or not customer_id:
         return JsonResponse({'status': 'error'}, status=403)
     ids = [i for i in request.GET.get('ids', '').split(',') if i.isdigit()][:50]
-    orders = Order.objects.filter(customer_id=customer_id, id__in=ids)
+    orders = Order.objects.filter(customer_id=customer_id, id__in=ids).select_related('review')
     return JsonResponse({'status': 'success', 'orders': {str(o.id): courier_state(o) for o in orders}})
 
 def account_page(request):
@@ -470,6 +484,39 @@ def validate_courier_location(lat, lng, postal):
     if not postal_digits.isdigit() or len(postal_digits) != 10:
         return 'کد پستی باید ۱۰ رقم باشد.'
     return None
+
+
+def submit_review(request):
+    """ثبت امتیاز و نظر مشتری برای سفارشی که تحویل داده شده (هر سفارش فقط یک بار)."""
+    customer_id = request.session.get('customer_id')
+    if not request.session.get('customer_logged_in') or not customer_id:
+        return JsonResponse({'status': 'error', 'message': 'برای ثبت نظر ابتدا وارد حساب شوید.'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'درخواست نامعتبر است.'}, status=405)
+    try:
+        data = json.loads(request.body)
+        rating = int(data.get('rating'))
+    except (TypeError, ValueError):
+        return JsonResponse({'status': 'error', 'message': 'لطفاً امتیاز را انتخاب کنید.'})
+    if not 1 <= rating <= 5:
+        return JsonResponse({'status': 'error', 'message': 'امتیاز باید بین ۱ تا ۵ باشد.'})
+
+    order = Order.objects.filter(id=data.get('order_id'), customer_id=customer_id).first()
+    if not order:
+        return JsonResponse({'status': 'error', 'message': 'سفارش پیدا نشد.'}, status=404)
+    if order.status != 'delivered':
+        return JsonResponse({'status': 'error', 'message': 'بعد از تحویل سفارش می‌توانید نظر بدهید.'})
+
+    valid_tags = dict(OrderReview.TAG_CHOICES)
+    tags = [t for t in (data.get('tags') or []) if t in valid_tags]
+    comment = str(data.get('comment') or '').strip()[:1000]
+    review, created = OrderReview.objects.get_or_create(
+        order=order,
+        defaults={'customer_id': customer_id, 'rating': rating, 'comment': comment, 'tags': ','.join(dict.fromkeys(tags))},
+    )
+    if not created:
+        return JsonResponse({'status': 'error', 'message': 'برای این سفارش قبلاً نظر ثبت کرده‌اید.'})
+    return JsonResponse({'status': 'success', 'featured': review.is_featured})
 
 
 def request_courier(request):

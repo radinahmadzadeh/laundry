@@ -417,6 +417,61 @@
         @media (max-width:520px){
             .steps-6 > .node > span{ white-space:normal; max-width:50px; text-align:center; line-height:1.35; font-size:9px; padding-left:3px; padding-right:3px; }
         }
+        /* ---------- Reviews ---------- */
+        .review-stars{ display:flex; gap:2px; color:#fbbf24; font-size:17px; line-height:1; }
+        .review-stars.sm{ font-size:15px; }
+        .review-stars .off{ color:#e2e8f0; }
+        .review-card{ position:relative; overflow:hidden; transition:transform .25s ease, box-shadow .25s ease; }
+        .review-card:hover{ transform:translateY(-3px); box-shadow:0 22px 44px -28px rgba(8,145,178,.45); }
+        .review-quote{ position:absolute; top:-18px; left:14px; font-size:110px; line-height:1; font-family:Georgia,serif; color:rgba(155,140,251,.13); pointer-events:none; }
+        .review-tag{ font-size:10px; font-weight:800; color:#0e7490; background:#ecfeff; border:1px solid #cffafe; border-radius:999px; padding:4px 9px; }
+        .review-avatar{ flex:none; width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; color:#fff; background:linear-gradient(135deg,var(--cyan),var(--violet)); }
+        .review-cta{ position:relative; overflow:hidden; background:linear-gradient(120deg,#fffbeb,#fdf4ff 60%,#ecfeff); border:1px solid #fde68a; }
+        .review-cta::after{ content:''; position:absolute; width:120px; height:120px; border-radius:50%; left:-40px; top:-60px; background:radial-gradient(circle, rgba(251,191,36,.25), transparent 70%); pointer-events:none; }
+        .review-cta-icon{ flex:none; width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; background:linear-gradient(135deg,#fbbf24,#f97316); box-shadow:0 10px 20px -10px rgba(249,115,22,.8); animation:ctaWiggle 3.2s ease-in-out infinite; }
+        .review-cta-stars{ display:flex; gap:6px; }
+        .review-cta-stars button{ font-size:28px; line-height:1; color:#e5e7eb; transition:transform .15s ease, color .15s ease; }
+        .review-cta-stars:hover button{ color:#fbbf24; }
+        .review-cta-stars button:hover ~ button{ color:#e5e7eb; }
+        .review-cta-stars button:hover{ transform:scale(1.18) rotate(-6deg); }
+        .review-done{ background:#fff; border:1px solid #f1f5f9; }
+        @keyframes ctaWiggle{ 0%,86%,100%{ transform:none; } 90%{ transform:rotate(-12deg) scale(1.06); } 94%{ transform:rotate(10deg) scale(1.06); } }
+
+        .rv-backdrop{ position:fixed; inset:0; z-index:100; background:rgba(15,23,42,.45); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; padding:16px; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+        .rv-backdrop.open{ opacity:1; pointer-events:auto; }
+        .rv-sheet{ position:relative; width:min(440px,100%); max-height:calc(100dvh - 32px); overflow-y:auto; background:#fff; border-radius:28px; padding:26px 22px 22px; text-align:center; box-shadow:0 40px 80px -30px rgba(15,23,42,.55); transform:translateY(24px) scale(.97); transition:transform .35s cubic-bezier(.2,.9,.25,1.1); }
+        .rv-backdrop.open .rv-sheet{ transform:none; }
+        @media (max-width:520px){
+            .rv-backdrop{ align-items:flex-end; padding:0; }
+            .rv-sheet{ width:100%; border-radius:26px 26px 0 0; max-height:92dvh; padding-bottom:calc(22px + env(safe-area-inset-bottom, 0px)); transform:translateY(100%); }
+        }
+        .rv-close{ position:absolute; top:14px; left:14px; width:32px; height:32px; border-radius:11px; display:flex; align-items:center; justify-content:center; color:#94a3b8; transition:background .2s ease; }
+        .rv-close:hover{ background:#f1f5f9; color:#334155; }
+        .rv-face{ width:76px; height:76px; margin:0 auto 10px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--rv-face, #e2e8f0); box-shadow:0 16px 30px -16px var(--rv-face, #94a3b8); transition:background .3s ease, box-shadow .3s ease; }
+        .rv-face.bump{ animation:rvBump .45s cubic-bezier(.3,1.6,.5,1); }
+        .rv-face path{ transition:d .3s ease; }
+        .rv-stars{ display:flex; justify-content:center; gap:8px; margin:14px 0 4px; }
+        .rv-stars button{ font-size:40px; line-height:1; color:#e5e7eb; transition:transform .18s ease, color .18s ease; }
+        .rv-stars button.on{ color:#fbbf24; text-shadow:0 6px 16px rgba(251,191,36,.45); }
+        .rv-stars button.pop{ animation:rvPop .4s cubic-bezier(.3,1.7,.5,1); }
+        .rv-stars button:hover{ transform:scale(1.15); }
+        .rv-label{ min-height:22px; font-weight:900; font-size:14px; color:#0f172a; }
+        .rv-details{ display:grid; grid-template-rows:0fr; opacity:0; transition:grid-template-rows .35s ease, opacity .3s ease; }
+        .rv-details.show{ grid-template-rows:1fr; opacity:1; }
+        .rv-details > div{ overflow:hidden; }
+        .rv-chip{ font-size:11px; font-weight:800; padding:8px 12px; border-radius:999px; border:1px solid #e2e8f0; color:#475569; background:#fff; transition:all .18s ease; }
+        .rv-chip.on{ color:#04141a; border-color:transparent; background:linear-gradient(115deg,var(--cyan-soft),var(--violet-soft)); box-shadow:0 8px 16px -12px rgba(8,145,178,.8); }
+        .rv-text{ width:100%; min-height:92px; resize:vertical; border:1px solid #e2e8f0; border-radius:16px; padding:12px 14px; font-size:13px; line-height:1.8; text-align:right; background:#f8fafc; transition:border-color .2s ease, background .2s ease; }
+        .rv-text:focus{ outline:none; border-color:rgba(8,145,178,.5); background:#fff; }
+        .rv-submit{ width:100%; padding:14px; border-radius:16px; font-weight:900; font-size:14px; color:#04141a; background:linear-gradient(115deg,var(--cyan-soft),var(--violet-soft)); box-shadow:0 14px 26px -16px rgba(8,145,178,.9); transition:transform .15s ease, opacity .2s ease; }
+        .rv-submit:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none; }
+        .rv-submit:not(:disabled):active{ transform:scale(.98); }
+        .rv-thanks-icon{ position:relative; width:84px; height:84px; margin:6px auto 14px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; background:linear-gradient(135deg,#34d399,#0d9488); box-shadow:0 18px 34px -16px rgba(16,185,129,.9); animation:rvPop .6s cubic-bezier(.3,1.6,.5,1); }
+        .rv-confetti{ position:absolute; top:50%; left:50%; width:8px; height:8px; border-radius:2px; opacity:0; animation:rvConfetti .9s ease-out forwards; }
+        @keyframes rvBump{ 0%{ transform:scale(.85); } 100%{ transform:none; } }
+        @keyframes rvPop{ 0%{ transform:scale(.4); } 100%{ transform:none; } }
+        @keyframes rvConfetti{ 0%{ opacity:1; transform:translate(-50%,-50%) rotate(0); } 100%{ opacity:0; transform:translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--r)); } }
+        @media (prefers-reduced-motion: reduce){ .review-cta-icon, .rv-face.bump, .rv-stars button.pop, .rv-thanks-icon, .rv-confetti{ animation:none; } }
         .ready-notices{ position:fixed; top:calc(env(safe-area-inset-top, 0px) + 14px); left:50%; transform:translateX(-50%); z-index:90; width:min(420px, calc(100% - 32px)); display:flex; flex-direction:column; gap:10px; pointer-events:none; }
         .ready-notice{ pointer-events:auto; position:relative; overflow:hidden; display:flex; gap:12px; align-items:flex-start; text-align:right; padding:14px 14px 14px 12px; border-radius:20px; background:rgba(255,255,255,.97); border:1px solid rgba(8,145,178,.16); box-shadow:0 22px 50px -24px rgba(15,23,42,.45), 0 6px 16px -10px rgba(8,145,178,.35); backdrop-filter:blur(10px); animation:readyIn .55s cubic-bezier(.2,.9,.25,1.15) both; }
         .ready-notice::before{ content:''; position:absolute; inset:0 0 0 auto; width:4px; background:linear-gradient(180deg,var(--cyan),var(--violet)); }
@@ -1014,6 +1069,8 @@
                                     </div>
                                 {% endif %}
 
+                                {% include "review_cta.html" %}
+
                                 {% if not order.is_paid %}
                                 <div class="grid grid-cols-2 gap-3 mt-4">
                                     <a href="/pay/{{ order.id }}/" class="btn-motion pay-glow flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/30 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
@@ -1167,6 +1224,8 @@
     </div>
 </div>
 {% endif %}
+
+                            {% include "review_cta.html" %}
 
                             <div class="rounded-2xl bg-gray-50 border border-gray-100 p-4">
                                 <div class="flex items-center justify-between gap-3 mb-3">
@@ -1646,29 +1705,39 @@
         {% endif %}
     </section>
 
-    <section class="max-w-6xl mx-auto px-5 mb-20">
+    {% if featured_reviews %}
+    <section id="reviews" class="max-w-6xl mx-auto px-5 mb-20">
         <div class="text-center mb-10">
-            <h2 class="text-2xl sm:text-3xl font-black mb-2">نظر مشتریان</h2>
-            <p class="text-gray-500 text-sm">این بخش نمونه‌ست — با نظرات واقعی مشتری‌هاتون جایگزینش کنید</p>
+            <h2 class="text-2xl sm:text-3xl font-black mb-3">نظر مشتریان</h2>
+            <div class="inline-flex items-center gap-2 rounded-full bg-white border border-amber-100 px-4 py-2 shadow-sm">
+                <span class="text-amber-400 text-base leading-none">★</span>
+                <span class="font-black text-sm text-gray-900">{{ review_avg }}</span>
+                <span class="text-[11px] text-gray-400">از ۵ · بر اساس {{ review_count }} نظر ثبت‌شده</span>
+            </div>
         </div>
-        <div class="grid sm:grid-cols-3 gap-5">
-            <div class="panel enter rounded-2xl p-6">
-                <div class="flex gap-0.5 text-amber-400 mb-3">★★★★★</div>
-                <p class="text-gray-600 text-sm mb-4">کیفیت شست‌وشو عالی بود و لباسم دقیقاً سر موقع تحویل داده شد.</p>
-                <p class="font-bold text-sm">مشتری نمونه</p>
-            </div>
-            <div class="panel enter rounded-2xl p-6" style="animation-delay:60ms">
-                <div class="flex gap-0.5 text-amber-400 mb-3">★★★★★</div>
-                <p class="text-gray-600 text-sm mb-4">امکان پیگیری آنلاین خیلی کاربردیه، همیشه می‌دونم سفارشم کجاست.</p>
-                <p class="font-bold text-sm">مشتری نمونه</p>
-            </div>
-            <div class="panel enter rounded-2xl p-6" style="animation-delay:120ms">
-                <div class="flex gap-0.5 text-amber-400 mb-3">★★★★★</div>
-                <p class="text-gray-600 text-sm mb-4">سرویس پیک خیلی راحت بود، نیازی به مراجعه حضوری نداشتم.</p>
-                <p class="font-bold text-sm">مشتری نمونه</p>
-            </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {% for review in featured_reviews %}
+            <figure class="review-card panel enter rounded-2xl p-6" style="animation-delay:{{ forloop.counter0 }}60ms">
+                <span class="review-quote" aria-hidden="true">”</span>
+                <div class="review-stars mb-3" aria-label="{{ review.rating }} ستاره">{% for i in "12345" %}<span>★</span>{% endfor %}</div>
+                <blockquote class="text-gray-600 text-sm leading-7 mb-4">{{ review.comment }}</blockquote>
+                {% if review.tag_labels %}
+                <div class="flex flex-wrap gap-1.5 mb-4">
+                    {% for label in review.tag_labels %}<span class="review-tag">{{ label }}</span>{% endfor %}
+                </div>
+                {% endif %}
+                <figcaption class="flex items-center gap-3 pt-4 border-t border-gray-100">
+                    <span class="review-avatar">{{ review.display_name|slice:":1" }}</span>
+                    <span class="min-w-0">
+                        <span class="block font-bold text-sm text-gray-900">{{ review.display_name }}</span>
+                        <span class="block text-[10px] text-gray-400 mt-0.5">مشتری تأییدشده · {{ review.shamsi_date }}</span>
+                    </span>
+                </figcaption>
+            </figure>
+            {% endfor %}
         </div>
     </section>
+    {% endif %}
 
     <section id="faq" class="max-w-3xl mx-auto px-5 mb-20">
         <div class="text-center mb-8">
@@ -1713,6 +1782,7 @@
         </div>
     </section>
 
+    {% if customer_logged_in %}
     <section class="max-w-4xl mx-auto px-5 mb-20">
         <div class="rounded-3xl bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] p-8 sm:p-12 text-center relative overflow-hidden">
             <h2 class="text-2xl sm:text-3xl font-black text-gray-950 mb-3">همین حالا لباس‌های خود را به ما بسپارید</h2>
@@ -1727,6 +1797,7 @@
             </div>
         </div>
     </section>
+    {% endif %}
 
     <footer class="border-t border-gray-100 bg-white/70 backdrop-blur-sm">
         <div class="max-w-6xl mx-auto px-5 py-10 grid sm:grid-cols-3 gap-8 text-sm">
@@ -1808,6 +1879,57 @@
         </div>
     </div>
     <div id="ready-notices" class="ready-notices" aria-live="polite"></div>
+    {% if customer_logged_in %}
+    <div id="review-modal" class="rv-backdrop" aria-hidden="true">
+        <div class="rv-sheet" role="dialog" aria-modal="true" aria-labelledby="rv-title">
+            <button type="button" class="rv-close" onclick="closeReview(true)" aria-label="بستن">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2.2" d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+            {% csrf_token %}
+
+            <div id="rv-form">
+                <div id="rv-face" class="rv-face">
+                    <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round">
+                        <circle cx="9" cy="10" r=".9" fill="#fff"/><circle cx="15" cy="10" r=".9" fill="#fff"/>
+                        <path id="rv-mouth" d="M8.5 15.5h7"/>
+                    </svg>
+                </div>
+                <p class="text-[11px] font-bold text-gray-400" id="rv-order-label"></p>
+                <h3 id="rv-title" class="font-black text-lg text-gray-900 mt-1">تجربه‌تان از ما چطور بود؟</h3>
+
+                <div class="rv-stars" id="rv-stars" role="radiogroup" aria-label="امتیاز">
+                    <button type="button" data-v="1" role="radio" aria-label="۱ ستاره">★</button>
+                    <button type="button" data-v="2" role="radio" aria-label="۲ ستاره">★</button>
+                    <button type="button" data-v="3" role="radio" aria-label="۳ ستاره">★</button>
+                    <button type="button" data-v="4" role="radio" aria-label="۴ ستاره">★</button>
+                    <button type="button" data-v="5" role="radio" aria-label="۵ ستاره">★</button>
+                </div>
+                <p class="rv-label" id="rv-label">روی ستاره‌ها بزنید</p>
+
+                <div class="rv-details" id="rv-details"><div>
+                    <p class="text-xs font-black text-gray-700 mt-5 mb-3" id="rv-chips-title">چه چیزی را دوست داشتید؟</p>
+                    <div class="flex flex-wrap justify-center gap-2 mb-4" id="rv-chips">
+                        {% for code, label in review_tags %}<button type="button" class="rv-chip" data-tag="{{ code }}">{{ label }}</button>{% endfor %}
+                    </div>
+                    <textarea id="rv-text" class="rv-text" maxlength="1000" placeholder=""></textarea>
+                    <p class="text-[10px] text-gray-400 mt-2 mb-4 leading-5 hidden" id="rv-public-hint">نظرهای ۵ ستاره با نام کوچک شما در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شوند.</p>
+                </div></div>
+
+                <button type="button" id="rv-submit" class="rv-submit mt-4" onclick="submitReview()" disabled>ثبت نظر</button>
+                <button type="button" class="w-full mt-2 py-2 text-[11px] font-bold text-gray-400 hover:text-gray-600" onclick="closeReview(true)">بعداً</button>
+            </div>
+
+            <div id="rv-thanks" class="hidden py-4">
+                <div class="rv-thanks-icon" id="rv-thanks-icon">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="font-black text-lg text-gray-900">ممنون که نظرتان را گفتید</h3>
+                <p class="text-xs text-gray-500 leading-6 mt-2 px-2" id="rv-thanks-text"></p>
+                <button type="button" class="rv-submit mt-6" onclick="closeReview(false)">بستن</button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {{ courier_watch|json_script:"courier-watch-data" }}
     {{ status_labels|json_script:"status-labels-data" }}
     <script>
@@ -2077,6 +2199,8 @@
             if (oldStatus === 'ready') hideCourierBanners(orderId, 'delivery');
             if (newStatus === 'ready'){
                 showReadyNotice(orderId);
+            } else if (newStatus === 'delivered' && COURIER_WATCH[orderId] && !COURIER_WATCH[orderId].reviewed && !reviewState.orderId){
+                setTimeout(function(){ openReview(orderId); }, 600);
             } else {
                 showToast('وضعیت سفارش #' + orderId + ': ' + (STATUS_LABELS[newStatus] || newStatus), 5000);
             }
@@ -2126,6 +2250,181 @@
         Object.keys(COURIER_WATCH).forEach(function(id, i){
             if (COURIER_WATCH[id].status === 'ready') setTimeout(function(){ showReadyNotice(id); }, 700 + i * 180);
         });
+
+        // ---------- Review / rating after delivery ----------
+        var REVIEW_FACES = {
+            1: { color: '#f87171', mouth: 'M8 17q4-3.6 8 0',   label: 'خیلی ناراضی بودم' },
+            2: { color: '#fb923c', mouth: 'M8.5 16.4q3.5-2 7 0', label: 'ناراضی بودم' },
+            3: { color: '#fbbf24', mouth: 'M8.5 15.5h7',        label: 'معمولی بود' },
+            4: { color: '#34d399', mouth: 'M8.5 14.6q3.5 2.4 7 0', label: 'راضی بودم' },
+            5: { color: '#10b981', mouth: 'M7.8 14q4.2 4.6 8.4 0', label: 'عالی بود!' }
+        };
+        var REVIEW_SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
+        var reviewState = { orderId: null, rating: 0, tags: [], sending: false };
+
+        function reviewSnoozed(orderId){
+            try { return Date.now() - Number(localStorage.getItem('reviewSnooze:' + orderId) || 0) < REVIEW_SNOOZE_MS; } catch (e) { return false; }
+        }
+
+        function setReviewRating(value, animate){
+            reviewState.rating = value;
+            var face = REVIEW_FACES[value];
+            document.querySelectorAll('#rv-stars button').forEach(function(b){
+                var v = Number(b.getAttribute('data-v'));
+                b.classList.toggle('on', v <= value);
+                b.setAttribute('aria-checked', v === value ? 'true' : 'false');
+                if (animate && v <= value){
+                    b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+                    b.style.animationDelay = (v * 35) + 'ms';
+                }
+            });
+            var faceEl = document.getElementById('rv-face');
+            faceEl.style.setProperty('--rv-face', face.color);
+            faceEl.classList.remove('bump'); void faceEl.offsetWidth; faceEl.classList.add('bump');
+            document.getElementById('rv-mouth').setAttribute('d', face.mouth);
+            document.getElementById('rv-label').textContent = face.label;
+            var happy = value >= 4;
+            document.getElementById('rv-chips-title').textContent = happy ? 'چه چیزی را بیشتر دوست داشتید؟' : 'کدام بخش باید بهتر شود؟';
+            document.getElementById('rv-text').placeholder = happy
+                ? 'اگر دوست دارید، چند کلمه از تجربه‌تان بنویسید…'
+                : 'بگویید کجای کار مشکل داشت تا جبرانش کنیم…';
+            document.getElementById('rv-public-hint').classList.toggle('hidden', value < 5);
+            document.getElementById('rv-details').classList.add('show');
+            document.getElementById('rv-submit').disabled = false;
+        }
+
+        function openReview(orderId, rating){
+            var modal = document.getElementById('review-modal');
+            if (!modal) return;
+            reviewState = { orderId: String(orderId), rating: 0, tags: [], sending: false };
+            document.getElementById('rv-form').classList.remove('hidden');
+            document.getElementById('rv-thanks').classList.add('hidden');
+            document.getElementById('rv-order-label').textContent = 'سفارش #' + orderId + ' تحویل داده شد';
+            document.getElementById('rv-text').value = '';
+            document.getElementById('rv-details').classList.remove('show');
+            document.getElementById('rv-public-hint').classList.add('hidden');
+            document.getElementById('rv-label').textContent = 'روی ستاره‌ها بزنید';
+            document.getElementById('rv-mouth').setAttribute('d', 'M8.5 15.5h7');
+            document.getElementById('rv-face').style.removeProperty('--rv-face');
+            document.getElementById('rv-submit').disabled = true;
+            document.getElementById('rv-submit').textContent = 'ثبت نظر';
+            document.querySelectorAll('#rv-stars button').forEach(function(b){ b.classList.remove('on', 'pop'); b.setAttribute('aria-checked', 'false'); });
+            document.querySelectorAll('#rv-chips .rv-chip').forEach(function(c){ c.classList.remove('on'); });
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.documentElement.style.overflow = 'hidden';
+            if (rating) setTimeout(function(){ setReviewRating(rating, true); }, 120);
+            setTimeout(function(){ document.querySelector('#rv-stars button').focus({ preventScroll: true }); }, 200);
+        }
+
+        function closeReview(snooze){
+            var modal = document.getElementById('review-modal');
+            if (!modal || !modal.classList.contains('open')) return;
+            if (snooze && reviewState.orderId){
+                try { localStorage.setItem('reviewSnooze:' + reviewState.orderId, String(Date.now())); } catch (e) {}
+            }
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.documentElement.style.overflow = '';
+            reviewState.orderId = null;
+        }
+
+        function markOrderReviewed(orderId, rating){
+            if (COURIER_WATCH[orderId]) COURIER_WATCH[orderId].reviewed = true;
+            var stars = '';
+            for (var i = 1; i <= 5; i++) stars += '<span class="' + (i > rating ? 'off' : '') + '">★</span>';
+            document.querySelectorAll('[data-review-cta="' + orderId + '"]').forEach(function(el){
+                el.outerHTML =
+                    '<div class="review-done mt-4 mb-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">' +
+                        '<div class="min-w-0"><p class="text-[11px] font-bold text-gray-500">امتیاز شما به این سفارش</p>' +
+                        '<div class="review-stars sm mt-1">' + stars + '</div></div>' +
+                        '<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1 shrink-0">ممنون از نظرتان</span>' +
+                    '</div>';
+            });
+        }
+
+        function burstConfetti(host){
+            var colors = ['#22d3ee', '#a78bfa', '#fbbf24', '#34d399', '#f472b6'];
+            for (var i = 0; i < 22; i++){
+                var p = document.createElement('span');
+                var angle = (Math.PI * 2 * i) / 22, dist = 60 + Math.random() * 50;
+                p.className = 'rv-confetti';
+                p.style.background = colors[i % colors.length];
+                p.style.setProperty('--x', Math.cos(angle) * dist + 'px');
+                p.style.setProperty('--y', Math.sin(angle) * dist + 'px');
+                p.style.setProperty('--r', (Math.random() * 540 - 270) + 'deg');
+                p.style.animationDelay = (Math.random() * 120) + 'ms';
+                host.appendChild(p);
+                setTimeout(function(el){ return function(){ el.remove(); }; }(p), 1300);
+            }
+        }
+
+        function submitReview(){
+            if (!reviewState.orderId || !reviewState.rating || reviewState.sending) return;
+            reviewState.sending = true;
+            var btn = document.getElementById('rv-submit');
+            btn.disabled = true;
+            btn.textContent = 'در حال ثبت…';
+            var orderId = reviewState.orderId, rating = reviewState.rating;
+            fetch('{% url "submit_review" %}', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('#review-modal input[name="csrfmiddlewaretoken"]').value },
+                body: JSON.stringify({ order_id: orderId, rating: rating, tags: reviewState.tags, comment: document.getElementById('rv-text').value })
+            })
+            .then(function(r){ return r.json(); })
+            .then(function(data){
+                reviewState.sending = false;
+                if (data.status !== 'success'){
+                    btn.disabled = false;
+                    btn.textContent = 'ثبت نظر';
+                    showToast(data.message || 'ثبت نظر انجام نشد؛ دوباره تلاش کنید.');
+                    if (/قبلاً/.test(data.message || '')) { markOrderReviewed(orderId, rating); closeReview(false); }
+                    return;
+                }
+                markOrderReviewed(orderId, rating);
+                document.getElementById('rv-thanks-text').textContent = data.featured
+                    ? 'خوشحالیم که از ما راضی بودید! نظر شما در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شود.'
+                    : (rating >= 4
+                        ? 'خوشحالیم که از ما راضی بودید. منتظر سفارش بعدی‌تان هستیم.'
+                        : 'متأسفیم که تجربه‌تان کامل نبود. نظر شما به دست مدیریت رسید و برای بهتر شدن از آن استفاده می‌کنیم.');
+                document.getElementById('rv-form').classList.add('hidden');
+                document.getElementById('rv-thanks').classList.remove('hidden');
+                if (rating >= 4) burstConfetti(document.getElementById('rv-thanks-icon'));
+            })
+            .catch(function(){
+                reviewState.sending = false;
+                btn.disabled = false;
+                btn.textContent = 'ثبت نظر';
+                showToast('ارتباط برقرار نشد؛ دوباره تلاش کنید.');
+            });
+        }
+
+        (function initReview(){
+            var modal = document.getElementById('review-modal');
+            if (!modal) return;
+            document.querySelectorAll('#rv-stars button').forEach(function(b){
+                b.addEventListener('click', function(){ setReviewRating(Number(b.getAttribute('data-v')), true); });
+            });
+            document.querySelectorAll('#rv-chips .rv-chip').forEach(function(c){
+                c.addEventListener('click', function(){
+                    var tag = c.getAttribute('data-tag'), i = reviewState.tags.indexOf(tag);
+                    if (i === -1) reviewState.tags.push(tag); else reviewState.tags.splice(i, 1);
+                    c.classList.toggle('on', i === -1);
+                });
+            });
+            modal.addEventListener('click', function(e){ if (e.target === modal) closeReview(true); });
+            document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeReview(true); });
+
+            // Ask once for the most recent delivered order that has no review yet (unless snoozed).
+            var pending = Object.keys(COURIER_WATCH).filter(function(id){
+                var s = COURIER_WATCH[id];
+                return s.status === 'delivered' && !s.reviewed;
+            }).sort(function(a, b){ return Number(b) - Number(a); });
+            if (pending.length && !reviewSnoozed(pending[0])){
+                setTimeout(function(){ if (!reviewState.orderId) openReview(pending[0]); }, 1600);
+            }
+        })();
 
         function showCourierSuccess(orderId){
             var wrapper = document.getElementById('courier-form-' + orderId);

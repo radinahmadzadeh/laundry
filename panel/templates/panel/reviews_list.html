@@ -1,0 +1,62 @@
+{% extends 'panel/base.html' %}
+{% block title %}نظرات مشتریان | پنل مدیریت{% endblock %}
+{% block content %}
+<div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+    <div>
+        <p class="text-xs font-bold text-cyan-300 mb-2">رضایت مشتری</p>
+        <h1 class="text-2xl sm:text-3xl font-black text-white">نظرات مشتریان</h1>
+        <p class="text-xs text-gray-400 mt-2">نظرهای ۵ ستاره‌ای که متن دارند خودکار در صفحه اول سایت نمایش داده می‌شوند. هر نظری را می‌توانید پنهان کنید.</p>
+    </div>
+    <form method="get" class="flex gap-2 w-full lg:w-auto">
+        <select name="rating" class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm w-full lg:w-56 focus:outline-none">
+            <option value="">همه امتیازها</option>
+            {% for r in "54321" %}<option value="{{ r }}" {% if r == current_rating %}selected{% endif %}>{{ r }} ستاره</option>{% endfor %}
+        </select>
+        <button class="px-5 py-2.5 rounded-xl btn-primary text-sm shrink-0">فیلتر</button>
+    </form>
+</div>
+
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-5">
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">میانگین امتیاز</p><p class="text-2xl font-black mt-1 text-amber-300">{{ review_avg }} <span class="text-sm">★</span></p></div>
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">تعداد نظرات</p><p class="text-2xl font-black mt-1 text-white">{{ review_count }}</p></div>
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">در صفحه اول سایت</p><p class="text-2xl font-black mt-1 text-emerald-300">{{ featured_count }}</p></div>
+    <div class="panel stat-glow rounded-2xl p-4"><p class="text-[10px] text-gray-500">نارضایتی (۱ و ۲ ستاره)</p><p class="text-2xl font-black mt-1 text-red-300">{{ low_count }}</p></div>
+</div>
+
+<div class="space-y-3">
+    {% for review in reviews %}
+    <div class="panel rounded-2xl p-5 border-r-4 {% if review.rating >= 4 %}border-r-emerald-400{% elif review.rating == 3 %}border-r-amber-400{% else %}border-r-red-400{% endif %}">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <span class="text-amber-300 tracking-wider">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}<span class="text-white/15">★</span>{% endif %}{% endfor %}</span>
+                    {% if review.is_featured %}<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">در صفحه اول</span>{% endif %}
+                    {% if review.is_hidden %}<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-white/5 text-gray-400 border border-white/10">پنهان</span>{% endif %}
+                </div>
+                <p class="text-xs text-gray-400">
+                    <a href="{% url 'panel_customer_detail' review.customer.id %}" class="font-bold text-white hover:underline">{{ review.customer.name }}</a>
+                    · <span class="dir-ltr">{{ review.customer.phone }}</span>
+                    · <a href="{% url 'panel_order_detail' review.order.id %}" class="text-cyan-300 font-bold hover:underline">فاکتور #{{ review.order.id }}</a>
+                    · {{ review.shamsi_date }}
+                </p>
+            </div>
+            <form method="post" action="{% url 'panel_review_toggle' review.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="px-4 py-2 rounded-xl text-xs font-bold border transition {% if review.is_hidden %}bg-emerald-400/10 text-emerald-300 border-emerald-400/30 hover:bg-emerald-400/20{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">
+                    {% if review.is_hidden %}نمایش دوباره{% else %}پنهان کردن{% endif %}
+                </button>
+            </form>
+        </div>
+        {% if review.comment %}<p class="text-sm text-gray-200 leading-7 mt-3">{{ review.comment|linebreaksbr }}</p>{% else %}<p class="text-xs text-gray-500 mt-3">بدون متن</p>{% endif %}
+        {% if review.tag_labels %}
+        <div class="flex flex-wrap gap-1.5 mt-3">
+            {% for label in review.tag_labels %}<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">{{ label }}</span>{% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="panel rounded-2xl p-10 text-center text-gray-500 text-sm">هنوز نظری ثبت نشده است.</div>
+    {% endfor %}
+</div>
+{% endblock %}

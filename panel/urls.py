@@ -31,5 +31,8 @@ urlpatterns = [
     path('courier/', views.courier_requests, name='panel_courier'),
     path('courier/<int:order_id>/dispatch/', views.courier_mark_dispatched, name='panel_courier_dispatch'),
 
+    path('reviews/', views.reviews_list, name='panel_reviews'),
+    path('reviews/<int:review_id>/toggle/', views.review_toggle_hidden, name='panel_review_toggle'),
+
     path('settings/', views.shop_settings_view, name='panel_settings'),
 ]

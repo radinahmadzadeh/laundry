@@ -4,12 +4,13 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
 from django.db import transaction
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from orders.models import (
     Customer,
+    OrderReview,
     Wallet,
     WalletTransaction,
     Order,
@@ -513,6 +514,37 @@ def courier_mark_dispatched(request, order_id):
                 order.save()
                 messages.success(request, 'وضعیت پیک دریافت لباس کثیف به‌روزرسانی شد.')
     return redirect('panel_courier')
+
+
+@staff_required
+def reviews_list(request):
+    reviews = OrderReview.objects.select_related('customer', 'order')
+    rating = request.GET.get('rating', '')
+    if rating.isdigit():
+        reviews = reviews.filter(rating=int(rating))
+    stats = OrderReview.objects.aggregate(avg=Avg('rating'), count=Count('id'))
+    return render(request, 'panel/reviews_list.html', {
+        'active': 'reviews',
+        'reviews': reviews,
+        'current_rating': rating,
+        'review_avg': round(stats['avg'] or 0, 1),
+        'review_count': stats['count'],
+        'featured_count': OrderReview.objects.filter(is_hidden=False, rating__gte=OrderReview.FEATURE_MIN_RATING).exclude(comment='').count(),
+        'low_count': OrderReview.objects.filter(rating__lte=2).count(),
+    })
+
+
+@staff_required
+def review_toggle_hidden(request, review_id):
+    review = get_object_or_404(OrderReview, id=review_id)
+    if request.method == 'POST':
+        review.is_hidden = not review.is_hidden
+        review.save(update_fields=['is_hidden'])
+        messages.success(request, 'نظر از صفحه اول سایت پنهان شد.' if review.is_hidden else 'نظر دوباره قابل نمایش است.')
+    next_url = request.POST.get('next', '')
+    if next_url.startswith('/') and not next_url.startswith('//'):
+        return redirect(next_url)
+    return redirect('panel_reviews')
 
 
 @staff_required

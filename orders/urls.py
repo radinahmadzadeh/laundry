@@ -18,5 +18,6 @@ urlpatterns = [
     path('pricing/', views.pricing_menu, name='pricing'),
     path('request-courier/', views.request_courier, name='request_courier'),
     path('courier-status/', views.courier_status, name='courier_status'),
+    path('review/', views.submit_review, name='submit_review'),
     path('place-order/', views.place_order, name='place_order'),
 ]

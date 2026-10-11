@@ -194,3 +194,53 @@ class ShopSettings(models.Model):
     def __str__(self):
         return self.name
 
+
+
+class OrderReview(models.Model):
+    """نظر و امتیاز مشتری بعد از تحویل سفارش. نظرهای ۵ ستاره (با متن) در صفحه اول نمایش داده می‌شوند."""
+    TAG_CHOICES = (
+        ('quality', 'کیفیت شستشو'),
+        ('ironing', 'اتوی بی‌نقص'),
+        ('on_time', 'تحویل به‌موقع'),
+        ('courier', 'پیک سریع'),
+        ('behavior', 'برخورد محترمانه'),
+        ('price', 'قیمت منصفانه'),
+    )
+    FEATURE_MIN_RATING = 5
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='review')
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField(verbose_name='امتیاز')
+    comment = models.TextField(blank=True, default='', verbose_name='نظر')
+    tags = models.CharField(max_length=200, blank=True, default='', verbose_name='برچسب‌ها')
+    is_hidden = models.BooleanField(default=False, verbose_name='عدم نمایش در سایت')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'نظر مشتری'
+        verbose_name_plural = 'نظرات مشتریان'
+
+    @property
+    def tag_labels(self):
+        labels = dict(self.TAG_CHOICES)
+        return [labels[t] for t in self.tags.split(',') if t in labels]
+
+    @property
+    def is_featured(self):
+        return self.rating >= self.FEATURE_MIN_RATING and bool(self.comment.strip()) and not self.is_hidden
+
+    @property
+    def display_name(self):
+        # برای حفظ حریم خصوصی: نام کوچک + حرف اول نام خانوادگی
+        parts = (self.customer.name or '').split()
+        if not parts:
+            return 'مشتری'
+        return parts[0] if len(parts) == 1 else f'{parts[0]} {parts[-1][0]}.'
+
+    @property
+    def shamsi_date(self):
+        return jdatetime.date.fromgregorian(date=self.created_at.date()).strftime("%Y/%m/%d")
+
+    def __str__(self):
+        return f"نظر فاکتور {self.order_id} - {self.rating} ستاره"

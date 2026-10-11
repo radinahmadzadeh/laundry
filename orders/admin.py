@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 import urllib.parse
-from .models import Customer, Order, OrderItem, PriceCategory, PriceItem, ShopSettings, Wallet, WalletTransaction
+from .models import Customer, Order, OrderItem, OrderReview, PriceCategory, PriceItem, ShopSettings, Wallet, WalletTransaction
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
@@ -66,3 +66,10 @@ class ShopSettingsAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not ShopSettings.objects.exists()
+
+
+@admin.register(OrderReview)
+class OrderReviewAdmin(admin.ModelAdmin):
+    list_display = ('order', 'customer', 'rating', 'is_hidden', 'created_at')
+    list_filter = ('rating', 'is_hidden')
+    search_fields = ('customer__name', 'customer__phone', 'comment')
