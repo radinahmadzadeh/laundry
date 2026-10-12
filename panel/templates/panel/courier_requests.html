@@ -19,8 +19,8 @@
             <a href="{% url 'panel_order_detail' r.order.id %}" class="text-[11px] text-cyan-300 font-bold hover:underline">جزئیات سفارش</a>
         </div>
         <div class="flex items-center gap-3">
-            {% if r.lat and r.lng %}
-                <a href="https://www.google.com/maps?q={{ r.lat }},{{ r.lng }}" target="_blank" rel="noopener"
+            {% if r.point %}
+                <a href="https://www.google.com/maps?q={{ r.point }}" target="_blank" rel="noopener"
                    class="bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
             {% else %}
                 <span class="bg-red-500/10 text-red-300 border border-red-500/30 px-4 py-2 rounded-xl text-xs font-bold">لوکیشن ثبت نشده؛ با مشتری تماس بگیرید</span>

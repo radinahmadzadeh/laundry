@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 
 from django.contrib import messages
@@ -7,11 +8,11 @@ from django.db import transaction
 from django.db.models import Q, Sum, Count, Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
-
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from orders.views import normalize_phone, valid_password, valid_phone
+from orders.views import FA_TO_EN_DIGITS, MAX_ORDER_TOTAL, normalize_phone, valid_password, valid_phone
 from orders.models import (
+    order_tax,
     Customer,
     OrderReview,
     Wallet,
@@ -24,6 +25,35 @@ from orders.models import (
 )
 
 staff_required = user_passes_test(lambda u: u.is_authenticated and u.is_staff, login_url='panel_login')
+
+MAX_PANEL_QUANTITY = 1000
+MAX_ITEM_PRICE = 100_000_000
+ITEM_INPUT_ERROR = 'تعداد باید عدد صحیح بین ۱ تا ۱۰۰۰ و قیمت عدد صحیح (تومان) باشد.'
+
+
+def clean_item_numbers(qty, price):
+    """(quantity, price) as whole numbers, or None. Accepts Persian digits and thousands separators."""
+    qty = str(qty or '').translate(FA_TO_EN_DIGITS).strip()
+    price = re.sub(r'[\s,٬]', '', str(price or '').translate(FA_TO_EN_DIGITS))
+    if not qty.isdigit() or not price.isdigit():
+        return None
+    qty, price = int(qty), int(price)
+    if not 1 <= qty <= MAX_PANEL_QUANTITY or price > MAX_ITEM_PRICE:
+        return None
+    return qty, price
+
+
+def total_within_limit(subtotal):
+    # Order.total_price stores at most 10 digits; a larger total breaks every page that lists the order.
+    return subtotal + order_tax(subtotal) <= MAX_ORDER_TOTAL
+
+
+def redirect_back(request, fallback, **kwargs):
+    """Follow ?next= only when it stays on this site."""
+    next_url = request.POST.get('next', '')
+    if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return redirect(next_url)
+    return redirect(fallback, **kwargs)
 
 
 def panel_login(request):
@@ -116,11 +146,17 @@ def order_detail(request, order_id):
         item_price = request.POST.get('item_price')
         item_description = request.POST.get('item_description', '').strip()
 
-        if item_name and item_qty and item_price:
-            OrderItem.objects.create(order=order, item_name=item_name, description=item_description, quantity=int(item_qty), price=item_price)
-            messages.success(request, 'قلم جدید اضافه شد.')
-        else:
+        numbers = clean_item_numbers(item_qty, item_price)
+        if not (item_name and item_qty and item_price):
             messages.error(request, 'نام، تعداد و قیمت الزامی است.')
+        elif not numbers:
+            messages.error(request, ITEM_INPUT_ERROR)
+        elif not total_within_limit(order.subtotal_amount + numbers[0] * numbers[1]):
+            messages.error(request, 'مبلغ این سفارش بیش از حد مجاز می‌شود.')
+        else:
+            OrderItem.objects.create(order=order, item_name=item_name[:100], description=item_description,
+                                     quantity=numbers[0], price=numbers[1])
+            messages.success(request, 'قلم جدید اضافه شد.')
         return redirect('panel_order_detail', order_id=order.id)
 
     context = {
@@ -152,10 +188,7 @@ def order_update_status(request, order_id):
             order.save()
             messages.success(request, 'وضعیت سفارش بروزرسانی شد.')
 
-    next_url = request.POST.get('next')
-    if next_url:
-        return redirect(next_url)
-    return redirect('panel_order_detail', order_id=order.id)
+    return redirect_back(request, 'panel_order_detail', order_id=order.id)
 
 
 @staff_required
@@ -166,10 +199,7 @@ def order_toggle_paid(request, order_id):
         order.save()
         messages.success(request, 'وضعیت پرداخت بروزرسانی شد.')
 
-    next_url = request.POST.get('next')
-    if next_url:
-        return redirect(next_url)
-    return redirect('panel_order_detail', order_id=order.id)
+    return redirect_back(request, 'panel_order_detail', order_id=order.id)
 
 
 @staff_required
@@ -206,27 +236,37 @@ def order_create(request):
             return redirect('panel_order_create')
 
         delivery_date = None
-        if delivery_days.isdigit():
+        delivery_days = delivery_days.translate(FA_TO_EN_DIGITS)
+        if delivery_days.isdigit() and int(delivery_days) <= 365:
             delivery_date = timezone.localdate() + timedelta(days=int(delivery_days))
-
-        order = Order.objects.create(customer=customer, delivery_date=delivery_date)
 
         item_names = request.POST.getlist('item_name[]')
         item_qtys = request.POST.getlist('item_qty[]')
         item_prices = request.POST.getlist('item_price[]')
         item_descriptions = request.POST.getlist('item_description[]')
 
-        created_any = False
+        lines = []
         for idx, (name, qty, price) in enumerate(zip(item_names, item_qtys, item_prices)):
+            if not (name.strip() and qty.strip() and price.strip()):
+                continue
+            numbers = clean_item_numbers(qty, price)
+            if not numbers:
+                messages.error(request, f'ردیف «{name.strip()}»: {ITEM_INPUT_ERROR}')
+                return redirect('panel_order_create')
             description = item_descriptions[idx].strip() if idx < len(item_descriptions) else ''
-            if name.strip() and qty.strip() and price.strip():
-                OrderItem.objects.create(order=order, item_name=name.strip(), description=description, quantity=int(qty), price=price)
-                created_any = True
+            lines.append((name.strip()[:100], description, *numbers))
 
-        if not created_any:
-            order.delete()
+        if not lines:
             messages.error(request, 'حداقل یک قلم لباس باید اضافه شود.')
             return redirect('panel_order_create')
+        if not total_within_limit(sum(qty * price for _, _, qty, price in lines)):
+            messages.error(request, 'مبلغ این سفارش بیش از حد مجاز است.')
+            return redirect('panel_order_create')
+
+        with transaction.atomic():
+            order = Order.objects.create(customer=customer, delivery_date=delivery_date)
+            for name, description, qty, price in lines:
+                OrderItem.objects.create(order=order, item_name=name, description=description, quantity=qty, price=price)
 
         messages.success(request, f'سفارش #{order.id} با موفقیت ثبت شد.')
         return redirect('panel_order_detail', order_id=order.id)
@@ -373,12 +413,20 @@ def order_update(request, order_id):
         if status in dict(Order.STATUS_CHOICES):
             order.status = status
         order.is_paid = request.POST.get('is_paid') == 'on'
-        order.postal_code = request.POST.get('postal_code', '').strip()
-        order.latitude = request.POST.get('latitude', '').strip()
-        order.longitude = request.POST.get('longitude', '').strip()
-        order.delivery_postal_code = request.POST.get('delivery_postal_code', '').strip()
-        order.delivery_latitude = request.POST.get('delivery_latitude', '').strip()
-        order.delivery_longitude = request.POST.get('delivery_longitude', '').strip()
+        locations = {}
+        for prefix, label in (('', 'دریافت'), ('delivery_', 'تحویل')):
+            lat = request.POST.get(f'{prefix}latitude', '').strip()
+            lng = request.POST.get(f'{prefix}longitude', '').strip()
+            postal = re.sub(r'[\s\-]', '', request.POST.get(f'{prefix}postal_code', '').translate(FA_TO_EN_DIGITS))
+            if (lat or lng) and not Order._map_point(lat.translate(FA_TO_EN_DIGITS), lng.translate(FA_TO_EN_DIGITS)):
+                messages.error(request, f'مختصات پیک {label} نامعتبر است.')
+                return redirect('panel_order_detail', order_id=order.id)
+            if postal and (not postal.isdigit() or len(postal) != 10):
+                messages.error(request, f'کد پستی پیک {label} باید ۱۰ رقم باشد.')
+                return redirect('panel_order_detail', order_id=order.id)
+            locations[prefix] = (lat.translate(FA_TO_EN_DIGITS), lng.translate(FA_TO_EN_DIGITS), postal)
+        order.latitude, order.longitude, order.postal_code = locations['']
+        order.delivery_latitude, order.delivery_longitude, order.delivery_postal_code = locations['delivery_']
         order.save()
         messages.success(request, 'اطلاعات سفارش با موفقیت ویرایش شد.')
     return redirect('panel_order_detail', order_id=order.id)
@@ -390,17 +438,18 @@ def order_item_update(request, order_id, item_id):
     if request.method == 'POST':
         name = request.POST.get('item_name', '').strip()
         description = request.POST.get('description', '').strip()
-        qty = request.POST.get('quantity', '').strip()
-        price = request.POST.get('price', '').strip().replace(',', '').replace('٬', '')
-        if name and qty.isdigit() and int(qty) > 0 and price.isdigit():
-            item.item_name = name
+        numbers = clean_item_numbers(request.POST.get('quantity'), request.POST.get('price'))
+        other_lines = item.order.subtotal_amount - item.price * item.quantity
+        if not name or not numbers:
+            messages.error(request, 'نام، تعداد و قیمت قلم را درست وارد کنید. ' + ITEM_INPUT_ERROR)
+        elif not total_within_limit(other_lines + numbers[0] * numbers[1]):
+            messages.error(request, 'مبلغ این سفارش بیش از حد مجاز می‌شود.')
+        else:
+            item.item_name = name[:100]
             item.description = description
-            item.quantity = int(qty)
-            item.price = price
+            item.quantity, item.price = numbers
             item.save()
             messages.success(request, 'قلم سفارش ویرایش شد.')
-        else:
-            messages.error(request, 'نام، تعداد و قیمت قلم را درست وارد کنید.')
     return redirect('panel_order_detail', order_id=order_id)
 
 
@@ -500,12 +549,12 @@ def courier_requests(request):
     for order in Order.objects.filter(courier_requested=True).select_related('customer'):
         requests_list.append({
             'kind': 'pickup', 'order': order, 'postal': order.postal_code, 'address': order.address,
-            'lat': order.latitude, 'lng': order.longitude, 'dispatched': order.courier_dispatched,
+            'point': order.pickup_map_point, 'dispatched': order.courier_dispatched,
         })
     for order in Order.objects.filter(delivery_courier_requested=True).select_related('customer'):
         requests_list.append({
             'kind': 'delivery', 'order': order, 'postal': order.delivery_postal_code, 'address': order.delivery_address,
-            'lat': order.delivery_latitude, 'lng': order.delivery_longitude, 'dispatched': order.delivery_courier_dispatched,
+            'point': order.delivery_map_point, 'dispatched': order.delivery_courier_dispatched,
         })
     requests_list.sort(key=lambda r: (r['dispatched'], -r['order'].id))
     return render(request, 'panel/courier_requests.html', {'active': 'courier', 'requests': requests_list})
@@ -560,10 +609,7 @@ def review_toggle_hidden(request, review_id):
         review.is_hidden = not review.is_hidden
         review.save(update_fields=['is_hidden'])
         messages.success(request, 'نظر از سایت پنهان شد.' if review.is_hidden else 'نظر تأیید شد و در سایت قابل نمایش است.')
-    next_url = request.POST.get('next', '')
-    if next_url.startswith('/') and not next_url.startswith('//'):
-        return redirect(next_url)
-    return redirect('panel_reviews')
+    return redirect_back(request, 'panel_reviews')
 
 
 @staff_required

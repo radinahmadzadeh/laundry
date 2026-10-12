@@ -600,3 +600,63 @@ class ErrorPageTests(TestCase):
         # The live site runs with DEBUG off; WhiteNoise must still serve CSS/images/icons.
         response = Client().get('/static/pwa/icon-192.png')
         self.assertEqual(response.status_code, 200)
+
+
+class PanelValidationTests(TestCase):
+    def setUp(self):
+        staff = get_user_model().objects.create_user('panel-staff', password='x', is_staff=True)
+        self.client = Client()
+        self.client.force_login(staff)
+        self.customer = Customer.objects.create(name='پنل', phone='09120000029')
+        self.order = Order.objects.create(customer=self.customer)
+
+    def test_bad_item_numbers_do_not_crash(self):
+        url = reverse('panel_order_detail', args=[self.order.id])
+        for qty, price in [('2.5', '1000'), ('abc', '1000'), ('0', '1000'), ('99999', '220000'), ('1', '-5'), ('1', '1e9')]:
+            response = self.client.post(url, {'item_name': 'کت', 'item_qty': qty, 'item_price': price})
+            self.assertEqual(response.status_code, 302, (qty, price))
+        self.assertEqual(self.order.orderitem_set.count(), 0)
+        self.client.post(url, {'item_name': 'کت', 'item_qty': '۲', 'item_price': '۱۰۰٬۰۰۰'})
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.total_price, Decimal('220000'))
+        self.assertEqual(self.client.get(reverse('panel_orders')).status_code, 200)
+
+    def test_create_order_rejects_bad_rows_without_leftovers(self):
+        before = Order.objects.count()
+        self.client.post(reverse('panel_order_create'), {
+            'customer_id': self.customer.id,
+            'item_name[]': ['پیراهن', 'کت'], 'item_qty[]': ['1', '2.5'], 'item_price[]': ['220000', '100000'],
+        })
+        self.assertEqual(Order.objects.count(), before)
+
+    def test_next_redirect_stays_on_site(self):
+        response = self.client.post(reverse('panel_order_status', args=[self.order.id]), {'status': 'washing', 'next': 'https://evil.example/'})
+        self.assertEqual(response['Location'], reverse('panel_order_detail', args=[self.order.id]))
+        response = self.client.post(reverse('panel_order_status', args=[self.order.id]), {'status': 'washing', 'next': '/panel/orders/'})
+        self.assertEqual(response['Location'], '/panel/orders/')
+
+    def test_invalid_coordinates_hidden_from_map_links(self):
+        self.order.courier_requested = True
+        self.order.latitude, self.order.longitude = 'nan', '51'
+        self.order.save()
+        page = self.client.get(reverse('panel_courier')).content.decode()
+        self.assertNotIn('maps?q=nan', page)
+        self.assertEqual(self.order.pickup_map_point, '')
+
+
+class PanelSmokeTests(TestCase):
+    def test_every_panel_page_renders(self):
+        from .models import OrderItem, OrderReview, PriceCategory, PriceItem
+        staff = get_user_model().objects.create_user('smoke-staff', password='x', is_staff=True)
+        client = Client()
+        client.force_login(staff)
+        customer = Customer.objects.create(name='دود', phone='09120000030')
+        order = Order.objects.create(customer=customer, status='delivered', courier_requested=True, latitude='35.7', longitude='51.3')
+        OrderItem.objects.create(order=order, item_name='کت', quantity=1, price=Decimal('1000'))
+        OrderReview.objects.create(order=order, customer=customer, rating=5, comment='خوب')
+        PriceItem.objects.create(category=PriceCategory.objects.create(name='مردانه'), name='کت', dry_clean_price='1000')
+        for name, args in [('panel_dashboard', []), ('panel_orders', []), ('panel_order_create', []),
+                           ('panel_order_detail', [order.id]), ('panel_customers', []), ('panel_customer_detail', [customer.id]),
+                           ('panel_pricing', []), ('panel_courier', []), ('panel_reviews', []), ('panel_settings', []),
+                           ('print_receipt', [order.id])]:
+            self.assertEqual(client.get(reverse(name, args=args)).status_code, 200, name)

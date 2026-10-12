@@ -1,3 +1,5 @@
+import math
+
 from django.db import models
 import jdatetime
 from datetime import timedelta
@@ -122,6 +124,27 @@ class Order(models.Model):
         if self.delivery_date:
             return (self.delivery_date - timezone.localdate()).days
         return None
+
+    @staticmethod
+    def _map_point(lat, lng):
+        """'lat,lng' for a map link, or '' when the stored values are not a real point (e.g. old 'nan' data)."""
+        try:
+            lat_value, lng_value = float(lat), float(lng)
+        except (TypeError, ValueError):
+            return ''
+        if not (math.isfinite(lat_value) and math.isfinite(lng_value)):
+            return ''
+        if not (-90 <= lat_value <= 90 and -180 <= lng_value <= 180):
+            return ''
+        return f'{lat_value},{lng_value}'
+
+    @property
+    def pickup_map_point(self):
+        return self._map_point(self.latitude, self.longitude)
+
+    @property
+    def delivery_map_point(self):
+        return self._map_point(self.delivery_latitude, self.delivery_longitude)
 
     @property
     def subtotal_amount(self):

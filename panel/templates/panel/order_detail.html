@@ -118,8 +118,8 @@
             <p class="text-[11px] text-gray-500 mb-3">پیک باید برای گرفتن لباس‌ها به این آدرس برود. {% if order.courier_dispatched %}<span class="text-green-300 font-bold">ارسال شد</span>{% else %}<span class="text-amber-300 font-bold">در انتظار ارسال</span>{% endif %}</p>
             <p class="text-xs text-gray-400 mb-3">کد پستی: <span class="text-white font-bold dir-ltr">{{ order.postal_code|default:"-" }}</span></p>
             {% if order.address %}<p class="text-xs text-gray-400 mb-3 leading-6">آدرس: <span class="text-white font-bold">{{ order.address }}</span></p>{% endif %}
-            {% if order.latitude and order.longitude %}
-                <a href="https://www.google.com/maps?q={{ order.latitude }},{{ order.longitude }}" target="_blank" rel="noopener"
+            {% if order.pickup_map_point %}
+                <a href="https://www.google.com/maps?q={{ order.pickup_map_point }}" target="_blank" rel="noopener"
                    class="inline-block bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
             {% else %}
                 <p class="text-[11px] text-red-300 font-bold">لوکیشن دریافت ثبت نشده است (درخواست از پنل ثبت شده)؛ برای گرفتن آدرس با مشتری تماس بگیرید.</p>
@@ -132,8 +132,8 @@
             <p class="text-[11px] text-gray-500 mb-3">این مشخصات مربوط به زمان تحویل لباس‌های شسته‌شده است، نه دریافت. {% if order.delivery_courier_dispatched %}<span class="text-green-300 font-bold">ارسال شد</span>{% else %}<span class="text-amber-300 font-bold">در انتظار ارسال</span>{% endif %}</p>
             <p class="text-xs text-gray-400 mb-3">کد پستی: <span class="text-white font-bold dir-ltr">{{ order.delivery_postal_code|default:"-" }}</span></p>
             {% if order.delivery_address %}<p class="text-xs text-gray-400 mb-3 leading-6">آدرس: <span class="text-white font-bold">{{ order.delivery_address }}</span></p>{% endif %}
-            {% if order.delivery_latitude and order.delivery_longitude %}
-                <a href="https://www.google.com/maps?q={{ order.delivery_latitude }},{{ order.delivery_longitude }}" target="_blank" rel="noopener"
+            {% if order.delivery_map_point %}
+                <a href="https://www.google.com/maps?q={{ order.delivery_map_point }}" target="_blank" rel="noopener"
                    class="inline-block bg-[var(--cyan)]/15 text-[var(--cyan)] border border-[var(--cyan)]/30 px-4 py-2 rounded-xl text-xs font-bold">مشاهده روی نقشه</a>
             {% else %}
                 <p class="text-[11px] text-red-300 font-bold">لوکیشن تحویل ثبت نشده است (درخواست از پنل ثبت شده)؛ برای گرفتن آدرس با مشتری تماس بگیرید.</p>
