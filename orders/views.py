@@ -7,6 +7,8 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.views import redirect_to_login
+from django.core.cache import cache
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
 import re
 from django.utils import timezone
@@ -124,9 +126,9 @@ def courier_status(request):
     return JsonResponse({'status': 'success', 'orders': {str(o.id): courier_state(o) for o in orders}})
 
 def account_page(request):
-    customer_id = request.session.get('customer_id')
-    if not request.session.get('customer_logged_in') or not customer_id:
-        return redirect('customer_login')
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return customer_login_redirect(request)
     customer = get_object_or_404(Customer, id=customer_id)
 
     if request.method == 'POST':
@@ -136,18 +138,21 @@ def account_page(request):
             phone = normalize_phone(request.POST.get('phone'))
             current_password = request.POST.get('current_password', '')
             new_password = request.POST.get('new_password', '')
+            # The phone number is the login: changing it (or the password) needs the current password.
+            needs_password = bool(new_password) or phone != customer.phone
             error = None
             if len(name) < 2:
                 error = 'لطفاً نام و نام‌خانوادگی معتبر وارد کنید.'
-            elif len(phone) != 11 or not phone.startswith('09'):
+            elif len(name) > MAX_NAME_LENGTH:
+                error = f'نام و نام‌خانوادگی حداکثر می‌تواند {fa_digits(MAX_NAME_LENGTH)} حرف باشد.'
+            elif not valid_phone(phone):
                 error = 'شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد.'
             elif Customer.objects.exclude(id=customer.id).filter(phone=phone).exists():
                 error = 'این شماره موبایل برای حساب دیگری ثبت شده است.'
-            elif new_password:
-                if not customer.password_hash or not check_password(current_password, customer.password_hash):
-                    error = 'رمز عبور فعلی صحیح نیست.'
-                elif not valid_password(new_password):
-                    error = 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد.'
+            elif needs_password and (not customer.password_hash or not check_password(current_password, customer.password_hash)):
+                error = 'برای تغییر شماره موبایل یا رمز عبور، رمز عبور فعلی را درست وارد کنید.'
+            elif new_password and not valid_password(new_password):
+                error = 'رمز عبور جدید باید حداقل ۸ کاراکتر باشد.'
             if error:
                 messages.error(request, error)
             else:
@@ -181,9 +186,9 @@ def account_page(request):
 
 
 def wallet_page(request):
-    customer_id = request.session.get('customer_id')
-    if not request.session.get('customer_logged_in') or not customer_id:
-        return redirect('customer_login')
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return customer_login_redirect(request)
     customer = get_object_or_404(Customer, id=customer_id)
     wallet, _ = Wallet.objects.get_or_create(customer=customer)
     transactions = wallet.transactions.select_related('order')[:30]
@@ -336,59 +341,119 @@ def verify_wallet(request):
     return redirect('wallet')
 
 def normalize_phone(raw):
-    digits = str(raw or '').translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
-    digits = re.sub(r'\D', '', digits)
-    if digits.startswith('98'):
+    digits = re.sub(r'\D', '', str(raw or '').translate(FA_TO_EN_DIGITS))
+    if digits.startswith('0098'):
+        digits = '0' + digits[4:]
+    elif digits.startswith('98'):
         digits = '0' + digits[2:]
+    elif len(digits) == 10 and digits.startswith('9'):
+        digits = '0' + digits
     return digits
+
+
+def valid_phone(phone):
+    return len(phone) == 11 and phone.startswith('09')
+
 
 def valid_password(password):
     # Keep registration simple: accept any password of at least 8 characters.
     return len(password) >= 8
 
+
+MAX_NAME_LENGTH = 100
+LOGIN_MAX_FAILURES = 5
+LOGIN_LOCK_SECONDS = 15 * 60
+_dummy_password_hash = None
+
+
+def burn_password_check(password):
+    """Spend the same time as a real password check, so response time does not reveal registered numbers."""
+    global _dummy_password_hash
+    if _dummy_password_hash is None:
+        _dummy_password_hash = make_password('timing-equalizer-password')
+    check_password(password, _dummy_password_hash)
+
+
+def safe_next_url(request, fallback='home'):
+    """The ?next= target if it points back into this site, otherwise the fallback page."""
+    target = request.POST.get('next') or request.GET.get('next') or ''
+    if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return target
+    return reverse(fallback)
+
+
+def log_customer_in(request, customer):
+    request.session['customer_id'] = customer.id
+    request.session['customer_logged_in'] = True
+    request.session.cycle_key()
+
+
+def shop_contact_context():
+    shop = ShopSettings.load()
+    return {'shop_name': shop.name, 'shop_phone': shop.phone}
+
+
 def customer_login(request):
     error = None
+    phone_value = ''
     if request.method == 'POST':
         phone = normalize_phone(request.POST.get('phone'))
+        phone_value = phone
         password = request.POST.get('password', '')
-        if len(phone) == 11 and phone.startswith('09') and password:
+        lock_key = f'customer-login-failures:{phone}'
+        if valid_phone(phone) and cache.get(lock_key, 0) >= LOGIN_MAX_FAILURES:
+            error = 'به دلیل چند تلاش ناموفق پشت‌سرهم، ورود با این شماره تا ۱۵ دقیقه دیگر ممکن نیست.'
+        elif valid_phone(phone) and password:
             customer = Customer.objects.filter(phone=phone).first()
-            if customer and customer.password_hash and check_password(password, customer.password_hash):
-                request.session['customer_id'] = customer.id
-                request.session['customer_logged_in'] = True
-                request.session.cycle_key()
-                return redirect('home')
-        error = 'شماره موبایل یا رمز عبور صحیح نیست.'
-    return render(request, 'customer_login.html', {'error': error})
+            if customer and customer.password_hash:
+                ok = check_password(password, customer.password_hash)
+            else:
+                burn_password_check(password)
+                ok = False
+            if ok:
+                cache.delete(lock_key)
+                log_customer_in(request, customer)
+                return redirect(safe_next_url(request))
+            try:
+                cache.incr(lock_key)
+            except ValueError:
+                cache.set(lock_key, 1, LOGIN_LOCK_SECONDS)
+            error = 'شماره موبایل یا رمز عبور صحیح نیست.'
+        else:
+            error = 'شماره موبایل یا رمز عبور صحیح نیست.'
+    return render(request, 'customer_login.html', {
+        'error': error, 'phone_value': phone_value, 'next': safe_next_url(request), **shop_contact_context(),
+    })
+
 
 def customer_register(request):
     error = None
-    success = None
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         phone = normalize_phone(request.POST.get('phone'))
         password = request.POST.get('password', '')
+        existing = Customer.objects.filter(phone=phone).first() if valid_phone(phone) else None
 
-        if not name or len(name) < 2:
+        if len(name) < 2:
             error = 'لطفاً نام و نام‌خانوادگی معتبر وارد کنید.'
-        elif len(phone) != 11 or not phone.startswith('09'):
+        elif len(name) > MAX_NAME_LENGTH:
+            error = f'نام و نام‌خانوادگی حداکثر می‌تواند {fa_digits(MAX_NAME_LENGTH)} حرف باشد.'
+        elif not valid_phone(phone):
             error = 'شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد.'
-        elif Customer.objects.filter(phone=phone).exists():
-            error = 'این شماره موبایل قبلاً ثبت شده است. اگر حساب قدیمی دارید، از گزینه فعال‌سازی حساب قدیمی استفاده کنید.'
+        elif existing and existing.password_hash:
+            error = 'با این شماره موبایل قبلاً حساب ساخته شده است؛ وارد حساب شوید. اگر رمز عبور را فراموش کرده‌اید، با فروشگاه تماس بگیرید.'
+        elif existing:
+            # Made in the shop (no password yet). Without SMS verification we cannot prove ownership online,
+            # so the shop activates it — otherwise anyone could take over someone else's orders.
+            error = 'این شماره قبلاً در فروشگاه ثبت شده است. برای فعال‌سازی حساب و دیدن سفارش‌های قبلی، با فروشگاه تماس بگیرید تا رمز عبور برایتان تنظیم شود.'
         elif not valid_password(password):
             error = 'رمز عبور باید حداقل ۸ کاراکتر باشد.'
         else:
-            customer = Customer.objects.create(
-                name=name,
-                phone=phone,
-                password_hash=make_password(password),
-            )
+            customer = Customer.objects.create(name=name, phone=phone, password_hash=make_password(password))
             Wallet.objects.get_or_create(customer=customer)
-            request.session['customer_id'] = customer.id
-            request.session['customer_logged_in'] = True
-            request.session.cycle_key()
-            return redirect('home')
-    return render(request, 'customer_register.html', {'error': error})
+            log_customer_in(request, customer)
+            return redirect(safe_next_url(request))
+    return render(request, 'customer_register.html', {'error': error, 'next': safe_next_url(request), **shop_contact_context()})
 
 def customer_logout(request):
     # POST only, so another site cannot log the customer out with a hidden link.

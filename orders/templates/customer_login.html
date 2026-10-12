@@ -1,4 +1,5 @@
 {% load pwa %}
+{% load fa_format %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -41,7 +42,7 @@
 </div>
 <div class="shell">
 <div class="card rounded-[34px] grid md:grid-cols-2">
-<div class="form-side order-2 md:order-1 flex flex-col justify-center">
+<div class="form-side order-1 flex flex-col justify-center">
 <div class="text-center mb-7">
 <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-violet-300 flex items-center justify-center shadow-lg shadow-cyan-500/15">
 <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.8" d="M12 12a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0"/></svg>
@@ -52,23 +53,29 @@
 {% if error %}<div class="bg-red-50 border border-red-200 text-red-600 rounded-xl p-3 text-xs font-bold mb-4 text-center">{{ error }}</div>{% endif %}
 <form method="post" class="space-y-3">
 {% csrf_token %}
-<input name="phone" type="tel" inputmode="numeric" maxlength="11" required placeholder="شماره موبایل، مثال ۰۹۱۲..." class="field text-center" autocomplete="tel">
+<input type="hidden" name="next" value="{{ next }}">
+<input name="phone" type="tel" inputmode="numeric" maxlength="16" required value="{{ phone_value }}" placeholder="شماره موبایل، مثال ۰۹۱۲..." aria-label="شماره موبایل" class="field text-center" autocomplete="tel">
 <div>
-<input name="password" id="login-password" type="password" required placeholder="رمز عبور" class="field text-center" autocomplete="current-password">
+<input name="password" id="login-password" type="password" required placeholder="رمز عبور" aria-label="رمز عبور" class="field text-center" autocomplete="current-password">
 <label for="show-login-password" class="mt-2 inline-flex items-center gap-2 text-xs text-slate-600 cursor-pointer select-none"><input id="show-login-password" type="checkbox" class="accent-cyan-600 w-4 h-4"> نمایش رمز عبور</label>
 </div>
 <button type="submit" class="submit w-full">ورود به حساب</button>
 </form>
+<details class="mt-4 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 text-xs text-slate-600">
+<summary class="cursor-pointer font-bold text-slate-700 py-1">رمز عبور را فراموش کرده‌اید؟</summary>
+<p class="mt-2 leading-7">برای امنیت حساب، تنظیم رمز جدید توسط فروشگاه انجام می‌شود. با فروشگاه تماس بگیرید تا پس از تأیید هویت، رمز عبور جدید برایتان تنظیم شود. حساب‌هایی که در فروشگاه ساخته شده‌اند هم به همین روش فعال می‌شوند.</p>
+{% if shop_phone %}<a href="tel:{{ shop_phone|tel_digits }}" class="mt-2 inline-flex items-center gap-2 font-black text-cyan-700 py-2" dir="ltr">{{ shop_phone }}</a>{% endif %}
+</details>
 <p class="mt-4 text-[11px] text-slate-400 text-center leading-6">با ورود، سفارش‌ها، فاکتورها و کیف پول شما در همین حساب در دسترس خواهند بود.</p>
-<div class="flex items-center justify-between mt-5 text-xs"><a href="/" class="text-slate-500 hover:text-cyan-600">بازگشت به سایت</a><a href="/panel/login/" class="font-bold text-slate-700 hover:text-cyan-600">ورود مدیریت</a></div>
+<div class="flex items-center justify-between mt-5 text-xs"><a href="/" class="text-slate-500 hover:text-cyan-600 py-2">بازگشت به سایت</a><a href="{% url 'customer_register' %}{% if next != '/' %}?next={{ next|urlencode }}{% endif %}" class="font-bold text-slate-700 hover:text-cyan-600 py-2">ساخت حساب جدید</a></div>
 </div>
-<div class="hero order-1 md:order-2 text-white flex flex-col items-center justify-center text-center p-10 md:p-14">
+<div class="hero order-2 text-white flex flex-col items-center justify-center text-center p-10 md:p-14">
 <div class="w-16 h-16 rounded-2xl bg-white/15 border border-white/35 flex items-center justify-center backdrop-blur-sm mb-6">
 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-width="1.7" d="M4 7.5A2.5 2.5 0 016.5 5h11A2.5 2.5 0 0120 7.5v9a2.5 2.5 0 01-2.5 2.5h-11A2.5 2.5 0 014 16.5v-9z"/><path stroke-linecap="round" stroke-width="1.7" d="M8 9h8M8 13h5"/></svg>
 </div>
 <h2 class="text-2xl md:text-3xl font-black">هنوز حساب مشتری ندارید؟</h2>
 <p class="mt-4 mb-7 text-sm leading-8 text-white/90 max-w-sm">حساب خود را بسازید تا سفارش‌ها، فاکتورها و کیف پول شما همیشه در یک حساب در دسترس باشد.</p>
-<a href="{% url 'customer_register' %}" class="px-7 py-3 rounded-2xl border border-white/75 bg-white/10 text-white font-black text-xs hover:bg-white/20 transition">ایجاد حساب مشتری</a>
+<a href="{% url 'customer_register' %}{% if next != '/' %}?next={{ next|urlencode }}{% endif %}" class="px-7 py-3 rounded-2xl border border-white/75 bg-white/10 text-white font-black text-xs hover:bg-white/20 transition">ایجاد حساب مشتری</a>
 </div>
 </div>
 </div>

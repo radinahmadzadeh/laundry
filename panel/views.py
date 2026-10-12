@@ -8,6 +8,9 @@ from django.db.models import Q, Sum, Count, Avg
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from orders.views import normalize_phone, valid_password, valid_phone
 from orders.models import (
     Customer,
     OrderReview,
@@ -34,6 +37,9 @@ def panel_login(request):
         user = authenticate(request, username=username, password=password)
         if user is not None and user.is_staff:
             login(request, user)
+            target = request.POST.get('next') or request.GET.get('next') or ''
+            if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                return redirect(target)
             return redirect('panel_dashboard')
         error = 'نام کاربری یا رمز عبور اشتباه است.'
 
@@ -184,13 +190,17 @@ def order_create(request):
     if request.method == 'POST':
         customer_id = request.POST.get('customer_id')
         new_name = request.POST.get('new_customer_name', '').strip()
-        new_phone = request.POST.get('new_customer_phone', '').strip()
+        new_phone = normalize_phone(request.POST.get('new_customer_phone', ''))
         delivery_days = request.POST.get('delivery_days', '').strip()
 
         if customer_id:
             customer = get_object_or_404(Customer, id=customer_id)
         elif new_name and new_phone:
-            customer, _ = Customer.objects.get_or_create(phone=new_phone, defaults={'name': new_name})
+            if not valid_phone(new_phone):
+                messages.error(request, 'شماره موبایل مشتری باید با ۰۹ شروع شود و ۱۱ رقم باشد.')
+                return redirect('panel_order_create')
+            # Same normalized number → same customer, so their online account sees this order too.
+            customer, _ = Customer.objects.get_or_create(phone=new_phone, defaults={'name': new_name[:100]})
         else:
             messages.error(request, 'لطفاً مشتری را انتخاب یا اطلاعات مشتری جدید را کامل وارد کنید.')
             return redirect('panel_order_create')
@@ -281,13 +291,19 @@ def customer_update(request, customer_id):
     customer = get_object_or_404(Customer, id=customer_id)
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
-        phone = request.POST.get('phone', '').strip()
+        phone = normalize_phone(request.POST.get('phone', ''))
         password = request.POST.get('password', '')
         raw_wallet_balance = request.POST.get('wallet_balance', '').strip()
         wallet_value = None
 
         if not name or len(name) < 2 or not phone:
             messages.error(request, 'نام و شماره موبایل الزامی است.')
+            return redirect('panel_customer_detail', customer_id=customer.id)
+        if not valid_phone(phone):
+            messages.error(request, 'شماره موبایل باید با ۰۹ شروع شود و ۱۱ رقم باشد.')
+            return redirect('panel_customer_detail', customer_id=customer.id)
+        if password and not valid_password(password):
+            messages.error(request, 'رمز عبور مشتری باید حداقل ۸ کاراکتر باشد.')
             return redirect('panel_customer_detail', customer_id=customer.id)
         if Customer.objects.exclude(id=customer.id).filter(phone=phone).exists():
             messages.error(request, 'این شماره موبایل برای مشتری دیگری ثبت شده است.')

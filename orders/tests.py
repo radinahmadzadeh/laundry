@@ -474,3 +474,65 @@ class WalletTopUpTests(TestCase):
         self.assertIn('+۳۰٬۰۰۰', page)
         self.assertNotIn('+۱٬۵۰۰٬۰۵۰', page)
         self.assertNotIn('+۲۰٬۰۰۰', page)
+
+
+class CustomerAuthTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.hashers import make_password
+        from django.core.cache import cache
+        cache.clear()
+        self.customer = Customer.objects.create(name='ورود', phone='09120000023', password_hash=make_password('right-password'))
+
+    def login(self, password, phone='09120000023', next_url=None, client=None):
+        data = {'phone': phone, 'password': password}
+        if next_url:
+            data['next'] = next_url
+        return (client or Client()).post(reverse('customer_login'), data)
+
+    def test_login_redirects_back_to_next(self):
+        response = Client().get(reverse('wallet'))
+        self.assertIn('next=/wallet/', response['Location'])
+        response = self.login('right-password', next_url='/wallet/')
+        self.assertEqual(response['Location'], '/wallet/')
+        response = self.login('right-password', next_url='https://evil.example/')
+        self.assertEqual(response['Location'], '/')
+
+    def test_persian_digit_phone_logs_in(self):
+        self.assertEqual(self.login('right-password', phone='۰۹۱۲ ۰۰۰ ۰۰۲۳').status_code, 302)
+
+    def test_lockout_after_five_failures(self):
+        for i in range(5):
+            self.assertContains(self.login(f'wrong-{i}'), 'صحیح نیست')
+        response = self.login('right-password')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '۱۵ دقیقه')
+
+    def test_register_messages_for_existing_numbers(self):
+        response = Client().post(reverse('customer_register'), {'name': 'تکراری', 'phone': '09120000023', 'password': 'abcdefgh'})
+        self.assertContains(response, 'وارد حساب شوید')
+        Customer.objects.create(name='حضوری', phone='09120000024')
+        response = Client().post(reverse('customer_register'), {'name': 'حضوری', 'phone': '0912 000 0024', 'password': 'abcdefgh'})
+        self.assertContains(response, 'با فروشگاه تماس بگیرید')
+        self.assertNotContains(response, 'فعال‌سازی حساب قدیمی استفاده کنید')
+        response = Client().post(reverse('customer_register'), {'name': 'ن' * 101, 'phone': '09120000025', 'password': 'abcdefgh'})
+        self.assertContains(response, 'حداکثر')
+
+    def test_phone_change_needs_current_password(self):
+        client = login_customer(Client(), self.customer)
+        client.post(reverse('account'), {'form_type': 'profile', 'name': 'ورود', 'phone': '09120000026'})
+        self.customer.refresh_from_db()
+        self.assertEqual(self.customer.phone, '09120000023')
+        client.post(reverse('account'), {'form_type': 'profile', 'name': 'ورود', 'phone': '09120000026', 'current_password': 'right-password'})
+        self.customer.refresh_from_db()
+        self.assertEqual(self.customer.phone, '09120000026')
+
+    def test_panel_order_for_walk_in_customer_reuses_normalized_phone(self):
+        staff = get_user_model().objects.create_user('auth-staff', password='x', is_staff=True)
+        client = Client()
+        client.force_login(staff)
+        client.post(reverse('panel_order_create'), {
+            'new_customer_name': 'حضوری', 'new_customer_phone': '0912 000 0023',
+            'item_name[]': ['پیراهن'], 'item_qty[]': ['1'], 'item_price[]': ['220000'],
+        })
+        self.assertEqual(Customer.objects.filter(phone__contains='0023').count(), 1)
+        self.assertEqual(Order.objects.get().customer, self.customer)
