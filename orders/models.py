@@ -1,6 +1,6 @@
 from django.db import models
 import jdatetime
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.utils import timezone
 
@@ -107,7 +107,7 @@ class Order(models.Model):
 
     @property
     def shamsi_date(self):
-        shamsi = jdatetime.date.fromgregorian(date=self.created_at.date())
+        shamsi = jdatetime.date.fromgregorian(date=timezone.localtime(self.created_at).date())
         return shamsi.strftime("%Y/%m/%d")
 
     @property
@@ -120,7 +120,7 @@ class Order(models.Model):
     @property
     def days_remaining(self):
         if self.delivery_date:
-            return (self.delivery_date - date.today()).days
+            return (self.delivery_date - timezone.localdate()).days
         return None
 
     @property
@@ -258,7 +258,7 @@ class OrderReview(models.Model):
 
     @property
     def shamsi_date(self):
-        return jdatetime.date.fromgregorian(date=self.created_at.date()).strftime("%Y/%m/%d")
+        return jdatetime.date.fromgregorian(date=timezone.localtime(self.created_at).date()).strftime("%Y/%m/%d")
 
     def __str__(self):
         return f"نظر فاکتور {self.order_id} - {self.rating} ستاره"

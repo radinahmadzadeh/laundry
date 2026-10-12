@@ -10,14 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = 'django-insecure-is+yv#ly&b*uy(%6_ocb$u^z_k+haq16*+9)3spw-vc6_#hr_l'
+# Set DJANGO_SECRET_KEY on the server to replace this development key.
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-is+yv#ly&b*uy(%6_ocb$u^z_k+haq16*+9)3spw-vc6_#hr_l')
 
-DEBUG = True
+# Debug pages expose source code, URLs and environment variables, so they are only on for the local
+# development server. Set DJANGO_DEBUG=1 (or 0) to override.
+DEBUG = os.environ.get('DJANGO_DEBUG', '1' if 'runserver' in sys.argv else '0') == '1'
 ALLOWED_HOSTS = ['radinahmadzadeh.pythonanywhere.com', '127.0.0.1', 'localhost']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -96,7 +100,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Tehran'
 
 USE_I18N = True
 
@@ -107,6 +111,8 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+# Serve files straight from the static folders (no collectstatic step needed), also when DEBUG is off.
+WHITENOISE_USE_FINDERS = True
 
 PWA_APP_NAME = 'خشکشویی و سفید شویی آرین'
 PWA_APP_DESCRIPTION = 'پیگیری سفارشات خشکشویی'

@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -207,7 +207,7 @@ def order_create(request):
 
         delivery_date = None
         if delivery_days.isdigit():
-            delivery_date = date.today() + timedelta(days=int(delivery_days))
+            delivery_date = timezone.localdate() + timedelta(days=int(delivery_days))
 
         order = Order.objects.create(customer=customer, delivery_date=delivery_date)
 

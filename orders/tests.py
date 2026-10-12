@@ -587,3 +587,16 @@ class ReviewTests(TestCase):
         data = self.post({'order_id': self.order.id, 'rating': '4', 'tags': 5}).json()
         self.assertFalse(data['pending_approval'])
         self.assertEqual(self.OrderReview.objects.get().tags, '')
+
+
+class ErrorPageTests(TestCase):
+    def test_404_is_persian_and_hides_internals(self):
+        response = Client().get('/blabla/')
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, 'این صفحه پیدا نشد', status_code=404)
+        self.assertNotContains(response, 'URLconf', status_code=404)
+
+    def test_static_files_are_served_with_debug_off(self):
+        # The live site runs with DEBUG off; WhiteNoise must still serve CSS/images/icons.
+        response = Client().get('/static/pwa/icon-192.png')
+        self.assertEqual(response.status_code, 200)
