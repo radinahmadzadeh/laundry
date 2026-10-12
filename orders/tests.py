@@ -43,7 +43,7 @@ class WalletPaymentFlowTests(TestCase):
         self.wallet.balance = Decimal('60000')
         self.wallet.save()
 
-        response = self.customer_client().get(
+        response = self.customer_client().post(
             reverse('wallet_pay_order', args=[self.order.id])
         )
 
@@ -68,7 +68,7 @@ class WalletPaymentFlowTests(TestCase):
         self.wallet.balance = Decimal('10000')
         self.wallet.save()
 
-        response = self.customer_client().get(
+        response = self.customer_client().post(
             reverse('wallet_pay_order', args=[self.order.id])
         )
 
@@ -104,7 +104,7 @@ class WalletPaymentFlowTests(TestCase):
             ).exists()
         )
 
-        response = self.customer_client().get(
+        response = self.customer_client().post(
             reverse('wallet_pay_order', args=[self.order.id])
         )
         self.assertEqual(
@@ -341,7 +341,7 @@ class HomeMessagesTests(TestCase):
         order = Order.objects.create(customer=customer, total_price=Decimal('50000'))
         Wallet.objects.create(customer=customer, balance=Decimal('0'))
         client = login_customer(Client(), customer)
-        response = client.get(reverse('wallet_pay_order', args=[order.id]), follow=True)
+        response = client.post(reverse('wallet_pay_order', args=[order.id]), follow=True)
         self.assertContains(response, 'flash-msg')
         self.assertContains(response, 'موجودی کیف پول کافی نیست')
 
@@ -358,3 +358,30 @@ class ShopContactTests(TestCase):
         page = Client().get(reverse('home')).content.decode()
         self.assertIn('href="tel:09123277881"', page)
         self.assertNotIn('<iframe', page)
+
+
+class WalletPayMethodTests(TestCase):
+    def setUp(self):
+        self.customer = Customer.objects.create(name='پرداخت', phone='09120000019')
+        self.wallet = Wallet.objects.create(customer=self.customer, balance=Decimal('100000'))
+        self.order = Order.objects.create(customer=self.customer, total_price=Decimal('25000'))
+        self.client = login_customer(Client(), self.customer)
+
+    def test_get_never_spends_money(self):
+        self.client.get(reverse('wallet_pay_order', args=[self.order.id]))
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, Decimal('100000'))
+
+    def test_double_post_pays_once(self):
+        url = reverse('wallet_pay_order', args=[self.order.id])
+        self.client.post(url)
+        self.client.post(url)
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, Decimal('75000'))
+        self.assertEqual(WalletTransaction.objects.filter(order=self.order).count(), 1)
+
+    def test_logout_requires_post(self):
+        self.client.get(reverse('customer_logout'))
+        self.assertTrue(self.client.session.get('customer_logged_in'))
+        self.client.post(reverse('customer_logout'))
+        self.assertFalse(self.client.session.get('customer_logged_in'))

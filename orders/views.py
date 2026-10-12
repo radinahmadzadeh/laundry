@@ -188,39 +188,28 @@ def wallet_page(request):
 
 
 def wallet_pay_order(request, order_id):
-    customer_id = request.session.get('customer_id')
-    if not request.session.get('customer_logged_in') or not customer_id:
-        return redirect('customer_login')
-    if request.method != 'GET':
-        return redirect('home')
+    """Pay an order from the wallet. POST only (with CSRF): a link or prefetch must never spend money."""
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return customer_login_redirect(request)
+    invoice_url = f"{reverse('home')}?order_id={order_id}#track-section"
+    if request.method != 'POST':
+        return redirect(invoice_url)
 
     order = get_object_or_404(Order, id=order_id, customer_id=customer_id)
-    invoice_url = f"{reverse('home')}?order_id={order.id}#track-section"
-    if order.is_paid:
+    result = pay_order_from_wallet(order, customer_id)
+    if result == 'paid':
+        messages.success(request, f'فاکتور شماره {fa_digits(order.id)} به مبلغ {toman(order.total_price)} تومان از کیف پول پرداخت شد.')
+    elif result == 'already_paid':
         messages.info(request, 'این فاکتور قبلاً پرداخت شده است.')
-        return redirect(invoice_url)
-    if order.total_price <= 0:
-        messages.error(request, 'مبلغ این فاکتور برای پرداخت با کیف پول معتبر نیست.')
-        return redirect(invoice_url)
-
-    with transaction.atomic():
-        wallet, _ = Wallet.objects.select_for_update().get_or_create(customer_id=customer_id)
-        if wallet.balance < order.total_price:
-            messages.error(request, f'موجودی کیف پول کافی نیست. موجودی فعلی: {wallet.balance:,} تومان')
-            return redirect(invoice_url)
-        wallet.balance -= order.total_price
-        wallet.save(update_fields=['balance', 'updated_at'])
-        WalletTransaction.objects.create(
-            wallet=wallet,
-            transaction_type='debit',
-            amount=order.total_price,
-            description=f'پرداخت فاکتور شماره {order.id}',
-            order=order,
+    elif result == 'invalid':
+        messages.error(request, 'مبلغ این فاکتور هنوز مشخص نشده است؛ پس از اعلام قیمت می‌توانید آن را پرداخت کنید.')
+    else:
+        balance = Wallet.objects.filter(customer_id=customer_id).values_list('balance', flat=True).first() or 0
+        messages.error(
+            request,
+            f'موجودی کیف پول کافی نیست. موجودی فعلی: {toman(balance)} تومان، مبلغ فاکتور: {toman(order.total_price)} تومان.',
         )
-        order.is_paid = True
-        order.save(update_fields=['is_paid'])
-
-    messages.success(request, f'فاکتور شماره {order.id} با موفقیت از کیف پول پرداخت شد.')
     return redirect(invoice_url)
 
 
@@ -392,8 +381,11 @@ def customer_register(request):
     return render(request, 'customer_register.html', {'error': error})
 
 def customer_logout(request):
-    request.session.pop('customer_id', None)
-    request.session.pop('customer_logged_in', None)
+    # POST only, so another site cannot log the customer out with a hidden link.
+    if request.method == 'POST':
+        request.session.pop('customer_id', None)
+        request.session.pop('customer_logged_in', None)
+        request.session.cycle_key()
     return redirect('home')
 
 def print_receipt(request, order_id):

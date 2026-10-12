@@ -388,7 +388,7 @@
         .site-nav .nav-link{ padding:8px 2px; transition:color .2s ease, transform .2s ease; }
         .site-nav .nav-link:hover{ color:#0f172a; transform:translateY(-1px); }
         .header-actions{ gap:7px; }
-        .header-actions > a, .header-actions > button{
+        .header-actions > a, .header-actions > button, .header-actions > form > button{
             min-height:40px;
             padding:8px 13px;
             border-radius:10px;
@@ -568,7 +568,7 @@
         @media (max-width:480px){
             .site-header-inner{padding-left:10px;padding-right:10px;}
             .site-header-inner .text-lg,.site-header-inner .text-xl{font-size:15px!important;}
-            .header-actions > a,.header-actions > button{font-size:10px!important;}
+            .header-actions > a,.header-actions > button, .header-actions > form > button{font-size:10px!important;}
             main{padding-left:10px!important;padding-right:10px!important;}
             .welcome-card{border-radius:20px!important;}
             .welcome-card .p-5,.welcome-card .p-6{padding:14px!important;}
@@ -582,7 +582,7 @@
         @media (max-width:360px){
             .site-header-inner{gap:5px;}
             .header-actions{gap:3px;}
-            .header-actions > a,.header-actions > button{padding:7px 7px!important;}
+            .header-actions > a,.header-actions > button, .header-actions > form > button{padding:7px 7px!important;}
             main{padding-left:7px!important;padding-right:7px!important;}
         }
         .category-showcase{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(248,250,252,.90));border:1px solid rgba(15,23,42,.06);box-shadow:0 28px 70px -42px rgba(15,23,42,.28)}
@@ -602,7 +602,7 @@
         @media (max-width:640px){
             .site-header-inner{ min-height:62px; }
             .header-actions{ gap:5px; }
-            .header-actions > a, .header-actions > button{ min-height:38px; padding:8px 10px; }
+            .header-actions > a, .header-actions > button, .header-actions > form > button{ min-height:38px; padding:8px 10px; }
             .category-showcase{border-radius:24px!important}
             .category-showcase-image{height:165px}
             .category-showcase-body{padding:13px 14px}
@@ -681,7 +681,10 @@
                     <span class="hidden sm:inline text-[10px] opacity-70"><span class="money-value">{{ wallet.balance|default:0 }}</span> تومان</span>
                 </a>
                 <a href="{% url 'account' %}" class="btn-motion inline-flex items-center whitespace-nowrap bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg shadow-sm">حساب کاربری</a>
-                <a href="/customer-logout/" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-500 font-bold text-[11px] px-2.5 sm:px-3 py-2 rounded-lg">خروج</a>
+                <form method="post" action="{% url 'customer_logout' %}" class="inline-flex">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-500 font-bold text-[11px] px-2.5 sm:px-3 py-2 rounded-lg">خروج</button>
+                </form>
                 {% else %}
                 <button type="button" onclick="openLoginChooser()" class="login-entry btn-motion inline-flex items-center gap-2 bg-white border font-black text-xs px-3.5 sm:px-4 py-2 rounded-lg">
                     <span class="login-dot"></span>
@@ -1072,31 +1075,46 @@
 
                                 {% include "review_cta.html" %}
 
-                                {% if not order.is_paid %}
-                                <div class="grid grid-cols-2 gap-3 mt-4">
-                                    <a href="/pay/{{ order.id }}/" class="btn-motion pay-glow flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/30 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
-                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                        پرداخت آنلاین
-                                    </a>
-                                    <a href="{% url 'wallet_pay_order' order.id %}" class="btn-motion flex items-center justify-center gap-2 bg-gradient-to-l from-teal-500 to-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
-                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5A2.5 2.5 0 0 1 5.5 5H20v14H5.5A2.5 2.5 0 0 1 3 16.5v-9Z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 9h-4.25a2.25 2.25 0 1 0 0 4.5H20"/>
-                                            <circle cx="15.75" cy="11.25" r=".7" fill="currentColor" stroke="none"/>
-                                        </svg>
-                                        پرداخت با کیف پول
-                                    </a>
+                                {% if order.is_paid %}
+                                <div class="mt-4 paid-glow flex items-center justify-center gap-2 w-full bg-green-50 border border-green-200 text-green-700 font-bold py-3.5 rounded-xl">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    پرداخت شده
+                                </div>
+                                {% elif order.total_price <= 0 %}
+                                <div class="mt-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold leading-6 px-4 py-3 text-center">
+                                    مبلغ این فاکتور پس از بررسی لباس‌ها توسط فروشگاه مشخص می‌شود؛ بعد از اعلام مبلغ می‌توانید آن را پرداخت کنید.
                                 </div>
                                 {% else %}
-                                <div class="mt-4 paid-glow flex items-center justify-center gap-2 w-full bg-green-50 border border-green-200 text-green-700 font-bold py-3.5 rounded-xl">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                                    پرداخت شده
+                                <div class="grid grid-cols-2 gap-3 mt-4">
+                                    <a href="{% url 'request_payment' order.id %}" class="btn-motion pay-glow flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/30 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
+                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                        پرداخت آنلاین
+                                    </a>
+                                    {% if wallet and wallet.balance >= order.total_price %}
+                                    <form method="post" action="{% url 'wallet_pay_order' order.id %}" class="contents"
+                                          onsubmit="if (this.dataset.sent || !confirm('مبلغ {{ order.total_price|toman }} تومان از کیف پول شما برای فاکتور #{{ order.id|fa_digits }} کم شود؟')) return false; this.dataset.sent = '1';">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-motion flex items-center justify-center gap-2 bg-gradient-to-l from-teal-500 to-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
+                                            <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5A2.5 2.5 0 0 1 5.5 5H20v14H5.5A2.5 2.5 0 0 1 3 16.5v-9Z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 9h-4.25a2.25 2.25 0 1 0 0 4.5H20"/>
+                                                <circle cx="15.75" cy="11.25" r=".7" fill="currentColor" stroke="none"/>
+                                            </svg>
+                                            پرداخت با کیف پول
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <a href="{% url 'wallet' %}" class="btn-motion flex flex-col items-center justify-center bg-white border border-emerald-200 text-emerald-700 font-bold py-2.5 rounded-xl text-center leading-5">
+                                        <span class="text-sm">شارژ کیف پول</span>
+                                        <span class="text-[10px] font-medium text-emerald-700/80">موجودی: {{ wallet.balance|default:0|toman }} تومان</span>
+                                    </a>
+                                    {% endif %}
                                 </div>
                                 {% endif %}
 
                                 <div class="mt-3">
-                                    <a href="/receipt/{{ order.id }}/" target="_blank" class="btn-motion flex items-center justify-center gap-2 w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 py-3 rounded-xl transition-all cursor-pointer hover:text-gray-900 group">
-                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    <a href="{% url 'print_receipt' order.id %}" target="_blank" rel="noopener" class="btn-motion flex items-center justify-center gap-2 w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 py-3 rounded-xl transition-all cursor-pointer hover:text-gray-900 group">
+                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                                         مشاهده فاکتور
                                     </a>
                                 </div>

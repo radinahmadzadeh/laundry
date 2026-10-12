@@ -41,8 +41,11 @@ def panel_login(request):
 
 
 def panel_logout(request):
-    logout(request)
-    return redirect('panel_login')
+    # POST only, so another site cannot log staff out with a hidden link.
+    if request.method == 'POST':
+        logout(request)
+        return redirect('panel_login')
+    return redirect('panel_dashboard')
 
 
 @staff_required
