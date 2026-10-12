@@ -333,3 +333,14 @@ class PlaceOrderTests(TestCase):
         self.assertFalse(Order.objects.get(id=data['order_id']).is_paid)
         self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('58000'))
         self.assertEqual(WalletTransaction.objects.filter(transaction_type='debit').count(), 1)
+
+
+class HomeMessagesTests(TestCase):
+    def test_flash_messages_render_on_home(self):
+        customer = Customer.objects.create(name='پیام', phone='09120000018')
+        order = Order.objects.create(customer=customer, total_price=Decimal('50000'))
+        Wallet.objects.create(customer=customer, balance=Decimal('0'))
+        client = login_customer(Client(), customer)
+        response = client.get(reverse('wallet_pay_order', args=[order.id]), follow=True)
+        self.assertContains(response, 'flash-msg')
+        self.assertContains(response, 'موجودی کیف پول کافی نیست')

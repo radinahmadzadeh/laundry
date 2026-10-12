@@ -27,6 +27,16 @@
         }
         *{ font-family:'Vazirmatn', sans-serif; }
         html{ background:transparent; }
+        /* Keep anchored sections clear of the sticky header. */
+        section[id]{ scroll-margin-top:84px; }
+        .flash-stack{ position:fixed; top:calc(env(safe-area-inset-top, 0px) + 76px); left:50%; transform:translateX(-50%); z-index:95; width:min(460px, calc(100% - 32px)); display:flex; flex-direction:column; gap:8px; }
+        .flash-msg{ display:flex; align-items:flex-start; gap:10px; padding:12px 14px; border-radius:16px; border:1px solid #fed7aa; background:#fff7ed; color:#9a3412; font-size:13px; font-weight:700; line-height:1.9; box-shadow:0 18px 40px -22px rgba(15,23,42,.45); animation:fadeUp .35s ease both; }
+        .flash-msg.success{ background:#ecfdf5; border-color:#a7f3d0; color:#047857; }
+        .flash-msg.error{ background:#fef2f2; border-color:#fecaca; color:#b91c1c; }
+        .flash-msg.info{ background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8; }
+        .flash-msg p{ flex:1; margin:0; }
+        .flash-close{ flex:none; width:32px; height:32px; margin:-4px -6px -4px 0; border-radius:10px; font-size:18px; line-height:1; opacity:.7; }
+        .flash-close:hover{ opacity:1; background:rgba(255,255,255,.6); }
         body{
             position:relative;
             isolation:isolate;
@@ -681,6 +691,25 @@
             </div>
         </div>
     </header>
+
+    {% if messages %}
+    <div class="flash-stack" id="flash-stack" role="status" aria-live="polite">
+        {% for message in messages %}
+        <div class="flash-msg {{ message.tags }}">
+            <p>{{ message }}</p>
+            <button type="button" class="flash-close" aria-label="بستن پیام" onclick="this.parentElement.remove()">×</button>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        // Confirmations fade after a while; errors and warnings stay until the customer closes them.
+        window.addEventListener('load', function(){
+            setTimeout(function(){
+                document.querySelectorAll('#flash-stack .flash-msg.success, #flash-stack .flash-msg.info').forEach(function(el){ el.remove(); });
+            }, 10000);
+        });
+    </script>
+    {% endif %}
 
     <div class="site-bubbles" aria-hidden="true">
         <div class="bubble" style="width:120px;height:120px;top:12%;right:6%;animation-duration:6.2s;"></div>
@@ -2817,11 +2846,22 @@
                 var activeBtn = document.getElementById('btn-pickup-' + orderId);
                 if (activeBtn) positionDeliveryIndicator(orderId, activeBtn);
             });
-            
-            // After login, always keep the customer at the top of the page.
-            // Tracking is opened only when the customer explicitly clicks «پیگیری».
-            window.scrollTo(0, 0);
+            // Images may have shifted the layout: land on the anchor again unless the customer already scrolled.
+            if (!userScrolled) scrollToHashTarget();
         });
+
+        // Links such as «مشاهده سفارش» or the return from a payment point at #track-section.
+        var userScrolled = false;
+        ['wheel', 'touchmove', 'keydown'].forEach(function(type){
+            window.addEventListener(type, function(){ userScrolled = true; }, { passive: true, once: true });
+        });
+        function scrollToHashTarget(){
+            var target = null;
+            try { target = location.hash ? document.querySelector(location.hash) : null; } catch (e) {}
+            if (target) target.scrollIntoView({ block: 'start' });
+        }
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scrollToHashTarget);
+        else scrollToHashTarget();
 
         window.addEventListener('resize', function(){
             var actives = document.querySelectorAll('.delivery-tab.active');
