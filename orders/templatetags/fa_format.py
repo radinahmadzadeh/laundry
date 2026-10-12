@@ -17,6 +17,13 @@ def fa_digits(value):
 
 
 @register.filter
+def tel_digits(value):
+    """'۰۹۱۲-۳۲۷۷۸۸۱' → '09123277881' for tel: links."""
+    text = str(value or '').translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789'))
+    return ''.join(ch for ch in text if ch.isdigit() or ch == '+')
+
+
+@register.filter
 def toman(value):
     """1250000 → ۱٬۲۵۰٬۰۰۰ (non-numeric text is returned unchanged)."""
     try:

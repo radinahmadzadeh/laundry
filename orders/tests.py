@@ -344,3 +344,17 @@ class HomeMessagesTests(TestCase):
         response = client.get(reverse('wallet_pay_order', args=[order.id]), follow=True)
         self.assertContains(response, 'flash-msg')
         self.assertContains(response, 'موجودی کیف پول کافی نیست')
+
+
+class ShopContactTests(TestCase):
+    def test_contact_links_and_no_blocking_map(self):
+        from .models import ShopSettings
+        from .templatetags.fa_format import tel_digits, toman, fa_digits
+        self.assertEqual(tel_digits('۰۹۱۲-۳۲۷۷۸۸۱'), '09123277881')
+        self.assertEqual(toman(1250000), '۱٬۲۵۰٬۰۰۰')
+        self.assertEqual(toman('abc'), 'abc')
+        self.assertEqual(fa_digits(45), '۴۵')
+        ShopSettings.load()
+        page = Client().get(reverse('home')).content.decode()
+        self.assertIn('href="tel:09123277881"', page)
+        self.assertNotIn('<iframe', page)
