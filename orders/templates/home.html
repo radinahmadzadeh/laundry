@@ -13,6 +13,8 @@
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" />
+    <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
     <style>
         :root{
             --ink:#101828;
@@ -480,7 +482,7 @@
         @keyframes rvPop{ 0%{ transform:scale(.4); } 100%{ transform:none; } }
         @keyframes rvConfetti{ 0%{ opacity:1; transform:translate(-50%,-50%) rotate(0); } 100%{ opacity:0; transform:translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(var(--r)); } }
         @media (prefers-reduced-motion: reduce){ .review-cta-icon, .rv-face.bump, .rv-stars button.pop, .rv-thanks-icon, .rv-confetti{ animation:none; } }
-        .ready-notices{ position:fixed; top:calc(env(safe-area-inset-top, 0px) + 14px); left:50%; transform:translateX(-50%); z-index:90; width:min(420px, calc(100% - 32px)); display:flex; flex-direction:column; gap:10px; pointer-events:none; }
+        .ready-notices{ position:fixed; top:calc(env(safe-area-inset-top, 0px) + 78px); left:50%; transform:translateX(-50%); z-index:90; width:min(420px, calc(100% - 32px)); display:flex; flex-direction:column; gap:10px; pointer-events:none; }
         .ready-notice{ pointer-events:auto; position:relative; overflow:hidden; display:flex; gap:12px; align-items:flex-start; text-align:right; padding:14px 14px 14px 12px; border-radius:20px; background:rgba(255,255,255,.97); border:1px solid rgba(8,145,178,.16); box-shadow:0 22px 50px -24px rgba(15,23,42,.45), 0 6px 16px -10px rgba(8,145,178,.35); backdrop-filter:blur(10px); animation:readyIn .55s cubic-bezier(.2,.9,.25,1.15) both; }
         .ready-notice::before{ content:''; position:absolute; inset:0 0 0 auto; width:4px; background:linear-gradient(180deg,var(--cyan),var(--violet)); }
         .ready-notice.leaving{ animation:readyOut .3s ease forwards; }
@@ -2009,7 +2011,7 @@
 
                 // Map fallback center is only a safe Tehran-area fallback; the customer can
                 // select the exact point manually or use the browser's current location.
-                var map = L.map('interactive-map-' + orderId).setView([35.7262837, 51.2922665], 15);
+                var map = L.map('interactive-map-' + orderId, { gestureHandling: true, gestureHandlingOptions: { text: { touch: 'برای جابه‌جا کردن نقشه از دو انگشت استفاده کنید', scroll: 'برای بزرگ‌نمایی، Ctrl را نگه دارید و اسکرول کنید', scrollMac: 'برای بزرگ‌نمایی، ⌘ را نگه دارید و اسکرول کنید' } } }).setView([35.7262837, 51.2922665], 15);
                 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '© OpenStreetMap contributors',
                     maxZoom: 19,
