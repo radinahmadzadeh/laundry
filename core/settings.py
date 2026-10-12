@@ -116,8 +116,8 @@ WHITENOISE_USE_FINDERS = True
 
 PWA_APP_NAME = 'خشکشویی و سفید شویی آرین'
 PWA_APP_DESCRIPTION = 'پیگیری سفارشات خشکشویی'
-PWA_APP_THEME_COLOR = '#070b12'
-PWA_APP_BACKGROUND_COLOR = '#070b12'
+PWA_APP_THEME_COLOR = '#f5f8fa'
+PWA_APP_BACKGROUND_COLOR = '#f5f8fa'
 PWA_APP_DISPLAY = 'standalone'
 PWA_APP_SCOPE = '/'
 PWA_APP_ORIENTATION = 'portrait'

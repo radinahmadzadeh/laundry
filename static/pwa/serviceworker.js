@@ -3,7 +3,7 @@
 // tokens are never stale; the offline page is shown only when the network is down.
 // Keep this file ASCII-only: django-pwa reads it with the platform default encoding.
 
-var CACHE_NAME = 'arian-pwa-v1';
+var CACHE_NAME = 'arian-pwa-v2';
 var OFFLINE_URL = '/offline/';
 var PRECACHE_URLS = [
     OFFLINE_URL,
