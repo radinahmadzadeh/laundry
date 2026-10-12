@@ -536,3 +536,12 @@ class CustomerAuthTests(TestCase):
         })
         self.assertEqual(Customer.objects.filter(phone__contains='0023').count(), 1)
         self.assertEqual(Order.objects.get().customer, self.customer)
+
+
+class NoStoreTests(TestCase):
+    def test_personal_pages_are_not_cached(self):
+        customer = Customer.objects.create(name='کش', phone='09120000027')
+        client = login_customer(Client(), customer)
+        for url in [reverse('home'), reverse('account'), reverse('wallet')]:
+            self.assertIn('no-store', client.get(url)['Cache-Control'], url)
+        self.assertNotIn('no-store', Client().get(reverse('pricing')).get('Cache-Control', ''))
