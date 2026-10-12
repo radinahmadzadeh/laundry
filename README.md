@@ -11,12 +11,13 @@ pricing, customers, couriers — from a dedicated admin panel.
   *dry clean + iron* or *iron only*, set quantities, add notes, and request
   either in-person drop-off or courier pickup with a Leaflet.js map-based
   location picker.
-- **Live order tracking** — customers follow an order through its lifecycle
-  (`received → washing → ironing → ready → delivered`) using just their phone
-  number and invoice number — no account required to track.
-- **Instant customer accounts** — a `Customer` profile is created
-  automatically on first order; customers can optionally register/log in
-  (phone + password) to access their wallet and order history.
+- **Live order tracking** — logged-in customers follow every order through
+  its lifecycle (`collecting → received → washing → ironing → ready →
+  delivered`) in «سفارش‌های من», or jump to one by invoice number.
+- **Customer accounts** — customers register/log in with phone + password to
+  order, pay, track and use their wallet. Walk-in customers created by staff
+  are activated by staff setting a password in the panel (there is no SMS
+  verification, so accounts are never claimed online).
 - **In-app wallet** — customers can top up a wallet via Zarinpal and pay for
   orders directly from their balance.
 - **Online payments** — Zarinpal payment-gateway integration (sandbox by
@@ -124,10 +125,18 @@ python manage.py runserver
 
 Project settings live in [`core/settings.py`](core/settings.py) (allowed
 hosts, database, PWA app name/theme/icons) and Zarinpal gateway settings live
-in [`orders/views.py`](orders/views.py). Before deploying to production,
-review both files and make sure secrets, hosts, and payment credentials are
-set appropriately for your environment (ideally via environment variables
-rather than committed to source).
+in [`orders/views.py`](orders/views.py).
+
+Environment variables:
+
+| Variable            | Default                                   | Purpose |
+|---------------------|-------------------------------------------|---------|
+| `DJANGO_DEBUG`      | `1` under `runserver`, `0` everywhere else | Debug pages expose code and settings — keep it `0` on the server. |
+| `DJANGO_SECRET_KEY` | the development key in `settings.py`       | Set a long random value on the server. |
+
+With `DEBUG` off, static files are still served by WhiteNoise straight from
+the `static/` folders (`WHITENOISE_USE_FINDERS`), so no `collectstatic` step
+is needed. Customers see Persian 404/500 pages from `orders/templates/`.
 
 ## 🧭 Key Routes
 
@@ -150,7 +159,7 @@ rather than committed to source).
 
 ## 🗒 Notes
 
-- `orders/tests.py` contains the app's test suite — run it with
-  `python manage.py test`.
+- `orders/tests.py` contains the app's test suite (orders, payments, wallet,
+  auth, reviews, panel) — run it with `python manage.py test`.
 - `inspect_motion.py` is a standalone utility script outside the Django app;
   check its contents if you're unsure it's needed before deploying.
