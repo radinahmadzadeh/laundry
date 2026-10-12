@@ -1,6 +1,8 @@
 from django.db import models
 import jdatetime
-from datetime import date
+from datetime import date, timedelta
+
+from django.utils import timezone
 
 
 def order_tax(subtotal):
@@ -54,6 +56,15 @@ class WalletTransaction(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+    @property
+    def gateway_state(self):
+        """'done' for settled transactions; a gateway top-up without a reference is 'pending' for a while, then 'failed'."""
+        if self.transaction_type != 'credit' or not self.authority or self.reference_id:
+            return 'done'
+        if self.created_at and timezone.now() - self.created_at < timedelta(minutes=20):
+            return 'pending'
+        return 'failed'
 
     def __str__(self):
         return f"{self.get_transaction_type_display()} {self.amount} تومان"

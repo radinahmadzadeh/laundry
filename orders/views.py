@@ -15,6 +15,9 @@ from .templatetags.fa_format import fa_digits, toman
 from django.db.models import Avg, Count, F
 
 
+FA_TO_EN_DIGITS = str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789')
+
+
 def session_customer_id(request):
     """The logged-in customer's id, or None."""
     if request.session.get('customer_logged_in') and request.session.get('customer_id'):
@@ -213,18 +216,33 @@ def wallet_pay_order(request, order_id):
     return redirect(invoice_url)
 
 
+MIN_TOPUP = 10_000
+MAX_TOPUP = 50_000_000
+
+
+def parse_toman_amount(raw):
+    """'۵۰۰٬۰۰۰' / '500,000' / '500.000' → 500000. Anything with a real decimal part is rejected (None)."""
+    text = re.sub(r'[\s,٬،]', '', str(raw or '').translate(FA_TO_EN_DIGITS))
+    if re.fullmatch(r'\d{1,3}(\.\d{3})+', text):  # dots used as thousands separators
+        text = text.replace('.', '')
+    return int(text) if text.isdigit() else None
+
+
 def recharge_wallet(request):
-    customer_id = request.session.get('customer_id')
-    if not request.session.get('customer_logged_in') or not customer_id:
-        return redirect('customer_login')
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return customer_login_redirect(request)
     if request.method != 'POST':
         return redirect('wallet')
-    try:
-        amount = int(request.POST.get('amount', '0').replace(',', '').replace('.', '').strip())
-    except (TypeError, ValueError):
-        amount = 0
-    if amount < 10000:
-        messages.error(request, 'حداقل مبلغ شارژ کیف پول ۱۰٬۰۰۰ تومان است.')
+    amount = parse_toman_amount(request.POST.get('amount'))
+    if amount is None:
+        messages.error(request, 'مبلغ را فقط به‌صورت عدد صحیح و به تومان وارد کنید (بدون اعشار).')
+        return redirect('wallet')
+    if amount < MIN_TOPUP:
+        messages.error(request, f'حداقل مبلغ شارژ کیف پول {toman(MIN_TOPUP)} تومان است.')
+        return redirect('wallet')
+    if amount > MAX_TOPUP:
+        messages.error(request, f'حداکثر مبلغ شارژ در هر بار {toman(MAX_TOPUP)} تومان است.')
         return redirect('wallet')
 
     customer = get_object_or_404(Customer, id=customer_id)
@@ -234,26 +252,23 @@ def recharge_wallet(request):
         description='شارژ کیف پول از طریق درگاه'
     )
     shop = ShopSettings.load()
-    data = {
+    status_code, data, errors = zarinpal_post(ZP_API_REQUEST, {
         'merchant_id': MERCHANT,
         'amount': amount * 10,
         'description': f'شارژ کیف پول {customer.name} - {shop.name}',
-        'callback_url': request.build_absolute_uri(f'/wallet/verify/?transaction_id={transaction_obj.id}'),
-    }
-    try:
-        response = requests.post(ZP_API_REQUEST, json=data, headers={'accept': 'application/json'}, timeout=15)
-        response_json = response.json() if response.content else {}
-        if response.status_code == 200 and response_json.get('data', {}).get('code') == 100:
-            authority = response_json['data']['authority']
-            transaction_obj.authority = authority
-            transaction_obj.save(update_fields=['authority'])
-            return redirect(ZP_API_STARTPAY.format(authority=authority))
-        transaction_obj.delete()
-        error_code = response_json.get('errors', {}).get('code', 'نامشخص')
-        messages.error(request, f'ایجاد تراکنش شارژ کیف پول ناموفق بود. کد درگاه: {error_code}')
-    except requests.exceptions.RequestException:
-        transaction_obj.delete()
-        messages.error(request, 'ارتباط با درگاه پرداخت برقرار نشد.')
+        'callback_url': request.build_absolute_uri(f"{reverse('verify_wallet')}?transaction_id={transaction_obj.id}"),
+    })
+    if status_code == 200 and data.get('code') == 100 and data.get('authority'):
+        transaction_obj.authority = data['authority']
+        transaction_obj.save(update_fields=['authority'])
+        return redirect(ZP_API_STARTPAY.format(authority=data['authority']))
+    transaction_obj.delete()
+    if status_code is None:
+        messages.error(request, 'ارتباط با درگاه پرداخت برقرار نشد؛ چند دقیقه دیگر دوباره تلاش کنید.')
+    else:
+        code = errors.get('code') if isinstance(errors, dict) else None
+        messages.error(request, 'درگاه پرداخت درخواست شارژ را نپذیرفت؛ لطفاً دوباره تلاش کنید.'
+                       + (f' (کد خطای درگاه: {fa_digits(code)})' if code else ''))
     return redirect('wallet')
 
 
@@ -299,16 +314,11 @@ def verify_wallet(request):
         messages.warning(request, 'پرداخت لغو شد یا ناموفق بود؛ مبلغی به کیف پول شما اضافه یا از آن کم نشد.')
         return redirect('wallet')
 
-    data = {'merchant_id': MERCHANT, 'amount': int(transaction_obj.amount) * 10, 'authority': authority}
-    try:
-        response = requests.post(ZP_API_VERIFY, json=data, headers={'accept': 'application/json'}, timeout=15)
-        response_json = response.json() if response.content else {}
-    except (requests.exceptions.RequestException, ValueError):
-        response, response_json = None, {}
-    payload = response_json.get('data') if isinstance(response_json, dict) else None
-    code = payload.get('code') if isinstance(payload, dict) else None
-    if response is not None and response.status_code == 200 and code in (100, 101):
-        ref_id = str(payload.get('ref_id') or '')
+    status_code, data, _ = zarinpal_post(
+        ZP_API_VERIFY, {'merchant_id': MERCHANT, 'amount': int(transaction_obj.amount) * 10, 'authority': authority}
+    )
+    if status_code == 200 and data.get('code') in (100, 101):
+        ref_id = str(data.get('ref_id') or '')
         if credit_wallet_transaction(transaction_obj, ref_id):
             messages.success(
                 request,
@@ -533,7 +543,6 @@ def pricing_menu(request):
     shop = ShopSettings.load()
     return render(request, 'pricing.html', {'categories': categories, 'shop_name': shop.name})
 
-FA_TO_EN_DIGITS = str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789')
 # Couriers only work inside Iran; anything outside (or NaN/inf) is a broken or forged point.
 IRAN_LAT_RANGE = (24.0, 40.5)
 IRAN_LNG_RANGE = (43.5, 63.5)

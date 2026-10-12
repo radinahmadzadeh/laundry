@@ -438,3 +438,39 @@ class GatewayPaymentTests(TestCase):
             response = self.client.get(reverse('request_payment', args=[self.order.id]), follow=True)
         self.assertContains(response, 'ارتباط با درگاه پرداخت برقرار نشد')
         self.assertNotContains(response, 'boom')
+
+
+class WalletTopUpTests(TestCase):
+    def setUp(self):
+        self.customer = Customer.objects.create(name='شارژ', phone='09120000022')
+        self.wallet = Wallet.objects.create(customer=self.customer, balance=Decimal('0'))
+        self.client = login_customer(Client(), self.customer)
+
+    def test_parse_toman_amount(self):
+        from .views import parse_toman_amount
+        cases = {'50000': 50000, '۵۰٬۰۰۰': 50000, '500,000': 500000, '500.000': 500000, ' 20,000 ': 20000,
+                 '1.000.000': 1000000, '10000.5': None, '15000.50': None, 'abc': None, '-50000': None, '': None, '1e6': None}
+        for raw, expected in cases.items():
+            self.assertEqual(parse_toman_amount(raw), expected, raw)
+
+    def test_invalid_amounts_never_reach_gateway(self):
+        from unittest import mock
+        with mock.patch('orders.views.requests.post') as post:
+            for amount in ['10000.5', '9999', '0', 'abc', '60000000']:
+                self.client.post(reverse('recharge_wallet'), {'amount': amount})
+            post.assert_not_called()
+        self.assertFalse(WalletTransaction.objects.exists())
+
+    def test_unpaid_topups_are_not_shown_as_credit(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        old = WalletTransaction.objects.create(wallet=self.wallet, transaction_type='credit', amount=Decimal('1500050'), authority='A-old')
+        WalletTransaction.objects.filter(pk=old.pk).update(created_at=timezone.now() - timedelta(hours=2))
+        WalletTransaction.objects.create(wallet=self.wallet, transaction_type='credit', amount=Decimal('20000'), authority='A-new')
+        WalletTransaction.objects.create(wallet=self.wallet, transaction_type='credit', amount=Decimal('30000'), authority='A-ok', reference_id='1')
+        page = self.client.get(reverse('wallet')).content.decode()
+        self.assertIn('پرداخت نشد', page)
+        self.assertIn('در انتظار پرداخت', page)
+        self.assertIn('+۳۰٬۰۰۰', page)
+        self.assertNotIn('+۱٬۵۰۰٬۰۵۰', page)
+        self.assertNotIn('+۲۰٬۰۰۰', page)
