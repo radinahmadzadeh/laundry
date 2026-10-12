@@ -385,3 +385,56 @@ class WalletPayMethodTests(TestCase):
         self.assertTrue(self.client.session.get('customer_logged_in'))
         self.client.post(reverse('customer_logout'))
         self.assertFalse(self.client.session.get('customer_logged_in'))
+
+
+class GatewayPaymentTests(TestCase):
+    def setUp(self):
+        self.customer = Customer.objects.create(name='درگاه', phone='09120000020')
+        self.order = Order.objects.create(customer=self.customer, total_price=Decimal('660000'))
+        self.other_order = Order.objects.create(customer=self.customer, total_price=Decimal('660000'))
+        self.client = login_customer(Client(), self.customer)
+
+    def zarinpal(self, data):
+        from unittest import mock
+        response = mock.Mock(status_code=200, content=b'1')
+        response.json.return_value = {'data': data, 'errors': []}
+        return mock.patch('orders.views.requests.post', return_value=response)
+
+    def test_guest_and_other_customer_cannot_start_payment(self):
+        self.assertIn(reverse('customer_login'), Client().get(reverse('request_payment', args=[self.order.id]))['Location'])
+        other = login_customer(Client(), Customer.objects.create(name='دیگری', phone='09120000021'))
+        self.assertEqual(other.get(reverse('request_payment', args=[self.order.id])).status_code, 404)
+
+    def test_full_payment_and_cancel(self):
+        with self.zarinpal({'code': 100, 'authority': 'AUTH-1'}):
+            response = self.client.get(reverse('request_payment', args=[self.order.id]))
+        self.assertIn('StartPay/AUTH-1', response['Location'])
+        cancel = self.client.get(reverse('verify_payment'), {'order_id': self.order.id, 'Authority': 'AUTH-1', 'Status': 'NOK'}, follow=True)
+        self.assertContains(cancel, 'پرداخت لغو شد')
+        self.order.refresh_from_db()
+        self.assertFalse(self.order.is_paid)
+        with self.zarinpal({'code': 100, 'ref_id': 999}):
+            done = self.client.get(reverse('verify_payment'), {'order_id': self.order.id, 'Authority': 'AUTH-1', 'Status': 'OK'}, follow=True)
+        self.assertContains(done, 'با موفقیت انجام شد')
+        self.assertNotContains(done, 'phone=')
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.is_paid)
+
+    def test_reused_authority_cannot_pay_another_order(self):
+        with self.zarinpal({'code': 100, 'authority': 'AUTH-2'}):
+            self.client.get(reverse('request_payment', args=[self.order.id]))
+        with self.zarinpal({'code': 101, 'ref_id': 1}):
+            self.client.get(reverse('verify_payment'), {'order_id': self.other_order.id, 'Authority': 'AUTH-2', 'Status': 'OK'})
+            self.client.get(reverse('verify_payment'), {'order_id': self.order.id, 'Authority': 'AUTH-2', 'Status': 'OK'})
+        self.other_order.refresh_from_db()
+        self.order.refresh_from_db()
+        self.assertFalse(self.other_order.is_paid)
+        self.assertTrue(self.order.is_paid)
+
+    def test_gateway_down_shows_persian_message(self):
+        from unittest import mock
+        import requests as req
+        with mock.patch('orders.views.requests.post', side_effect=req.exceptions.ConnectionError('boom')):
+            response = self.client.get(reverse('request_payment', args=[self.order.id]), follow=True)
+        self.assertContains(response, 'ارتباط با درگاه پرداخت برقرار نشد')
+        self.assertNotContains(response, 'boom')

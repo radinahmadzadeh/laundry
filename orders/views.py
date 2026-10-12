@@ -411,86 +411,101 @@ ZP_API_REQUEST = "https://sandbox.zarinpal.com/pg/v4/payment/request.json"
 ZP_API_VERIFY = "https://sandbox.zarinpal.com/pg/v4/payment/verify.json"
 ZP_API_STARTPAY = "https://sandbox.zarinpal.com/pg/StartPay/{authority}"
 
-def send_request(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+def zarinpal_post(url, payload):
+    """POST to Zarinpal; returns (http status or None, the 'data' dict, the 'errors' value)."""
+    try:
+        response = requests.post(url, json=payload, headers={'accept': 'application/json'}, timeout=15)
+        body = response.json() if response.content else {}
+    except (requests.exceptions.RequestException, ValueError):
+        return None, {}, {}
+    if not isinstance(body, dict):
+        return response.status_code, {}, {}
+    data = body.get('data') if isinstance(body.get('data'), dict) else {}
+    return response.status_code, data, body.get('errors') or {}
 
+
+def order_track_url(order_id):
+    return f"{reverse('home')}?order_id={order_id}#track-section"
+
+
+def send_request(request, order_id):
+    """Start an online (gateway) payment for one of the logged-in customer's orders."""
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return customer_login_redirect(request)
+    order = get_object_or_404(Order, id=order_id, customer_id=customer_id)
+    track_url = order_track_url(order.id)
     if order.is_paid:
-        return HttpResponse("این فاکتور قبلاً پرداخت شده است.")
+        messages.info(request, 'این فاکتور قبلاً پرداخت شده است.')
+        return redirect(track_url)
+    if order.total_price <= 0:
+        messages.error(request, 'مبلغ این فاکتور هنوز مشخص نشده است؛ پس از اعلام قیمت می‌توانید آن را پرداخت کنید.')
+        return redirect(track_url)
 
     shop = ShopSettings.load()
-    amount = int(order.total_price) * 10
-    description = f"پرداخت فاکتور شماره {order.id} - {shop.name}"
+    status_code, data, errors = zarinpal_post(ZP_API_REQUEST, {
+        'merchant_id': MERCHANT,
+        'amount': int(order.total_price) * 10,
+        'description': f'پرداخت فاکتور شماره {order.id} - {shop.name}',
+        'callback_url': request.build_absolute_uri(f"{reverse('verify_payment')}?order_id={order.id}"),
+    })
+    if status_code == 200 and data.get('code') == 100 and data.get('authority'):
+        # Remember which order this authority belongs to, so a verified payment can only settle that order.
+        pending = request.session.get('order_payments', {})
+        pending[str(data['authority'])] = order.id
+        request.session['order_payments'] = dict(list(pending.items())[-20:])
+        return redirect(ZP_API_STARTPAY.format(authority=data['authority']))
+    if status_code is None:
+        messages.error(request, 'ارتباط با درگاه پرداخت برقرار نشد؛ چند دقیقه دیگر دوباره تلاش کنید.')
+    else:
+        code = errors.get('code') if isinstance(errors, dict) else None
+        messages.error(request, 'درگاه پرداخت درخواست را نپذیرفت؛ لطفاً دوباره تلاش کنید.'
+                       + (f' (کد خطای درگاه: {fa_digits(code)})' if code else ''))
+    return redirect(track_url)
 
-    callback_path = f'/verify/?order_id={order.id}'
-    CallbackURL = request.build_absolute_uri(callback_path)
-    data = {
-        "merchant_id": MERCHANT,
-        "amount": amount,
-        "description": description,
-        "callback_url": CallbackURL,
-    }
-    data = json.dumps(data)
-    headers = {'content-type': 'application/json', 'accept': 'application/json'}
-
-    try:
-        response = requests.post(ZP_API_REQUEST, data=data, headers=headers, timeout=15)
-
-        if response.status_code == 200:
-            response_json = response.json()
-            if response_json.get('data') and response_json['data'].get('code') == 100:
-                authority = response_json['data']['authority']
-                return redirect(ZP_API_STARTPAY.format(authority=authority))
-            else:
-                error_code = response_json.get('errors', {}).get('code', 'نامشخص')
-                return HttpResponse(f"خطا در ایجاد تراکنش. کد ارور بانک: {error_code}")
-        else:
-            return HttpResponse(f"خطا در ارتباط با زرین‌پال.<br>کد وضعیت: {response.status_code}<br>متن خطا: {response.text}")
-
-    except requests.exceptions.RequestException as e:
-        return HttpResponse(f"خطای شبکه! آیا اینترنت متصل است یا VPN روشن است؟ <br> {e}")
 
 def verify(request):
-    order_id = request.GET.get('order_id')
+    """Return from the gateway: confirm the payment with Zarinpal and mark the order as paid once."""
+    order_id = str(request.GET.get('order_id') or '')
     authority = request.GET.get('Authority')
     status = request.GET.get('Status')
+    if not order_id.isdigit() or not authority:
+        messages.error(request, 'اطلاعات بازگشت از درگاه معتبر نیست.')
+        return redirect('home')
+    order = get_object_or_404(Order, id=int(order_id))
+    customer_id = session_customer_id(request)
+    if customer_id and order.customer_id != customer_id:
+        raise Http404
+    track_url = order_track_url(order.id)
+    if order.is_paid:
+        messages.info(request, 'این فاکتور پرداخت شده است.')
+        return redirect(track_url)
+    if status != 'OK':
+        messages.warning(request, 'پرداخت لغو شد یا ناموفق بود؛ مبلغی بابت این فاکتور از شما کسر نشد.')
+        return redirect(track_url)
 
-    if not order_id or not authority:
-        return HttpResponse("اطلاعات تراکنش نامعتبر است.")
+    status_code, data, _ = zarinpal_post(ZP_API_VERIFY, {
+        'merchant_id': MERCHANT,
+        'amount': int(order.total_price) * 10,
+        'authority': authority,
+    })
+    code = data.get('code')
+    issued_here = request.session.get('order_payments', {}).get(str(authority)) == order.id
+    # 100 = verified now. 101 = verified before; only trust it for the order this authority was issued for,
+    # otherwise one payment could settle any other order with the same amount.
+    if status_code == 200 and (code == 100 or (code == 101 and issued_here)):
+        Order.objects.filter(pk=order.pk, is_paid=False).update(is_paid=True)
+        ref_id = str(data.get('ref_id') or '')
+        messages.success(request, f'پرداخت فاکتور شماره {fa_digits(order.id)} با موفقیت انجام شد.'
+                         + (f' کد پیگیری: {fa_digits(ref_id)}' if ref_id else ''))
+        return redirect(track_url)
+    messages.error(
+        request,
+        'پرداخت تأیید نشد. اگر مبلغی از حساب شما کم شده، طبق قوانین بانکی حداکثر تا ۷۲ ساعت برمی‌گردد؛ '
+        'در غیر این صورت با پشتیبانی تماس بگیرید.',
+    )
+    return redirect(track_url)
 
-    order = get_object_or_404(Order, id=order_id)
-
-    if status == 'OK':
-        amount = int(order.total_price) * 10
-        data = {
-            "merchant_id": MERCHANT,
-            "amount": amount,
-            "authority": authority,
-        }
-        data = json.dumps(data)
-        headers = {'content-type': 'application/json', 'accept': 'application/json'}
-
-        try:
-            response = requests.post(ZP_API_VERIFY, data=data, headers=headers)
-            if response.status_code == 200:
-                response_json = response.json()
-                if response_json.get('data') and response_json['data'].get('code') == 100:
-
-                    order.is_paid = True
-                    order.save()
-
-                    ref_id = response_json['data']['ref_id']
-                    return HttpResponse(f"<div style='font-family:Tahoma; text-align:center; margin-top:50px;'><h1>پرداخت با موفقیت انجام شد!</h1><p>کد پیگیری: {ref_id}</p><a href='/?phone={order.customer.phone}&order_id={order.id}#track-section'>بازگشت به سایت</a></div>")
-
-                elif response_json.get('data') and response_json['data'].get('code') == 101:
-                    return HttpResponse("این تراکنش قبلاً با موفقیت تایید شده است.")
-                else:
-                    return HttpResponse("تراکنش ناموفق بود یا مبلغ همخوانی نداشت.")
-
-            return HttpResponse(f"خطا در تایید تراکنش. کد سرور: {response.status_code}")
-        except Exception as e:
-            return HttpResponse("خطای شبکه هنگام تایید تراکنش.")
-    else:
-        return HttpResponse("<div style='font-family:Tahoma; text-align:center; margin-top:50px; color:red;'><h1>پرداخت توسط شما لغو شد.</h1><button onclick='history.back()'>بازگشت</button></div>")
 
 def parse_price_value(raw):
     if not raw:
