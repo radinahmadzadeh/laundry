@@ -1949,7 +1949,7 @@
                         {% for code, label in review_tags %}<button type="button" class="rv-chip" data-tag="{{ code }}">{{ label }}</button>{% endfor %}
                     </div>
                     <textarea id="rv-text" class="rv-text" maxlength="1000" placeholder=""></textarea>
-                    <p class="text-[10px] text-gray-400 mt-2 mb-4 leading-5 hidden" id="rv-public-hint">نظرهای ۵ ستاره با نام کوچک شما در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شوند.</p>
+                    <p class="text-[10px] text-gray-400 mt-2 mb-4 leading-5 hidden" id="rv-public-hint">نظرهای ۵ ستاره پس از تأیید فروشگاه، با نام کوچک شما در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شوند.</p>
                 </div></div>
 
                 <button type="button" id="rv-submit" class="rv-submit mt-4" onclick="submitReview()" disabled>ثبت نظر</button>
@@ -2541,8 +2541,8 @@
                     return;
                 }
                 markOrderReviewed(orderId, rating);
-                document.getElementById('rv-thanks-text').textContent = data.featured
-                    ? 'خوشحالیم که از ما راضی بودید! نظر شما در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شود.'
+                document.getElementById('rv-thanks-text').textContent = (data.pending_approval && rating >= 5)
+                    ? 'خوشحالیم که از ما راضی بودید! نظر شما پس از تأیید فروشگاه در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شود.'
                     : (rating >= 4
                         ? 'خوشحالیم که از ما راضی بودید. منتظر سفارش بعدی‌تان هستیم.'
                         : 'متأسفیم که تجربه‌تان کامل نبود. نظر شما به دست مدیریت رسید و برای بهتر شدن از آن استفاده می‌کنیم.');

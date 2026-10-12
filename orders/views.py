@@ -643,36 +643,54 @@ def order_error(message, status=400):
 
 
 def submit_review(request):
-    """ثبت امتیاز و نظر مشتری برای سفارشی که تحویل داده شده (هر سفارش فقط یک بار)."""
-    customer_id = request.session.get('customer_id')
-    if not request.session.get('customer_logged_in') or not customer_id:
-        return JsonResponse({'status': 'error', 'message': 'برای ثبت نظر ابتدا وارد حساب شوید.'}, status=403)
+    """ثبت امتیاز و نظر مشتری برای سفارشی که تحویل داده شده (هر سفارش فقط یک بار).
+
+    نظرهای دارای متن تا تأیید فروشگاه در سایت نمایش داده نمی‌شوند؛ امتیاز بدون متن مستقیم در میانگین حساب می‌شود.
+    """
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return order_error('برای ثبت نظر ابتدا وارد حساب شوید.', status=403)
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'درخواست نامعتبر است.'}, status=405)
+        return order_error('درخواست نامعتبر است.', status=405)
     try:
         data = json.loads(request.body)
-        rating = int(data.get('rating'))
     except (TypeError, ValueError):
-        return JsonResponse({'status': 'error', 'message': 'لطفاً امتیاز را انتخاب کنید.'})
-    if not 1 <= rating <= 5:
-        return JsonResponse({'status': 'error', 'message': 'امتیاز باید بین ۱ تا ۵ باشد.'})
+        data = None
+    if not isinstance(data, dict):
+        return order_error('اطلاعات نظر نامعتبر است.')
 
-    order = Order.objects.filter(id=data.get('order_id'), customer_id=customer_id).first()
+    rating = data.get('rating')
+    if isinstance(rating, str) and rating.strip().isdigit():
+        rating = int(rating)
+    if isinstance(rating, bool) or not isinstance(rating, int):
+        return order_error('لطفاً امتیاز را انتخاب کنید.')
+    if not 1 <= rating <= 5:
+        return order_error('امتیاز باید بین ۱ تا ۵ باشد.')
+
+    order_id = str(data.get('order_id') or '')
+    order = Order.objects.filter(id=int(order_id), customer_id=customer_id).first() if order_id.isdigit() else None
     if not order:
-        return JsonResponse({'status': 'error', 'message': 'سفارش پیدا نشد.'}, status=404)
+        return order_error('سفارش پیدا نشد.', status=404)
     if order.status != 'delivered':
-        return JsonResponse({'status': 'error', 'message': 'بعد از تحویل سفارش می‌توانید نظر بدهید.'})
+        return order_error('بعد از تحویل سفارش می‌توانید نظر بدهید.')
 
     valid_tags = dict(OrderReview.TAG_CHOICES)
-    tags = [t for t in (data.get('tags') or []) if t in valid_tags]
-    comment = str(data.get('comment') or '').strip()[:1000]
+    raw_tags = data.get('tags') if isinstance(data.get('tags'), list) else []
+    tags = [t for t in raw_tags if isinstance(t, str) and t in valid_tags]
+    comment = data.get('comment')
+    comment = comment.strip()[:1000] if isinstance(comment, str) else ''
     review, created = OrderReview.objects.get_or_create(
         order=order,
-        defaults={'customer_id': customer_id, 'rating': rating, 'comment': comment, 'tags': ','.join(dict.fromkeys(tags))},
+        defaults={
+            'customer_id': customer_id, 'rating': rating, 'comment': comment,
+            'tags': ','.join(dict.fromkeys(tags)),
+            # Free text is shown publicly only after the shop approves it in the panel.
+            'is_hidden': bool(comment),
+        },
     )
     if not created:
-        return JsonResponse({'status': 'error', 'message': 'برای این سفارش قبلاً نظر ثبت کرده‌اید.'})
-    return JsonResponse({'status': 'success', 'featured': review.is_featured})
+        return order_error('برای این سفارش قبلاً نظر ثبت کرده‌اید.')
+    return JsonResponse({'status': 'success', 'pending_approval': review.is_hidden})
 
 
 def request_courier(request):

@@ -3,7 +3,7 @@ import re
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from .models import Customer, Order, Wallet, WalletTransaction
@@ -476,6 +476,7 @@ class WalletTopUpTests(TestCase):
         self.assertNotIn('+۲۰٬۰۰۰', page)
 
 
+@override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'])
 class CustomerAuthTests(TestCase):
     def setUp(self):
         from django.contrib.auth.hashers import make_password
@@ -545,3 +546,44 @@ class NoStoreTests(TestCase):
         for url in [reverse('home'), reverse('account'), reverse('wallet')]:
             self.assertIn('no-store', client.get(url)['Cache-Control'], url)
         self.assertNotIn('no-store', Client().get(reverse('pricing')).get('Cache-Control', ''))
+
+
+class ReviewTests(TestCase):
+    def setUp(self):
+        from .models import OrderReview
+        self.OrderReview = OrderReview
+        self.customer = Customer.objects.create(name='نظر دهنده', phone='09120000028')
+        self.order = Order.objects.create(customer=self.customer, status='delivered', total_price=Decimal('1000'))
+        self.client = login_customer(Client(), self.customer)
+
+    def post(self, payload, raw=None):
+        body = raw if raw is not None else json.dumps(payload)
+        return self.client.post(reverse('submit_review'), body, content_type='application/json')
+
+    def test_malformed_input_is_400_not_500(self):
+        for payload, raw in [(None, '[]'), (None, '{bad'), ({'order_id': 'abc', 'rating': 3}, None),
+                             ({'order_id': self.order.id, 'rating': 4.9}, None),
+                             ({'order_id': self.order.id, 'rating': 0}, None),
+                             ({'order_id': self.order.id, 'rating': 6}, None),
+                             ({'order_id': self.order.id, 'rating': True}, None)]:
+            response = self.post(payload, raw)
+            self.assertIn(response.status_code, (400, 404), (payload, raw))
+        self.assertFalse(self.OrderReview.objects.exists())
+
+    def test_text_review_waits_for_approval(self):
+        data = self.post({'order_id': self.order.id, 'rating': 5, 'comment': '<script>alert(1)</script> عالی', 'tags': ['quality', 'x']}).json()
+        self.assertTrue(data['pending_approval'])
+        page = Client().get(reverse('home')).content.decode()
+        self.assertNotIn('alert(1)', page)
+        review = self.OrderReview.objects.get()
+        self.assertEqual(review.tags, 'quality')
+        review.is_hidden = False
+        review.save()
+        page = Client().get(reverse('home')).content.decode()
+        self.assertIn('&lt;script&gt;alert(1)&lt;/script&gt;', page)
+        self.assertEqual(self.post({'order_id': self.order.id, 'rating': 1}).status_code, 400)
+
+    def test_rating_only_review_counts_immediately(self):
+        data = self.post({'order_id': self.order.id, 'rating': '4', 'tags': 5}).json()
+        self.assertFalse(data['pending_approval'])
+        self.assertEqual(self.OrderReview.objects.get().tags, '')

@@ -5,7 +5,7 @@
     <div>
         <p class="text-xs font-bold text-cyan-300 mb-2">رضایت مشتری</p>
         <h1 class="text-2xl sm:text-3xl font-black text-white">نظرات مشتریان</h1>
-        <p class="text-xs text-gray-400 mt-2">نظرهای ۵ ستاره‌ای که متن دارند خودکار در صفحه اول سایت نمایش داده می‌شوند. هر نظری را می‌توانید پنهان کنید.</p>
+        <p class="text-xs text-gray-400 mt-2">نظرهای متن‌دار تا وقتی شما «تأیید و نمایش» را نزنید در سایت دیده نمی‌شوند؛ نظرهای ۵ ستاره‌ی تأییدشده در صفحه اول نمایش داده می‌شوند.</p>
     </div>
     <form method="get" class="flex gap-2 w-full lg:w-auto">
         <select name="rating" class="bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-sm w-full lg:w-56 focus:outline-none">
@@ -31,7 +31,7 @@
                 <div class="flex flex-wrap items-center gap-2 mb-1">
                     <span class="text-amber-300 tracking-wider">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}<span class="text-white/15">★</span>{% endif %}{% endfor %}</span>
                     {% if review.is_featured %}<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-emerald-400/10 text-emerald-300 border border-emerald-400/20">در صفحه اول</span>{% endif %}
-                    {% if review.is_hidden %}<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-white/5 text-gray-400 border border-white/10">پنهان</span>{% endif %}
+                    {% if review.is_hidden %}<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/20">در انتظار تأیید / پنهان</span>{% endif %}
                 </div>
                 <p class="text-xs text-gray-400">
                     <a href="{% url 'panel_customer_detail' review.customer.id %}" class="font-bold text-white hover:underline">{{ review.customer.name }}</a>
@@ -44,7 +44,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                 <button class="px-4 py-2 rounded-xl text-xs font-bold border transition {% if review.is_hidden %}bg-emerald-400/10 text-emerald-300 border-emerald-400/30 hover:bg-emerald-400/20{% else %}bg-white/5 text-gray-300 border-white/10 hover:bg-white/10{% endif %}">
-                    {% if review.is_hidden %}نمایش دوباره{% else %}پنهان کردن{% endif %}
+                    {% if review.is_hidden %}تأیید و نمایش{% else %}پنهان کردن{% endif %}
                 </button>
             </form>
         </div>

@@ -559,7 +559,7 @@ def review_toggle_hidden(request, review_id):
     if request.method == 'POST':
         review.is_hidden = not review.is_hidden
         review.save(update_fields=['is_hidden'])
-        messages.success(request, 'نظر از صفحه اول سایت پنهان شد.' if review.is_hidden else 'نظر دوباره قابل نمایش است.')
+        messages.success(request, 'نظر از سایت پنهان شد.' if review.is_hidden else 'نظر تأیید شد و در سایت قابل نمایش است.')
     next_url = request.POST.get('next', '')
     if next_url.startswith('/') and not next_url.startswith('//'):
         return redirect(next_url)
