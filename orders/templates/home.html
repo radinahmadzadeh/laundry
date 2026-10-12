@@ -277,7 +277,7 @@
         .item-icon-wrap{
             background:radial-gradient(circle at 30% 20%, rgba(73,224,214,0.18), rgba(155,140,251,0.14) 70%, transparent 100%);
         }
-        .qty-btn{ width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:900; transition:transform .15s ease, background .15s ease; user-select:none; }
+        .qty-btn{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:900; transition:transform .15s ease, background .15s ease; user-select:none; }
         .qty-btn:active{ transform:scale(0.88); }
         .qty-input{ width:34px; text-align:center; font-weight:800; background:transparent; }
         .cart-bar{
@@ -517,6 +517,11 @@
         .item-card .item-price-row{ min-height:20px; display:flex; align-items:center; gap:7px; }
         .item-price-empty{ color:#94a3b8; font-size:10px; }
         .item-card .qty-wrap{ margin-top:auto; }
+        .item-search-wrap{ position:relative; }
+        .item-search-wrap input{ padding-right:42px !important; }
+        .item-search-icon{ position:absolute; right:14px; top:15px; color:#94a3b8; pointer-events:none; }
+        #item-grid .item-card{ min-height:150px; }
+        .item-card.search-hidden, [data-category-block].search-hidden{ display:none; }
 
         /* Responsive fit pass: keep every section inside the viewport on phone, tablet and desktop. */
         html{scroll-behavior:smooth;overflow-x:hidden;}
@@ -559,8 +564,8 @@
             .welcome-card .p-5,.welcome-card .p-6{padding:14px!important;}
             .item-section-head{align-items:flex-start;}
             .item-section-title{font-size:12px;}
-            input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:12px;}
-            .item-card .qty-btn{width:28px;height:28px;}
+            input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px;}
+            .item-card .qty-btn{width:40px;height:40px;font-size:18px;}
             .item-card .qty-input{width:30px;}
             .cart-bar .text-lg{font-size:16px!important;}
         }
@@ -1312,39 +1317,47 @@
             {% csrf_token %}
 
             <!-- قدم ۱: انتخاب اقلام -->
-            <div class="flex items-center gap-2 mb-5">
+            <div class="flex items-center gap-2 mb-4">
                 <span class="step-num">۱</span>
                 <h3 class="font-bold text-sm sm:text-base">انتخاب اقلام لباس</h3>
             </div>
 
+            <div class="item-search-wrap mb-5">
+                <svg class="item-search-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M20 20l-3.5-3.5"/></svg>
+                <input type="search" id="item-search" placeholder="جستجوی لباس (مثلاً کاپشن)" aria-label="جستجوی لباس" autocomplete="off"
+                       class="w-full bg-gray-50 border border-gray-200 rounded-xl pr-10 pl-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
+                <p id="item-search-empty" class="hidden text-center text-xs text-gray-400 py-6">موردی با این نام پیدا نشد.</p>
+            </div>
+
             <div id="item-grid" class="space-y-5 mb-2">
                 {% for category in categories %}
-                    <div class="item-grid-wrap">
+                    <div class="item-grid-wrap" data-category-block>
                         <div class="item-section-head">
                             <div class="item-section-title">
                                 <span class="item-section-dot"></span>
                                 <h4 class="font-black text-sm text-gray-800">{{ category.name }}</h4>
                             </div>
-                            <span class="item-count-badge">{{ category.items.all|length }} قلم</span>
+                            <span class="item-count-badge">{{ category.items.all|length|fa_digits }} قلم</span>
                         </div>
 
-                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
                             {% for item in category.items.all %}
                                 <div class="item-card flex flex-col bg-white" id="item-card-{{ item.id }}"
-                                     data-name="{{ item.name|escapejs }}"
-                                     data-dry-price="{{ item.dry_clean_price|escapejs }}"
-                                     data-iron-price="{{ item.iron_only_price|escapejs|default:'' }}">
+                                     data-name="{{ item.name }}"
+                                     data-category="{{ category.name }}"
+                                     data-dry-price="{{ item.dry_clean_price }}"
+                                     data-iron-price="{{ item.iron_only_price|default:'' }}">
                                     <div class="flex items-center gap-3">
                                         <div class="item-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
-                                            <svg viewBox="0 0 24 24" class="w-5 h-5 text-[var(--cyan)]" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 2 4-2 4 4-3 3v11H7V10L4 7l4-4z"/></svg>
+                                            <svg viewBox="0 0 24 24" class="w-5 h-5 text-[var(--cyan)]" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 2 4-2 4 4-3 3v11H7V10L4 7l4-4z"/></svg>
                                         </div>
                                         <div class="min-w-0">
                                             <p class="font-black text-sm text-gray-900 truncate">{{ item.name }}</p>
                                             <div class="item-price-row" id="price-label-{{ item.id }}">
                                                 {% if item.dry_clean_price %}
-                                                    <span class="text-xs font-bold text-gray-500"><span class="money-value">{{ item.dry_clean_price }}</span> تومان</span>
+                                                    <span class="text-xs font-bold text-gray-500">{{ item.dry_clean_price|toman }} تومان</span>
                                                 {% else %}
-                                                    <span class="item-price-empty">قیمت در حال هماهنگی</span>
+                                                    <span class="item-price-empty">قیمت پس از بررسی لباس اعلام می‌شود</span>
                                                 {% endif %}
                                             </div>
                                         </div>
@@ -1352,9 +1365,9 @@
 
                                     {% if item.iron_only_price %}
                                     <label class="mt-3 flex items-center gap-2 text-[11px] text-gray-500 cursor-pointer select-none">
-                                        <input type="checkbox" class="w-3.5 h-3.5 accent-[var(--cyan)]" onchange="toggleIronOnly('{{ item.id }}', this.checked)">
+                                        <input type="checkbox" class="w-4 h-4 accent-[var(--cyan)]" onchange="toggleIronOnly('{{ item.id }}', this.checked)">
                                         <span>فقط اتو</span>
-                                        <span class="mr-auto text-[10px] font-bold text-gray-400"><span class="money-value">{{ item.iron_only_price }}</span> تومان</span>
+                                        <span class="mr-auto text-[10px] font-bold text-gray-400">{{ item.iron_only_price|toman }} تومان</span>
                                     </label>
                                     {% endif %}
 
@@ -1362,18 +1375,18 @@
                                         <span class="text-[10px] font-bold text-gray-400">تعداد</span>
                                         <div class="flex items-center gap-2">
                                             <button type="button" class="qty-btn bg-white border border-gray-200 text-gray-600 hover:text-[var(--cyan)] hover:border-cyan-200"
-                                                    onclick="changeQty('{{ item.id }}', -1)">−</button>
-                                            <span class="qty-input text-sm min-w-[34px]" id="qty-{{ item.id }}">0</span>
+                                                    aria-label="کم کردن {{ item.name }}" onclick="changeQty('{{ item.id }}', -1)">−</button>
+                                            <span class="qty-input text-sm min-w-[34px]" id="qty-{{ item.id }}" aria-live="polite">۰</span>
                                             <button type="button" class="qty-btn bg-white border border-gray-200 text-gray-600 hover:text-[var(--cyan)] hover:border-cyan-200"
-                                                    onclick="changeQty('{{ item.id }}', 1)">+</button>
+                                                    aria-label="افزودن {{ item.name }}" onclick="changeQty('{{ item.id }}', 1)">+</button>
                                         </div>
                                     </div>
                                     <div id="item-note-wrap-{{ item.id }}" class="hidden mt-3">
-                                        <label class="block text-[11px] font-bold text-gray-600 mb-1.5">توضیحات این لباس</label>
-                                        <textarea id="item-note-{{ item.id }}" rows="2"
+                                        <label for="item-note-{{ item.id }}" class="block text-[11px] font-bold text-gray-600 mb-1.5">توضیحات این لباس (اختیاری)</label>
+                                        <textarea id="item-note-{{ item.id }}" rows="2" maxlength="500"
                                             oninput="updateItemDescription('{{ item.id }}', this.value)"
                                             class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs resize-y focus:outline-none focus:ring-2 focus:ring-cyan-200"
-                                            placeholder="اگر درباره این لباس توضیحی دارید اینجا بنویسید..."></textarea>
+                                            placeholder="مثلاً: لکه روی یقه، دکمه شل است…"></textarea>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -1381,32 +1394,15 @@
                     </div>
                 {% empty %}
                     <div class="text-center text-gray-400 text-sm py-8">
-                        فعلاً لیست اقلامی برای سفارش ثبت نشده. لطفاً از صفحه
-                        <a href="{% url 'pricing' %}" class="text-[var(--cyan)] font-bold">لیست قیمت</a>
-                        اقلام رو اضافه کنید.
+                        فعلاً لیست اقلامی برای سفارش ثبت نشده است؛ لطفاً بعداً دوباره سر بزنید یا با فروشگاه تماس بگیرید.
                     </div>
                 {% endfor %}
             </div>
 
-            {% if not customer_logged_in %}
-            <!-- قدم ۲: مشخصات مشتری -->
+            <!-- قدم ۲: روش دریافت -->
             <div class="flex items-center gap-2 mt-8 mb-5">
                 <span class="step-num">۲</span>
-                <h3 class="font-bold text-sm sm:text-base">مشخصات شما</h3>
-            </div>
-            <div class="grid sm:grid-cols-2 gap-3">
-                <input type="text" id="order-name" placeholder="نام و نام‌خانوادگی" required
-                       class="fab-input bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
-                <input type="tel" inputmode="numeric" id="order-phone" placeholder="شماره موبایل" required
-                       class="fab-input bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200 text-center">
-            </div>
-            <p class="text-[11px] text-gray-400 mt-2">برای ثبت سفارش، ابتدا حساب مشتری بسازید و وارد شوید.</p>
-            {% endif %}
-
-            <!-- قدم ۳: روش دریافت -->
-            <div class="flex items-center gap-2 mt-8 mb-5">
-                <span class="step-num">۳</span>
-                <h3 class="font-bold text-sm sm:text-base">روش تحویل</h3>
+                <h3 class="font-bold text-sm sm:text-base">روش تحویل لباس به ما</h3>
             </div>
             <div class="delivery-tabs flex rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-5 text-xs sm:text-sm font-bold p-1" id="delivery-track-neworder">
                 <div class="delivery-indicator" id="delivery-indicator-neworder"></div>
@@ -1417,13 +1413,16 @@
             <div id="section-pickup-neworder" class="method-panel">
                 <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">{{ shop_address|default:"آدرس فروشگاه در تنظیمات ثبت نشده است." }}</p>
                 <div class="map-frame w-full h-40 sm:h-56 rounded-xl overflow-hidden">
-                    <iframe src="https://maps.google.com/maps?q=تهران،%20ارم،%20بلوار%20فردوس%20غرب،%20خیابان%20بهار%20جنوبی&t=&z=17&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                    <iframe src="https://maps.google.com/maps?q=تهران،%20ارم،%20بلوار%20فردوس%20غرب،%20خیابان%20بهار%20جنوبی&t=&z=17&ie=UTF8&iwloc=&output=embed" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" title="موقعیت فروشگاه روی نقشه"></iframe>
                 </div>
             </div>
 
             <div id="section-courier-neworder" class="hidden">
+                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-xs font-medium leading-6 mb-4">
+                    پیک لباس‌ها را از آدرس شما تحویل می‌گیرد. ارسال برای سفارش‌های بالای ۱ میلیون تومان رایگان است؛ برای سفارش‌های کمتر، هزینه پیک هنگام تحویل از شما گرفته می‌شود.
+                </div>
                 <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
-                <div id="interactive-map-neworder" class="interactive-map map-frame w-full h-40 sm:h-56 rounded-xl mb-2"></div>
+                <div id="interactive-map-neworder" class="interactive-map map-frame w-full h-56 sm:h-64 rounded-xl mb-2"></div>
                 <div id="addr-preview-neworder" class="addr-preview" data-state="empty">
                     <span class="addr-preview-icon" aria-hidden="true"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" stroke-width="2"/></svg></span>
                     <div class="min-w-0 flex-1">
@@ -1431,12 +1430,12 @@
                         <p id="addr-text-neworder" class="addr-preview-text">روی نقشه بزنید تا آدرس نمایش داده شود.</p>
                     </div>
                 </div>
-                <input type="text" id="addr-detail-neworder" maxlength="150" placeholder="پلاک، واحد، زنگ (اختیاری)"
+                <input type="text" id="addr-detail-neworder" maxlength="150" placeholder="پلاک، واحد، زنگ (اختیاری)" aria-label="پلاک، واحد، زنگ"
                        class="fab-input w-full bg-white px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-xs mb-3 focus:outline-none">
                 {% if saved_address %}
                 <div class="addr-picker mt-3 mb-3 text-right">
                     <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-xs font-black text-gray-700">آدرس ارسال</span>
+                        <span class="text-xs font-black text-gray-700">آدرس دریافت</span>
                         <a href="{% url 'account' %}" class="text-[10px] font-bold text-cyan-700 hover:underline">ویرایش آدرس</a>
                     </div>
                     <div class="grid gap-2">
@@ -1445,7 +1444,7 @@
                             <span class="min-w-0 flex-1">
                                 <span class="block text-xs font-black text-gray-800">آدرس ثبت‌شده من</span>
                                 <span class="block text-[11px] text-gray-500 leading-5 mt-1">{{ saved_address.address|default:"آدرس متنی ثبت نشده است (فقط موقعیت روی نقشه)." }}</span>
-                                <span class="block text-[10px] text-gray-400 mt-1">کد پستی: <span class="font-bold text-gray-600">{{ saved_address.address_postal_code|default:"-" }}</span></span>
+                                <span class="block text-[10px] text-gray-400 mt-1">کد پستی: <span class="font-bold text-gray-600">{{ saved_address.address_postal_code|default:"-"|fa_digits }}</span></span>
                             </span>
                         </button>
                         <button type="button" id="addr-btn-new-neworder" onclick="useNewLocation('neworder')" class="addr-option">
@@ -1458,49 +1457,67 @@
                     </div>
                     <p id="addr-status-neworder" class="hidden"></p>
                 </div>
-                {% endif %}<button type="button" onclick="locateCourier('neworder')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
+                {% endif %}
+                <button type="button" onclick="locateCourier('neworder')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-3 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
                 <input type="hidden" id="lat-neworder">
                 <input type="hidden" id="lng-neworder">
-                <input type="tel" inputmode="numeric" maxlength="10" id="postal-neworder" placeholder="کد پستی (۱۰ رقمی)"
-                       class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-1 focus:outline-none text-center tracking-widest">
+                <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-neworder" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
+                       class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-3 focus:outline-none text-center tracking-widest">
+                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+                    <input type="checkbox" id="save-address-neworder" class="w-4 h-4 accent-[var(--cyan)]" {% if not saved_address %}checked{% endif %}>
+                    این آدرس برای سفارش‌های بعدی ذخیره شود
+                </label>
             </div>
 
             <!-- خلاصه سبد -->
-            <div class="mt-8 bg-gray-50 rounded-xl p-5 border border-gray-100">
+            <div class="mt-8 bg-gray-50 rounded-xl p-5 border border-gray-100" aria-live="polite">
                 <h4 class="text-sm font-semibold text-gray-600 mb-3">خلاصه سفارش</h4>
                 <ul id="cart-list" class="space-y-2 mb-3">
-                    <li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکردید.</li>
+                    <li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکرده‌اید.</li>
                 </ul>
-                <div class="border-t border-gray-200 pt-3 flex justify-between items-center">
-                    <span class="text-gray-700 font-medium text-sm">جمع کل:</span>
-                    <span id="cart-total" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">۰ تومان</span>
+                <div class="border-t border-gray-200 pt-3 space-y-2 text-sm">
+                    <div class="flex justify-between items-center text-gray-500">
+                        <span>جمع اقلام:</span>
+                        <span id="cart-subtotal">۰ تومان</span>
+                    </div>
+                    <div class="flex justify-between items-center text-gray-500">
+                        <span>مالیات (۱۰٪):</span>
+                        <span id="cart-tax">۰ تومان</span>
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+                        <span class="text-gray-700 font-bold">مبلغ قابل پرداخت:</span>
+                        <span id="cart-total" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">۰ تومان</span>
+                    </div>
                 </div>
-                <p id="cart-note" class="hidden text-[11px] text-amber-600 mt-2">قیمت برخی اقلام انتخابی متغیره؛ جمع کل تقریبیه و بعد از ثبت سفارش دقیقش رو باهاتون هماهنگ می‌کنیم.</p>
+                <p id="cart-note" class="hidden text-[11px] text-amber-600 mt-2 leading-6">قیمت برخی اقلام انتخابی پس از بررسی لباس مشخص می‌شود؛ مبلغ این اقلام بعداً به فاکتور اضافه و پیش از پرداخت به شما اطلاع داده می‌شود.</p>
             </div>
 
-            {% if customer_logged_in %}
             <label class="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 cursor-pointer select-none">
-                <input type="checkbox" id="use-wallet" class="w-4 h-4 accent-emerald-600" checked>
+                <input type="checkbox" id="use-wallet" class="w-4 h-4 accent-emerald-600" onchange="updateCartUI()">
                 <span class="min-w-0 flex-1">
-                    <span class="block text-xs font-black text-emerald-800">اگر موجودی کافی باشد، از کیف پول پرداخت شود</span>
-                    <span class="block text-[10px] text-emerald-700/70 mt-0.5">موجودی فعلی: <span class="money-value">{{ wallet.balance|default:0 }}</span> تومان</span>
+                    <span class="block text-xs font-black text-emerald-800">پرداخت از کیف پول</span>
+                    <span class="block text-[10px] text-emerald-700/70 mt-0.5">موجودی فعلی: {{ wallet.balance|default:0|toman }} تومان</span>
+                    <span id="wallet-hint" class="hidden block text-[10px] text-amber-700 mt-1"></span>
                 </span>
-                <a href="{% url 'wallet' %}" onclick="event.stopPropagation()" class="text-[10px] font-black text-emerald-700 whitespace-nowrap">مدیریت کیف پول</a>
+                <a href="{% url 'wallet' %}" onclick="event.stopPropagation()" class="text-[10px] font-black text-emerald-700 whitespace-nowrap py-2">شارژ کیف پول</a>
             </label>
             <button type="button" id="submit-order-btn" onclick="submitOrder()"
                     class="btn-motion mt-6 w-full bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold py-4 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 ثبت نهایی سفارش
             </button>
-            {% endif %}
 
-            <div id="order-success" class="hidden mt-6 rounded-2xl p-6 text-center flex flex-col items-center gap-3 bg-green-50 border border-green-200">
+            <div id="order-success" class="hidden mt-6 rounded-2xl p-6 text-center flex flex-col items-center gap-3 bg-green-50 border border-green-200" role="status">
                 <div class="success-check w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
                     <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24"><path class="checkmark-path" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 </div>
                 <h4 class="font-black text-green-700 text-sm sm:text-base">سفارش شما با موفقیت ثبت شد</h4>
-                <p id="order-success-msg" class="text-green-700 text-xs sm:text-sm"></p>
-                <a href="#track-section" class="btn-motion inline-flex items-center gap-2 bg-white border border-green-200 text-green-700 font-bold px-5 py-2.5 rounded-xl text-xs sm:text-sm">پیگیری این سفارش</a>
+                <p id="order-success-invoice" class="font-black text-gray-900 text-lg"></p>
+                <p id="order-success-msg" class="text-green-700 text-xs sm:text-sm leading-7"></p>
+                <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <a id="order-success-track" href="#track-section" class="btn-motion inline-flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold px-5 py-3 rounded-xl text-xs sm:text-sm">مشاهده و پرداخت سفارش</a>
+                    <button type="button" onclick="startNewOrder()" class="btn-motion inline-flex items-center justify-center gap-2 bg-white border border-green-200 text-green-700 font-bold px-5 py-3 rounded-xl text-xs sm:text-sm">ثبت سفارش جدید</button>
+                </div>
             </div>
         </form>
     </section>
@@ -2564,65 +2581,92 @@
 
         /* ---------- سبد سفارش آنلاین ---------- */
         var cart = {};
+        var itemIronOnly = {};
+        var MAX_ITEM_QTY = 50;
+        var WALLET_BALANCE = Number('{{ wallet.balance|default:0|stringformat:"d" }}') || 0;
+        var orderSubmitting = false;
 
-        // قیمت‌ها تو دیتابیس متنی هستن (مثلاً "520,000" یا حتی "۳ تا ۷ میلیون").
-        // این تابع سعی می‌کنه عدد رو استخراج کنه؛ اگه نشد null برمی‌گردونه یعنی «نیاز به هماهنگی».
+        function faNumber(n){ return Number(n || 0).toLocaleString('fa-IR'); }
+        function escapeHtml(text){
+            return String(text).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
+        }
+        // Integer tax, same rule as the server: 10% rounded down.
+        function orderTax(subtotal){ return Math.floor(subtotal / 10); }
+
+        // قیمت‌ها در دیتابیس متنی هستند (مثلاً "520,000" یا "۳ تا ۷ میلیون").
+        // اگر عدد خالص نبود null برمی‌گردد یعنی «قیمت پس از بررسی».
         function parsePrice(raw){
             if (!raw) return null;
-            var fa = '۰۱۲۳۴۵۶۷۸۹';
-            var normalized = String(raw).replace(/[۰-۹]/g, function(d){ return String(fa.indexOf(d)); }).replace(/,/g, '').trim();
+            var normalized = String(raw).replace(/[۰-۹]/g, function(d){ return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); })
+                .replace(/[,٬\s]/g, '');
             if (/^\d+$/.test(normalized)) return parseInt(normalized, 10);
             return null;
         }
 
+        // Same label the invoice will show: «پیراهن مردانه (فقط اتو)».
+        function itemLabel(cardEl, ironOnly){
+            var name = cardEl.dataset.name || '';
+            var category = cardEl.dataset.category || '';
+            if (category && name.indexOf(category) === -1) name += ' ' + category;
+            return name + (ironOnly ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
+        }
+
+        function cartEntry(itemId, qty, description){
+            var cardEl = document.getElementById('item-card-' + itemId);
+            var ironOnly = !!itemIronOnly[itemId];
+            var priceRaw = ironOnly ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice;
+            return { name: itemLabel(cardEl, ironOnly), price: parsePrice(priceRaw), qty: qty, description: description || '' };
+        }
+
         function updateCartUI(){
             var listEl = document.getElementById('cart-list');
-            var totalEl = document.getElementById('cart-total');
             var noteEl = document.getElementById('cart-note');
             var keys = Object.keys(cart);
-            if (keys.length === 0){
-                listEl.innerHTML = '<li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکردید.</li>';
-                totalEl.textContent = '۰ تومان';
-                if (noteEl) noteEl.classList.add('hidden');
-                return;
-            }
-            var total = 0, html = '', hasUnknown = false;
+            var subtotal = 0, html = '', hasUnknown = false;
             keys.forEach(function(id){
                 var it = cart[id];
                 var lineText;
                 if (it.price === null){
                     hasUnknown = true;
-                    lineText = 'هماهنگی قیمت';
+                    lineText = 'پس از بررسی';
                 } else {
-                    var lineTotal = it.price * it.qty;
-                    total += lineTotal;
-                    lineText = lineTotal.toLocaleString('de-DE') + ' تومان';
+                    subtotal += it.price * it.qty;
+                    lineText = faNumber(it.price * it.qty) + ' تومان';
                 }
-                html += '<li class="flex justify-between items-center text-sm">' +
-                            '<span class="text-gray-600">' + it.name + ' × ' + it.qty + '</span>' +
-                            '<span class="font-bold text-gray-800">' + lineText + '</span>' +
+                html += '<li class="flex justify-between items-center gap-3 text-sm">' +
+                            '<span class="text-gray-600 min-w-0">' + escapeHtml(it.name) + ' × ' + faNumber(it.qty) + '</span>' +
+                            '<span class="font-bold text-gray-800 whitespace-nowrap">' + lineText + '</span>' +
                         '</li>';
             });
-            listEl.innerHTML = html;
-            totalEl.textContent = (hasUnknown ? '~ ' : '') + total.toLocaleString('de-DE') + ' تومان';
+            listEl.innerHTML = keys.length ? html : '<li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکرده‌اید.</li>';
+            var tax = orderTax(subtotal), total = subtotal + tax;
+            document.getElementById('cart-subtotal').textContent = faNumber(subtotal) + ' تومان';
+            document.getElementById('cart-tax').textContent = faNumber(tax) + ' تومان';
+            document.getElementById('cart-total').textContent = faNumber(total) + ' تومان' + (hasUnknown ? ' + اقلام پس از بررسی' : '');
             if (noteEl) noteEl.classList.toggle('hidden', !hasUnknown);
-        }
 
-        // lineId = آیدی آیتم. هر آیتم یه شمارشگر تعداد داره؛ نوع سرویس (خشکشویی+اتو یا فقط اتو)
-        // با چک‌باکس toggleIronOnly مشخص می‌شه، نه با شمارشگر جدا.
-        var itemIronOnly = {};
+            var useWallet = document.getElementById('use-wallet');
+            var hint = document.getElementById('wallet-hint');
+            if (useWallet && hint){
+                var short = useWallet.checked && total > 0 && WALLET_BALANCE < total;
+                hint.textContent = short ? 'موجودی کیف پول برای این سفارش کافی نیست؛ سفارش ثبت می‌شود و بعداً می‌توانید پرداخت کنید.' : '';
+                hint.classList.toggle('hidden', !short);
+            }
+        }
 
         function toggleIronOnly(itemId, checked){
             itemIronOnly[itemId] = checked;
             var cardEl = document.getElementById('item-card-' + itemId);
             var priceLabel = document.getElementById('price-label-' + itemId);
             if (!cardEl) return;
-            var priceRaw = checked ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice;
-            if (priceLabel) priceLabel.textContent = Number(parsePrice(priceRaw)).toLocaleString('de-DE') + ' تومان';
-
+            var price = parsePrice(checked ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice);
+            if (priceLabel){
+                priceLabel.innerHTML = price === null
+                    ? '<span class="item-price-empty">قیمت پس از بررسی لباس اعلام می‌شود</span>'
+                    : '<span class="text-xs font-bold text-gray-500">' + faNumber(price) + ' تومان</span>';
+            }
             if (cart[itemId]){
-                var name = cardEl.dataset.name + (checked ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
-                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: cart[itemId].qty, description: cart[itemId].description || '' };
+                cart[itemId] = cartEntry(itemId, cart[itemId].qty, cart[itemId].description);
                 updateCartUI();
             }
         }
@@ -2631,97 +2675,130 @@
 
         function changeQty(itemId, delta){
             var cardEl = document.getElementById('item-card-' + itemId);
-            if (!cardEl) return;
-            var ironOnly = !!itemIronOnly[itemId];
-            var priceRaw = ironOnly ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice;
-            var name = cardEl.dataset.name + (ironOnly ? ' (فقط اتو)' : ' (خشکشویی + اتو)');
-
+            if (!cardEl || orderSubmitting) return;
             var current = cart[itemId] ? cart[itemId].qty : 0;
-            var next = Math.max(0, current + delta);
+            var next = Math.min(MAX_ITEM_QTY, Math.max(0, current + delta));
+            if (delta > 0 && current >= MAX_ITEM_QTY){
+                showToast('حداکثر ' + faNumber(MAX_ITEM_QTY) + ' عدد از هر قلم را می‌توانید آنلاین ثبت کنید؛ برای تعداد بیشتر با فروشگاه تماس بگیرید.', 4500);
+            }
             if (next === 0){
                 delete cart[itemId];
             } else {
-                cart[itemId] = { name: name, priceRaw: priceRaw, price: parsePrice(priceRaw), qty: next, description: cart[itemId] ? (cart[itemId].description || '') : '' };
+                cart[itemId] = cartEntry(itemId, next, cart[itemId] ? cart[itemId].description : '');
             }
             var qtyEl = document.getElementById('qty-' + itemId);
-            if (qtyEl) qtyEl.textContent = next;
+            if (qtyEl) qtyEl.textContent = faNumber(next);
             cardEl.classList.toggle('selected', next > 0);
             var noteWrap = document.getElementById('item-note-wrap-' + itemId); if (noteWrap) noteWrap.classList.toggle('hidden', next <= 0);
             updateCartUI();
         }
+
+        // Find an item quickly instead of scrolling past every card.
+        (function initItemSearch(){
+            var input = document.getElementById('item-search');
+            if (!input) return;
+            input.addEventListener('input', function(){
+                var q = input.value.trim().replace(/ي/g, 'ی').replace(/ك/g, 'ک');
+                var anyVisible = false;
+                document.querySelectorAll('[data-category-block]').forEach(function(block){
+                    var blockVisible = false;
+                    block.querySelectorAll('.item-card').forEach(function(card){
+                        var text = (card.dataset.name || '') + ' ' + (card.dataset.category || '');
+                        var match = !q || text.indexOf(q) !== -1;
+                        card.classList.toggle('search-hidden', !match);
+                        if (match) blockVisible = true;
+                    });
+                    block.classList.toggle('search-hidden', !blockVisible);
+                    if (blockVisible) anyVisible = true;
+                });
+                document.getElementById('item-search-empty').classList.toggle('hidden', anyVisible);
+            });
+        })();
 
         function getOrderCsrfToken(){
             var el = document.querySelector('#order-form input[name="csrfmiddlewaretoken"]');
             return el ? el.value : '';
         }
 
-        function submitOrder(){
-            var nameEl = document.getElementById('order-name');
-            var phoneEl = document.getElementById('order-phone');
-            var loggedIn = {{ customer_logged_in|yesno:"true,false" }};
-            var name = loggedIn ? '' : (nameEl ? nameEl.value.trim() : '');
-            var phone = loggedIn ? '' : (phoneEl ? phoneEl.value.trim() : '');
+        function setSubmitIdle(btn, html){
+            btn.innerHTML = html;
+            btn.disabled = false;
+            btn.classList.remove('opacity-75', 'cursor-not-allowed');
+            orderSubmitting = false;
+        }
 
-            if (!loggedIn && !name){ flashInvalid(nameEl, 'لطفاً نام خود را وارد کنید.'); return; }
-            if (!loggedIn && (!phone || phone.length < 10)){ flashInvalid(phoneEl, 'لطفاً شماره موبایل خود را به‌درستی وارد کنید.'); return; }
+        function startNewOrder(){
+            window.location.href = '{% url "home" %}#order-section';
+            window.location.reload();
+        }
+
+        function submitOrder(){
+            var btn = document.getElementById('submit-order-btn');
+            if (!btn || orderSubmitting) return;
 
             var items = Object.keys(cart).map(function(id){
                 return {
                     line_id: id,
-                    name: cart[id].name,
-                    price_raw: cart[id].priceRaw,
-                    price_numeric: cart[id].price,
                     iron_only: !!itemIronOnly[id],
-                    quantity: cart[id].qty, description: cart[id].description || ''
+                    price_numeric: cart[id].price,
+                    quantity: cart[id].qty,
+                    description: cart[id].description || ''
                 };
             });
             if (items.length === 0){ flashInvalid(document.getElementById('item-grid'), 'لطفاً حداقل یک قلم لباس انتخاب کنید.'); return; }
 
             var courierActive = document.getElementById('btn-courier-neworder').classList.contains('active');
-            var useWallet = document.getElementById('use-wallet') ? document.getElementById('use-wallet').checked : false;
-            var payload = { name: name, phone: phone, items: items, delivery_method: courierActive ? 'courier' : 'pickup', use_wallet: useWallet };
+            var useWalletEl = document.getElementById('use-wallet');
+            var payload = { items: items, delivery_method: courierActive ? 'courier' : 'pickup', use_wallet: !!(useWalletEl && useWalletEl.checked) };
 
             if (courierActive){
                 var lat = document.getElementById('lat-neworder').value;
                 var lng = document.getElementById('lng-neworder').value;
-                var postal = document.getElementById('postal-neworder').value;
+                var postalEl = document.getElementById('postal-neworder');
+                var postal = normalizePostal(postalEl.value);
                 if (!lat){ flashInvalid(document.getElementById('interactive-map-neworder'), 'لطفاً موقعیت خود را روی نقشه انتخاب کنید.'); return; }
-                if (!postal || postal.length !== 10){ flashInvalid(document.getElementById('postal-neworder'), 'لطفاً کد پستی ۱۰ رقمی خود را به‌درستی وارد کنید.'); return; }
+                if (!/^\d{10}$/.test(postal)){ flashInvalid(postalEl, 'کد پستی باید ۱۰ رقم باشد.'); return; }
+                var saveEl = document.getElementById('save-address-neworder');
                 payload.lat = lat; payload.lng = lng; payload.postal = postal; payload.address = getCourierAddress('neworder');
+                payload.save_address = !!(saveEl && saveEl.checked);
             }
 
-            var btn = document.getElementById('submit-order-btn');
+            orderSubmitting = true;
             var originalText = btn.innerHTML;
             btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> در حال ثبت سفارش...';
             btn.disabled = true;
             btn.classList.add('opacity-75', 'cursor-not-allowed');
 
-            fetch('/place-order/', {
+            fetch('{% url "place_order" %}', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getOrderCsrfToken() },
                 body: JSON.stringify(payload)
             })
             .then(function(r){ return r.json(); })
             .then(function(data){
-                if (data.status === 'success'){
-                    var paymentText = data.paid_by_wallet ? ' — مبلغ سفارش از کیف پول پرداخت شد.' : (data.wallet_insufficient ? ' — موجودی کیف پول برای پرداخت کافی نبود؛ سفارش ثبت شد و می‌توانید بعداً پرداخت کنید.' : '');
-                    document.getElementById('order-success-msg').textContent =
-                        'شماره فاکتور شما: ' + (data.invoice_number || data.order_id || '') + ' — با همین شماره فاکتور و موبایل می‌توانید سفارش را پیگیری کنید.' + paymentText;
-                    document.getElementById('order-form').querySelectorAll('button, input').forEach(function(el){ el.disabled = true; });
-                    document.getElementById('order-success').classList.remove('hidden');
-                    document.getElementById('order-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                    showToast('خطا در ثبت سفارش: ' + (data.message || 'لطفاً دوباره تلاش کنید.'));
+                if (data.status !== 'success'){
+                    setSubmitIdle(btn, originalText);
+                    showToast(data.message || 'ثبت سفارش انجام نشد؛ لطفاً دوباره تلاش کنید.', 5000);
+                    return;
                 }
+                var paymentText = data.paid_by_wallet
+                    ? 'مبلغ سفارش از کیف پول شما پرداخت شد.'
+                    : (data.wallet_insufficient
+                        ? 'موجودی کیف پول کافی نبود؛ می‌توانید از صفحه سفارش، آنلاین یا بعد از شارژ کیف پول پرداخت کنید.'
+                        : (data.total > 0 ? 'برای پرداخت، روی «مشاهده و پرداخت سفارش» بزنید.' : 'مبلغ نهایی پس از بررسی لباس‌ها اعلام می‌شود.'));
+                document.getElementById('order-success-invoice').textContent = 'شماره فاکتور: ' + faNumber(data.invoice_number || data.order_id);
+                document.getElementById('order-success-msg').textContent =
+                    'مبلغ فاکتور: ' + faNumber(data.total) + ' تومان. ' + paymentText + ' وضعیت سفارش را همیشه در بخش «سفارش‌های من» می‌بینید.';
+                document.getElementById('order-success-track').href = data.track_url;
+                document.getElementById('order-form').querySelectorAll('input, textarea, .qty-btn, .delivery-tab, #submit-order-btn').forEach(function(el){ el.disabled = true; });
+                btn.innerHTML = '✓ سفارش ثبت شد';
+                btn.classList.remove('opacity-75');
+                document.getElementById('order-success').classList.remove('hidden');
+                document.getElementById('order-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
             })
             .catch(function(){
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                showToast('خطا در ارتباط با سرور. لطفاً اینترنت خود را بررسی کنید.');
+                setSubmitIdle(btn, originalText);
+                showToast('ارتباط با سرور برقرار نشد؛ اینترنت خود را بررسی و دوباره تلاش کنید.', 5000);
             });
         }
 

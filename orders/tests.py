@@ -254,3 +254,82 @@ class DeliveryCourierRequestTests(TestCase):
         page = self.client.get(reverse('home'), {'order_id': self.order.id}).content.decode()
         self.assertNotIn('نحوه دریافت لباس را انتخاب کنید', page)
         self.assertIn('ویرایش آدرس ارسال', page)
+
+
+class PlaceOrderTests(TestCase):
+    def setUp(self):
+        from .models import PriceCategory, PriceItem
+        self.customer = Customer.objects.create(name='سفارش‌دهنده', phone='09120000017')
+        men = PriceCategory.objects.create(name='مردانه')
+        self.shirt = PriceItem.objects.create(category=men, name='پیراهن', dry_clean_price='220000', iron_only_price='160000')
+        self.trousers = PriceItem.objects.create(category=men, name='شلوار', dry_clean_price='220,000', iron_only_price='160000')
+        self.coat = PriceItem.objects.create(category=men, name='کاپشن', dry_clean_price='', iron_only_price=None)
+        self.client = login_customer(Client(), self.customer)
+
+    def post(self, payload, raw=None):
+        body = raw if raw is not None else json.dumps(payload)
+        return self.client.post(reverse('place_order'), body, content_type='application/json')
+
+    def test_normal_order_totals_and_labels(self):
+        response = self.post({'items': [
+            {'line_id': self.shirt.id, 'quantity': 2, 'description': 'یقه لک دارد'},
+            {'line_id': self.trousers.id, 'quantity': 1, 'iron_only': True},
+        ]})
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        order = Order.objects.get(id=data['order_id'])
+        self.assertEqual(order.total_price, Decimal('660000'))
+        self.assertEqual(data['total'], 660000)
+        names = sorted(order.orderitem_set.values_list('item_name', flat=True))
+        self.assertEqual(names, ['شلوار مردانه (فقط اتو)', 'پیراهن مردانه (خشکشویی + اتو)'])
+
+    def test_bad_input_never_leaves_an_order(self):
+        bad_payloads = [{'items': []}, {'items': 'x'}] + [
+            {'items': [{'line_id': self.shirt.id, 'quantity': q}]}
+            for q in (0, -5, '1.5', 2.7, 99999, 10 ** 20, 'abc', None, True)
+        ]
+        bad_payloads += [
+            {'items': [{'line_id': 999999, 'quantity': 1}]},
+            {'items': [{'line_id': self.coat.id, 'quantity': 1, 'iron_only': True}]},
+            {'items': [self.shirt.id]},
+            {'items': [{'line_id': self.shirt.id, 'quantity': 1}], 'delivery_method': 'courier', 'lat': 'nan', 'lng': '51', 'postal': '1234567890'},
+        ]
+        for payload in bad_payloads:
+            response = self.post(payload)
+            self.assertEqual(response.json()['status'], 'error', payload)
+            self.assertTrue(re.search('[آ-ی]', response.json()['message']), payload)
+        for raw in ['[]', '{bad', 'null']:
+            self.assertEqual(self.post(None, raw=raw).json()['status'], 'error')
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_changed_price_is_rejected(self):
+        response = self.post({'items': [{'line_id': self.shirt.id, 'quantity': 1, 'price_numeric': 200000}]})
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_unpriced_item_is_allowed_at_zero(self):
+        data = self.post({'items': [{'line_id': self.coat.id, 'quantity': 1, 'price_numeric': None}]}).json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['total'], 0)
+
+    def test_courier_order_saves_normalized_location_and_address(self):
+        data = self.post({
+            'items': [{'line_id': self.shirt.id, 'quantity': 1}], 'delivery_method': 'courier',
+            'lat': '35.72', 'lng': '51.29', 'postal': '۱۲۳۴۵۶۷۸۹۰', 'address': 'تهران، پلاک ۱', 'save_address': True,
+        }).json()
+        order = Order.objects.get(id=data['order_id'])
+        self.assertEqual((order.status, order.postal_code), ('collecting', '1234567890'))
+        self.customer.refresh_from_db()
+        self.assertEqual(self.customer.address_postal_code, '1234567890')
+        self.assertTrue(self.customer.has_saved_address)
+
+    def test_wallet_payment_on_order(self):
+        Wallet.objects.create(customer=self.customer, balance=Decimal('300000'))
+        data = self.post({'items': [{'line_id': self.shirt.id, 'quantity': 1}], 'use_wallet': True}).json()
+        self.assertTrue(data['paid_by_wallet'])
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('58000'))
+        data = self.post({'items': [{'line_id': self.shirt.id, 'quantity': 1}], 'use_wallet': True}).json()
+        self.assertTrue(data['wallet_insufficient'])
+        self.assertFalse(Order.objects.get(id=data['order_id']).is_paid)
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('58000'))
+        self.assertEqual(WalletTransaction.objects.filter(transaction_type='debit').count(), 1)

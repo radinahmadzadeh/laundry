@@ -10,7 +10,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.db import transaction
 import re
 from django.utils import timezone
-from .models import Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
+from .models import order_tax, Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 from .templatetags.fa_format import fa_digits, toman
 from django.db.models import Avg, Count, F
 
@@ -634,110 +634,172 @@ def request_courier(request):
     })
 
 
+MAX_ITEM_QUANTITY = 50
+MAX_ORDER_LINES = 60
+# Order.total_price holds at most 10 digits; stay far below that so a single request can never
+# store a total that the database cannot read back (which used to break the panel).
+MAX_ORDER_TOTAL = 1_000_000_000
+
+
+def parse_quantity(raw):
+    """A whole number between 1 and MAX_ITEM_QUANTITY, or None."""
+    if isinstance(raw, bool):
+        return None
+    if isinstance(raw, float) and raw.is_integer():
+        raw = int(raw)
+    if isinstance(raw, str):
+        raw = raw.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789')).strip()
+        raw = int(raw) if raw.isdigit() else None
+    if isinstance(raw, int) and 1 <= raw <= MAX_ITEM_QUANTITY:
+        return raw
+    return None
+
+
+def order_item_label(price_item, iron_only):
+    """'پیراهن مردانه (فقط اتو)' — the category tells men's and women's items apart on the invoice."""
+    name = price_item.name
+    category = price_item.category.name
+    if category and category not in name:
+        name = f'{name} {category}'
+    service = 'فقط اتو' if iron_only else 'خشکشویی + اتو'
+    return f'{name} ({service})'[:100]
+
+
+def pay_order_from_wallet(order, customer_id):
+    """Pay an unpaid order from the customer's wallet. Safe against double taps and parallel requests.
+
+    Returns 'paid', 'already_paid', 'insufficient' or 'invalid'.
+    """
+    if order.total_price <= 0:
+        return 'invalid'
+    with transaction.atomic():
+        wallet, _ = Wallet.objects.get_or_create(customer_id=customer_id)
+        if not Order.objects.filter(pk=order.pk, is_paid=False).update(is_paid=True):
+            return 'already_paid'
+        debited = Wallet.objects.filter(pk=wallet.pk, balance__gte=order.total_price).update(
+            balance=F('balance') - order.total_price, updated_at=timezone.now()
+        )
+        if not debited:
+            transaction.set_rollback(True)
+            return 'insufficient'
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            transaction_type='debit',
+            amount=order.total_price,
+            description=f'پرداخت فاکتور شماره {order.id}',
+            order=order,
+        )
+    order.is_paid = True
+    return 'paid'
+
+
 def place_order(request):
     """
-    ثبت سفارش آنلاین از فرم «ثبت سفارش» در home.html.
-    ورودی JSON مورد انتظار:
+    ثبت سفارش آنلاین از فرم «ثبت سفارش» در home.html (فقط برای مشتری واردشده).
+    ورودی JSON:
     {
-        "name": "...", "phone": "...",
-        "items": [{"name": "...", "quantity": 1, "price_numeric": 520000, "price_raw": "520,000"}, ...],
+        "items": [{"line_id": 12, "quantity": 2, "iron_only": false, "price_numeric": 220000, "description": "..."}],
         "delivery_method": "pickup" | "courier",
-        "lat": "...", "lng": "...", "postal": "..."   # فقط وقتی courier باشه
+        "lat": "...", "lng": "...", "postal": "...", "address": "...", "save_address": true,  # فقط برای پیک
+        "use_wallet": false
     }
-    اگه مشتری با این شماره موبایل قبلاً وجود نداشته باشه، یک Customer جدید ساخته می‌شه.
-    اگه قیمت بعضی اقلام متنی/غیرعددی باشه (price_numeric خالی)، قیمت آیتم صفر ثبت می‌شه
-    تا بعداً از پنل ادمین توسط شما اصلاح بشه.
+    همه‌چیز قبل از ساختن سفارش بررسی می‌شود و سفارش در یک تراکنش ساخته می‌شود؛ پس هیچ خطایی
+    سفارش نیمه‌کاره یا خالی باقی نمی‌گذارد. اقلامی که قیمتشان «در حال هماهنگی» است با قیمت صفر
+    ثبت می‌شوند تا فروشگاه بعداً قیمت را مشخص کند.
     """
-    if not request.session.get('customer_logged_in') or not request.session.get('customer_id'):
-        return JsonResponse({'status': 'error', 'message': 'برای ثبت سفارش ابتدا وارد حساب مشتری شوید.'}, status=403)
-
-    logged_customer = Customer.objects.filter(id=request.session.get('customer_id')).first()
+    customer_id = session_customer_id(request)
+    logged_customer = Customer.objects.filter(id=customer_id).first() if customer_id else None
     if not logged_customer:
-        return JsonResponse({'status': 'error', 'message': 'حساب مشتری معتبر نیست؛ دوباره وارد شوید.'}, status=403)
-
+        return order_error('برای ثبت سفارش ابتدا وارد حساب مشتری شوید.', status=403)
     if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'درخواست نامعتبر است.'})
+        return order_error('درخواست نامعتبر است.', status=405)
 
     try:
         data = json.loads(request.body)
+    except (TypeError, ValueError):
+        return order_error('اطلاعات سفارش خوانا نیست؛ صفحه را تازه کنید و دوباره تلاش کنید.')
+    if not isinstance(data, dict):
+        return order_error('اطلاعات سفارش نامعتبر است.')
 
-        items = data.get('items') or []
-        delivery_method = data.get('delivery_method')
+    items = data.get('items')
+    if not isinstance(items, list) or not items:
+        return order_error('حداقل یک قلم لباس انتخاب کنید.')
+    if len(items) > MAX_ORDER_LINES:
+        return order_error('تعداد ردیف‌های سفارش بیش از حد مجاز است.')
 
-        if not items:
-            return JsonResponse({'status': 'error', 'message': 'حداقل یک قلم لباس انتخاب کنید.'})
+    ids = set()
+    for item in items:
+        if not isinstance(item, dict):
+            return order_error('اطلاعات اقلام سفارش نامعتبر است.')
+        line_id = str(item.get('line_id') or '')
+        if not line_id.isdigit():
+            return order_error('یکی از اقلام سفارش دیگر معتبر نیست؛ صفحه را تازه کنید و دوباره تلاش کنید.')
+        ids.add(int(line_id))
+    price_items = PriceItem.objects.select_related('category').in_bulk(ids)
 
-        # پیدا کردن یا ساختن مشتری بر اساس شماره موبایل
-        customer = logged_customer
-        order = Order.objects.create(customer=customer)
+    lines = []
+    for item in items:
+        price_item = price_items.get(int(item['line_id']))
+        if not price_item:
+            return order_error('یکی از اقلام سفارش دیگر معتبر نیست؛ صفحه را تازه کنید و دوباره تلاش کنید.')
+        quantity = parse_quantity(item.get('quantity'))
+        if quantity is None:
+            return order_error(f'تعداد «{price_item.name}» باید عددی بین ۱ تا {fa_digits(MAX_ITEM_QUANTITY)} باشد.')
+        iron_only = item.get('iron_only') is True
+        if iron_only and not price_item.iron_only_price:
+            return order_error(f'سرویس «فقط اتو» برای «{price_item.name}» ارائه نمی‌شود.')
+        price = parse_price_value(price_item.iron_only_price if iron_only else price_item.dry_clean_price)
+        # The page may have been open while the shop changed a price: never charge something not shown.
+        shown = item.get('price_numeric')
+        if isinstance(shown, (int, float)) and not isinstance(shown, bool) and int(shown) != price:
+            return order_error('قیمت برخی اقلام به‌روز شده است؛ صفحه را تازه کنید تا قیمت‌های جدید را ببینید.', status=409)
+        description = item.get('description')
+        description = description.strip()[:500] if isinstance(description, str) else ''
+        lines.append((price_item, iron_only, quantity, price, description))
 
-        if delivery_method == 'courier':
-            lat = data.get('lat')
-            lng = data.get('lng')
-            postal = data.get('postal')
-            error = validate_courier_location(lat, lng, postal)
-            if error:
-                order.delete()
-                return JsonResponse({'status': 'error', 'message': error})
+    subtotal = sum(price * quantity for _, _, quantity, price, _ in lines)
+    if subtotal + order_tax(subtotal) > MAX_ORDER_TOTAL:
+        return order_error('مبلغ سفارش بیش از حد مجاز است؛ لطفاً با فروشگاه تماس بگیرید.')
+
+    courier = data.get('delivery_method') == 'courier'
+    location = None
+    if courier:
+        location, error = clean_courier_location(data.get('lat'), data.get('lng'), data.get('postal'))
+        if error:
+            return order_error(error)
+
+    with transaction.atomic():
+        order = Order(customer=logged_customer)
+        if courier:
             # لباس‌ها هنوز دست ما نرسیده؛ تا وقتی پیک آن‌ها را بیاورد سفارش در مرحله «جمع‌آوری» است
             order.status = 'collecting'
             order.courier_requested = True
-            order.courier_declined = False
-            order.latitude = lat
-            order.longitude = lng
-            order.postal_code = postal
+            order.latitude, order.longitude, order.postal_code = location
             order.address = str(data.get('address') or '').strip()[:500]
-            order.save()
+        order.save()
+        OrderItem.objects.bulk_create([
+            OrderItem(order=order, item_name=order_item_label(price_item, iron_only),
+                      quantity=quantity, price=price, description=description)
+            for price_item, iron_only, quantity, price, description in lines
+        ])
+        order.total_price = subtotal + order_tax(subtotal)
+        order.save(update_fields=['total_price'])
+        if courier and data.get('save_address') is True:
+            (logged_customer.address_latitude, logged_customer.address_longitude,
+             logged_customer.address_postal_code) = location
+            logged_customer.address = order.address[:1000]
+            logged_customer.save(update_fields=['address', 'address_latitude', 'address_longitude', 'address_postal_code'])
 
-        for item in items:
-            quantity = max(1, int(item.get('quantity') or 1))
-            try:
-                price_item = PriceItem.objects.get(id=int(item.get('line_id')))
-            except (TypeError, ValueError, PriceItem.DoesNotExist):
-                order.delete()
-                return JsonResponse({'status': 'error', 'message': 'یکی از اقلام سفارش دیگر معتبر نیست؛ صفحه را تازه کنید و دوباره تلاش کنید.'})
-            iron_only = bool(item.get('iron_only'))
-            raw_price = price_item.iron_only_price if iron_only else price_item.dry_clean_price
-            price = parse_price_value(raw_price)
-            item_name = price_item.name + (' (فقط اتو)' if iron_only else ' (خشکشویی + اتو)')
-            OrderItem.objects.create(
-                order=order,
-                item_name=item_name[:100],
-                quantity=quantity,
-                price=price,
-                description=(item.get('description') or '').strip()[:2000],
-            )
+    payment = None
+    if data.get('use_wallet') is True and order.total_price > 0:
+        payment = pay_order_from_wallet(order, logged_customer.id)
 
-        order.refresh_from_db()
-
-        paid_by_wallet = False
-        wallet_insufficient = False
-        if data.get('use_wallet') and order.total_price > 0:
-            with transaction.atomic():
-                wallet, _ = Wallet.objects.select_for_update().get_or_create(customer=logged_customer)
-                if wallet.balance >= order.total_price:
-                    wallet.balance -= order.total_price
-                    wallet.save(update_fields=['balance', 'updated_at'])
-                    WalletTransaction.objects.create(
-                        wallet=wallet,
-                        transaction_type='debit',
-                        amount=order.total_price,
-                        description=f'پرداخت فاکتور شماره {order.id}',
-                        order=order,
-                    )
-                    order.is_paid = True
-                    order.save(update_fields=['is_paid'])
-                    paid_by_wallet = True
-                else:
-                    wallet_insufficient = True
-
-        return JsonResponse({
-            'status': 'success',
-            'order_id': order.id,
-            'invoice_number': order.id,
-            'paid_by_wallet': paid_by_wallet,
-            'wallet_insufficient': wallet_insufficient,
-        })
-
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)})
+    return JsonResponse({
+        'status': 'success',
+        'order_id': order.id,
+        'invoice_number': order.id,
+        'total': int(order.total_price),
+        'paid_by_wallet': payment == 'paid',
+        'wallet_insufficient': payment == 'insufficient',
+        'track_url': f"{reverse('home')}?order_id={order.id}#track-section",
+    })

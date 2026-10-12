@@ -2,6 +2,11 @@ from django.db import models
 import jdatetime
 from datetime import date
 
+
+def order_tax(subtotal):
+    """10% tax on an order subtotal, rounded down to a whole toman."""
+    return int(subtotal) * 10 // 100
+
 class Customer(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, unique=True)
@@ -113,7 +118,7 @@ class Order(models.Model):
 
     @property
     def tax_amount(self):
-        return int(float(self.subtotal_amount) * 0.10)
+        return order_tax(self.subtotal_amount)
 
     def __str__(self):
         return f"فاکتور {self.id} - {self.customer.name}"
@@ -128,14 +133,14 @@ class OrderItem(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         subtotal = sum(item.price * item.quantity for item in self.order.orderitem_set.all())
-        self.order.total_price = subtotal + int(float(subtotal) * 0.10)
+        self.order.total_price = subtotal + order_tax(subtotal)
         self.order.save()
 
     def delete(self, *args, **kwargs):
         order = self.order
         super().delete(*args, **kwargs)
         subtotal = sum(item.price * item.quantity for item in order.orderitem_set.all())
-        order.total_price = subtotal + int(float(subtotal) * 0.10)
+        order.total_price = subtotal + order_tax(subtotal)
         order.save()
 
     def __str__(self):
