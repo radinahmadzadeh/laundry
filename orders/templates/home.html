@@ -1314,7 +1314,7 @@
 
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for category in categories %}
-                <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
+                <a href="{% url 'pricing' %}#cat-{{ category.id }}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
                     <div class="category-showcase-image">
                         {% if 'مرد' in category.name %}
                         <img src="{% static 'pricing-categories/کت_شلوار_مردانه.png' %}" alt="پوشاک مردانه">
@@ -1717,7 +1717,7 @@
 
             <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for category in categories %}
-                <a href="{% url 'pricing' %}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
+                <a href="{% url 'pricing' %}#cat-{{ category.id }}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
                     <div class="category-showcase-image">
                         {% if 'مرد' in category.name %}
                         <img src="{% static 'pricing-categories/کت_شلوار_مردانه.png' %}" alt="پوشاک مردانه">

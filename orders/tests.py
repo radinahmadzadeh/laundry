@@ -660,3 +660,16 @@ class PanelSmokeTests(TestCase):
                            ('panel_pricing', []), ('panel_courier', []), ('panel_reviews', []), ('panel_settings', []),
                            ('print_receipt', [order.id])]:
             self.assertEqual(client.get(reverse(name, args=args)).status_code, 200, name)
+
+
+class PricingPageTests(TestCase):
+    def test_both_prices_and_search_on_all_screens(self):
+        from .models import PriceCategory, PriceItem
+        category = PriceCategory.objects.create(name='مردانه')
+        PriceItem.objects.create(category=category, name='کت و شلوار', dry_clean_price='585000', iron_only_price='380000')
+        page = Client().get(reverse('pricing')).content.decode()
+        self.assertIn('۳۸۰٬۰۰۰', page)
+        self.assertIn('۵۸۵٬۰۰۰', page)
+        self.assertNotIn('.iron-value{display:none}', page)
+        self.assertIn('id="price-search"', page)
+        self.assertIn(f'id="cat-{category.id}"', page)
