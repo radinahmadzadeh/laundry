@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ shop_name|default:"خشکشویی و سفید شویی آرین" }} | خشکشویی و سفیدشویی آرین</title>
+    <title>{{ shop_name|default:"خشکشویی و سفید شویی آرین" }} | ثبت سفارش و پیگیری آنلاین</title>
     {% progressive_web_app_meta %}
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
@@ -415,11 +415,7 @@
         .login-entry .login-dot{ width:7px; height:7px; border-radius:50%; background:var(--cyan); box-shadow:0 0 0 0 rgba(8,145,178,.35); animation:loginDot 1.8s ease-out infinite; }
         @keyframes loginDot{ 70%,100%{ box-shadow:0 0 0 7px rgba(8,145,178,0); } }
         .login-entry:hover{ transform:translateY(-2px); box-shadow:0 14px 28px -12px rgba(8,145,178,.5); }
-        .login-chooser-card{ max-height:calc(100dvh - 32px); overflow-y:auto; }
-        .login-choice-card{ min-height:190px; }
         @media (max-width:640px){
-            .login-chooser-card{ max-height:calc(100dvh - 20px); padding:20px !important; border-radius:24px; }
-            .login-choice-card{ min-height:0; padding:18px !important; }
         }
         .welcome-card{ position:relative; overflow:hidden; background:linear-gradient(135deg, rgba(255,255,255,.96), rgba(240,253,250,.92)); border:1px solid rgba(8,145,178,.14); box-shadow:0 22px 55px -35px rgba(8,145,178,.45); }
         .welcome-card::before{ content:''; position:absolute; width:150px; height:150px; border-radius:50%; background:radial-gradient(circle, rgba(73,224,214,.22), transparent 68%); top:-80px; left:-35px; }
@@ -686,10 +682,10 @@
                     <button type="submit" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-500 font-bold text-[11px] px-2.5 sm:px-3 py-2 rounded-lg">خروج</button>
                 </form>
                 {% else %}
-                <button type="button" onclick="openLoginChooser()" class="login-entry btn-motion inline-flex items-center gap-2 bg-white border font-black text-xs px-3.5 sm:px-4 py-2 rounded-lg">
+                <a href="{% url 'customer_login' %}" class="login-entry btn-motion inline-flex items-center gap-2 bg-white border font-black text-xs px-3.5 sm:px-4 py-2 rounded-lg">
                     <span class="login-dot"></span>
-                    <span>ورود</span>
-                </button>
+                    <span>ورود / ثبت‌نام</span>
+                </a>
                 {% endif %}
             </div>
         </div>
@@ -747,8 +743,8 @@
                 <span class="text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">تمیز، خوش‌بو و اتو شده</span>
                 تحویل بگیرید
             </h1>
-            <p class="enter text-gray-500 text-sm sm:text-base max-w-xl mx-auto mb-8" style="animation-delay:150ms">
-                {{ shop_tagline|default:"سفارش خود را به‌سادگی از همین سایت ثبت کنید؛ شست‌وشو، خشکشویی و اتوکشی حرفه‌ای، با مراجعه حضوری یا تحویل درب منزل." }}
+            <p class="enter text-gray-500 text-sm sm:text-base max-w-xl mx-auto mb-8 leading-8" style="animation-delay:150ms">
+                {% if shop_tagline and shop_tagline != shop_name %}{{ shop_tagline }}{% else %}سفارش خود را به‌سادگی از همین سایت ثبت کنید؛ شست‌وشو، خشکشویی و اتوکشی حرفه‌ای، با مراجعه حضوری یا تحویل درب منزل.{% endif %}
             </p>
             {% if customer_logged_in %}
             <div class="enter flex flex-col sm:flex-row items-center justify-center gap-3" style="animation-delay:220ms">
@@ -761,7 +757,21 @@
                     ثبت سفارش آنلاین
                 </a>
             </div>
+            {% else %}
+            <div class="enter flex flex-col sm:flex-row items-center justify-center gap-3" style="animation-delay:220ms">
+                <a href="{% url 'customer_register' %}" class="btn-motion w-full sm:w-auto bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-7 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+                    ثبت‌نام و ثبت سفارش
+                </a>
+                <a href="{% url 'customer_login' %}" class="btn-motion w-full sm:w-auto bg-white border border-gray-200 text-gray-700 font-bold px-7 py-3.5 rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2">
+                    قبلاً ثبت‌نام کرده‌ام، ورود
+                </a>
+            </div>
             {% endif %}
+            <nav class="sm:hidden mt-5 flex items-center justify-center gap-2 text-xs font-bold text-gray-600" aria-label="لینک‌های سریع">
+                <a href="{% url 'pricing' %}" class="px-4 py-2.5 rounded-xl bg-white/70 border border-gray-200">لیست قیمت</a>
+                <a href="#services" class="px-4 py-2.5 rounded-xl bg-white/70 border border-gray-200">خدمات</a>
+                <a href="#faq" class="px-4 py-2.5 rounded-xl bg-white/70 border border-gray-200">سوالات متداول</a>
+            </nav>
         </div>
 
         <div class="max-w-4xl mx-auto px-5 pb-6 sm:pb-8 relative z-10">
@@ -837,8 +847,7 @@
                 <p class="text-gray-500 text-xs sm:text-sm mt-2">{% if customer_logged_in %}شماره فاکتور سفارش را وارد کنید{% else %}برای پیگیری، ابتدا وارد حساب مشتری شوید{% endif %}</p>
             </div>
             <form method="GET" action="#track-section" class="flex flex-col sm:flex-row gap-3">
-                <input type="number" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" required min="1" step="1"
-                       onkeydown="if(['-','+','e','E','.'].includes(event.key)) event.preventDefault();"
+                <input type="text" inputmode="numeric" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" aria-label="شماره فاکتور" required maxlength="12" autocomplete="off"
                        class="w-full sm:flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
                 <button type="submit" class="btn-motion bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 whitespace-nowrap">
                     پیگیری کن
@@ -1034,6 +1043,11 @@
                                     </div>
                                 {% endif %}
 
+                                {% if order.days_remaining == None and order.status != 'delivered' %}
+                                    <div class="mt-4 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold leading-6 px-4 py-3">
+                                        زمان تحویل پس از دریافت و بررسی لباس‌ها توسط فروشگاه مشخص و همین‌جا نمایش داده می‌شود.
+                                    </div>
+                                {% endif %}
                                 {% if order.days_remaining != None %}
                                     <div class="mt-4 card-hover btn-motion relative overflow-hidden rounded-2xl p-4 sm:p-5 flex items-center gap-2 sm:gap-4 border
                                         {% if order.status == 'delivered' %}bg-green-50 border-green-200
@@ -1298,6 +1312,10 @@
             </span>
             <h2 class="enter text-2xl sm:text-3xl font-black mb-2">خدمات ما را ببینید و قیمت هر قلم را بدانید</h2>
             <p class="enter text-gray-500 text-sm">برای ثبت سفارش، ابتدا وارد حساب مشتری خود شوید یا ثبت‌نام کنید.</p>
+            <div class="enter mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+                <a href="{% url 'customer_register' %}" class="btn-motion w-full sm:w-auto bg-gray-950 text-white font-bold text-sm px-6 py-3 rounded-xl">ساخت حساب و ثبت سفارش</a>
+                <a href="{% url 'customer_login' %}" class="btn-motion w-full sm:w-auto bg-white border border-gray-200 text-gray-700 font-bold text-sm px-6 py-3 rounded-xl">ورود به حساب</a>
+            </div>
         </div>
 
         <div class="panel category-showcase enter rounded-[30px] p-5 sm:p-7">
@@ -1589,7 +1607,7 @@
                     <svg class="w-6 h-6 text-[var(--amber)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <h3 class="font-bold mb-1.5">قیمت شفاف</h3>
-                <p class="text-gray-500 text-sm">پیش از سفارش، دقیقاً می‌دونید چقدر باید پرداخت کنید.</p>
+                <p class="text-gray-500 text-sm">قیمت هر قلم، مالیات و جمع نهایی را پیش از ثبت سفارش می‌بینید؛ قیمت اقلام خاص پس از بررسی لباس اعلام می‌شود.</p>
             </div>
             <div class="panel card-hover enter rounded-2xl p-6" style="animation-delay:180ms">
                 <div class="w-11 h-11 rounded-xl bg-cyan-50 flex items-center justify-center mb-4">
@@ -1634,7 +1652,7 @@
             <div class="enter text-center" style="animation-delay:160ms">
                 <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center font-black text-gray-950 text-lg shadow-lg shadow-cyan-500/20">۳</div>
                 <h3 class="font-bold mb-1.5">پیگیری آنلاین</h3>
-                <p class="text-gray-500 text-sm">با شماره موبایل و فاکتور، هر لحظه وضعیت رو ببینید.</p>
+                <p class="text-gray-500 text-sm">در حساب کاربری، بخش «سفارش‌های من» هر لحظه وضعیت رو نشون می‌ده.</p>
             </div>
             <div class="enter text-center" style="animation-delay:240ms">
                 <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center font-black text-gray-950 text-lg shadow-lg shadow-cyan-500/20">۴</div>
@@ -1786,35 +1804,35 @@
                     چطور آنلاین سفارش بدم؟
                     <svg class="faq-chevron w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <p class="text-gray-500 text-sm mt-3">از بخش «ثبت سفارش» بالای صفحه، اقلام لباس و تعدادشون رو انتخاب کنید، مشخصاتتون رو وارد کنید و روش تحویل (مراجعه حضوری یا ارسال با پیک) رو مشخص کنید. سفارش فوراً برای ما ثبت می‌شه.</p>
+                <p class="text-gray-500 text-sm mt-3 leading-7">اول با شماره موبایل حساب بسازید یا وارد شوید. بعد در بخش «ثبت سفارش»، اقلام و تعدادشون رو انتخاب کنید و روش تحویل لباس‌ها به ما (مراجعه حضوری یا پیک) رو مشخص کنید. سفارش فوراً ثبت می‌شه و شماره فاکتور رو همون‌جا می‌بینید.</p>
             </details>
             <details class="panel rounded-2xl p-5">
                 <summary class="flex items-center justify-between font-bold text-sm">
                     چطور سفارشم رو پیگیری کنم؟
                     <svg class="faq-chevron w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <p class="text-gray-500 text-sm mt-3">با همون شماره موبایل و شماره فاکتوری که موقع ثبت سفارش بهتون داده شده، از بخش «پیگیری سفارش» بالای همین صفحه استفاده کنید.</p>
+                <p class="text-gray-500 text-sm mt-3 leading-7">وارد حسابتون بشید؛ همه سفارش‌ها در بخش «سفارش‌های من» با وضعیت لحظه‌ای نمایش داده می‌شن. با شماره فاکتور هم می‌تونید از بخش «پیگیری سریع سفارش» مستقیم به یک سفارش برسید.</p>
             </details>
             <details class="panel rounded-2xl p-5">
                 <summary class="flex items-center justify-between font-bold text-sm">
                     هزینه ارسال با پیک چقدره؟
                     <svg class="faq-chevron w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <p class="text-gray-500 text-sm mt-3">برای سفارش‌های بالای ۱ میلیون تومان، ارسال با پیک کاملاً رایگانه. برای سفارش‌های کمتر، هزینه ارسال بر عهده مشتریه.</p>
+                <p class="text-gray-500 text-sm mt-3 leading-7">برای سفارش‌های بالای ۱ میلیون تومان، پیک رایگانه. برای سفارش‌های کمتر، هزینه پیک جدا از فاکتور و هنگام تحویل از شما گرفته می‌شه.</p>
             </details>
             <details class="panel rounded-2xl p-5">
                 <summary class="flex items-center justify-between font-bold text-sm">
                     پرداخت به چه صورته؟
                     <svg class="faq-chevron w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <p class="text-gray-500 text-sm mt-3">می‌تونید از همون صفحه پیگیری سفارش، به‌صورت آنلاین فاکتورتون رو پرداخت کنید.</p>
+                <p class="text-gray-500 text-sm mt-3 leading-7">از صفحه سفارش، با درگاه پرداخت آنلاین یا از موجودی کیف پول. اگر قیمت بعضی اقلام بعد از بررسی مشخص بشه، بعد از اعلام مبلغ می‌تونید پرداخت کنید.</p>
             </details>
             <details class="panel rounded-2xl p-5">
                 <summary class="flex items-center justify-between font-bold text-sm">
                     زمان تحویل سفارش چقدره؟
                     <svg class="faq-chevron w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </summary>
-                <p class="text-gray-500 text-sm mt-3">تاریخ تحویل دقیق سفارش‌تون رو می‌تونید تو همون صفحه پیگیری سفارش ببینید.</p>
+                <p class="text-gray-500 text-sm mt-3 leading-7">بعد از اینکه لباس‌ها به دست ما رسید و بررسی شد، تاریخ تحویل در صفحه سفارش نمایش داده می‌شه و وقتی آماده شد همون‌جا خبرتون می‌کنیم.</p>
             </details>
         </div>
     </section>
@@ -1845,7 +1863,7 @@
                     </div>
                     <span class="font-black">{{ shop_name|default:"خشکشویی" }}</span>
                 </div>
-                <p class="text-gray-500">{{ shop_tagline|default:"خدمات خشکشویی و سفیدشویی پریمیوم" }}</p>
+                <p class="text-gray-500 leading-7">{% if shop_tagline and shop_tagline != shop_name %}{{ shop_tagline }}{% else %}خشکشویی، اتوکشی و لکه‌بری حرفه‌ای با ثبت سفارش و پیگیری آنلاین.{% endif %}</p>
             </div>
             <div>
                 <h4 class="font-bold mb-3">لینک‌های سریع</h4>
@@ -1853,8 +1871,8 @@
                     {% if customer_logged_in %}
                     <li><a href="#track-section" class="hover:text-gray-900">پیگیری سفارش</a></li>
                     {% endif %}
-                    <li><a href="{% url 'pricing' %}" class="hover:text-gray-900">لیست قیمت</a></li>
-                    <li><a href="#faq" class="hover:text-gray-900">سوالات متداول</a></li>
+                    <li><a href="{% url 'pricing' %}" class="inline-block py-1 hover:text-gray-900">لیست قیمت</a></li>
+                    <li><a href="#faq" class="inline-block py-1 hover:text-gray-900">سوالات متداول</a></li>
                 </ul>
             </div>
             <div>
@@ -1872,49 +1890,6 @@
 
 
 
-    <!-- انتخاب نوع ورود -->
-    <div id="login-chooser" class="fixed inset-0 z-[100] hidden items-center justify-center px-4" role="dialog" aria-modal="true" aria-labelledby="login-chooser-title">
-        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onclick="closeLoginChooser()"></div>
-        <div id="login-chooser-card" class="login-chooser-card relative w-full max-w-2xl bg-white rounded-3xl border border-white/60 shadow-2xl p-6 sm:p-9 enter">
-            <button type="button" onclick="closeLoginChooser()" aria-label="بستن" class="absolute top-4 left-4 w-9 h-9 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-xl transition">×</button>
-
-            <div class="text-center mb-7 pt-2">
-                <div class="mx-auto w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center shadow-lg shadow-cyan-500/20 mb-4">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M15 7a4 4 0 10-6 3.46V13h6v-2.54A4 4 0 0015 7zM8 13v7h8v-7M10 17h4"/>
-                    </svg>
-                </div>
-                <h2 id="login-chooser-title" class="text-xl sm:text-2xl font-black text-gray-900">برای ورود، نوع حساب را انتخاب کنید</h2>
-                <p class="text-xs sm:text-sm text-gray-500 mt-2">اگر مشتری هستید فاکتور خود را پیگیری کنید؛ اگر مدیر هستید وارد پنل مدیریت شوید.</p>
-            </div>
-
-            <div class="grid sm:grid-cols-2 gap-4">
-                <a href="/customer-login/" class="login-choice-card group rounded-2xl border-2 border-gray-100 hover:border-cyan-300 bg-gray-50 hover:bg-cyan-50/50 p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-                    <div class="w-12 h-12 rounded-xl bg-cyan-100 text-cyan-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M20 21a8 8 0 10-16 0m8-10a4 4 0 100-8 4 4 0 000 8z"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-gray-900 mb-1">ورود مشتری</h3>
-                    <p class="text-xs leading-6 text-gray-500">با شماره موبایل و شماره فاکتور، سفارش خود را ببینید و پیگیری کنید.</p>
-                    <span class="inline-flex items-center gap-1 mt-4 text-xs font-extrabold text-cyan-700">ادامه <span>←</span></span>
-                </a>
-
-                <a href="/panel/login/" class="login-choice-card group rounded-2xl border-2 border-gray-100 hover:border-violet-300 bg-gray-50 hover:bg-violet-50/50 p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-                    <div class="w-12 h-12 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center mb-4 group-hover:scale-105 transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 15a3 3 0 100-6 3 3 0 000 6zm7 0a7 7 0 01-14 0m14 0V9a7 7 0 00-14 0v6"/>
-                        </svg>
-                    </div>
-                    <h3 class="font-black text-gray-900 mb-1">ورود مدیریت</h3>
-                    <p class="text-xs leading-6 text-gray-500">ورود امن مدیر با نام کاربری و رمز عبور برای دسترسی به پنل مدیریت.</p>
-                    <span class="inline-flex items-center gap-1 mt-4 text-xs font-extrabold text-violet-700">ورود به پنل <span>←</span></span>
-                </a>
-            </div>
-
-            <p class="text-center text-[10px] text-gray-400 mt-6">انتخاب کنید تا به صفحه ورود مربوط منتقل شوید.</p>
-        </div>
-    </div>
     <div id="ready-notices" class="ready-notices" aria-live="polite"></div>
     {% if customer_logged_in %}
     <div id="review-modal" class="rv-backdrop" aria-hidden="true">
@@ -1970,24 +1945,6 @@
     {{ courier_watch|json_script:"courier-watch-data" }}
     {{ status_labels|json_script:"status-labels-data" }}
     <script>
-        function openLoginChooser(){
-            var modal = document.getElementById('login-chooser');
-            if (!modal) return;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.classList.add('overflow-hidden');
-        }
-        function closeLoginChooser(){
-            var modal = document.getElementById('login-chooser');
-            if (!modal) return;
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            document.body.classList.remove('overflow-hidden');
-        }
-        document.addEventListener('keydown', function(e){
-            if (e.key === 'Escape') closeLoginChooser();
-        });
-
         function faNumber(n){ return Number(n || 0).toLocaleString('fa-IR'); }
         var courierMaps = {};
         var courierMarkers = {};
