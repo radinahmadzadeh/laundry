@@ -113,3 +113,38 @@ class WalletPaymentFlowTests(TestCase):
         self.order.refresh_from_db()
         self.assertTrue(self.order.is_paid)
         self.assertEqual(self.wallet.balance, Decimal('975000'))
+
+
+def login_customer(client, customer):
+    session = client.session
+    session['customer_id'] = customer.id
+    session['customer_logged_in'] = True
+    session.save()
+    return client
+
+
+class ReceiptAccessTests(TestCase):
+    def setUp(self):
+        self.owner = Customer.objects.create(name='صاحب سفارش', phone='09120000011')
+        self.other = Customer.objects.create(name='مشتری دیگر', phone='09120000012')
+        self.order = Order.objects.create(customer=self.owner, total_price=Decimal('10000'))
+        self.url = reverse('print_receipt', args=[self.order.id])
+
+    def test_guest_is_sent_to_login(self):
+        response = Client().get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('customer_login'), response['Location'])
+        self.assertNotContains(Client().get(self.url, follow=True), self.owner.phone)
+
+    def test_other_customer_gets_404(self):
+        response = login_customer(Client(), self.other).get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_owner_and_staff_can_view(self):
+        response = login_customer(Client(), self.owner).get(self.url)
+        self.assertContains(response, self.owner.phone)
+        self.assertNotContains(response, f'phone={self.owner.phone}')
+        staff = get_user_model().objects.create_user('receipt-staff', password='x', is_staff=True)
+        client = Client()
+        client.force_login(staff)
+        self.assertContains(client.get(self.url), self.owner.name)

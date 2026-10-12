@@ -2,13 +2,26 @@
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.http import HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth.views import redirect_to_login
 from django.db import transaction
 import re
 from .models import Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 from django.db.models import Avg, Count
+
+
+def session_customer_id(request):
+    """The logged-in customer's id, or None."""
+    if request.session.get('customer_logged_in') and request.session.get('customer_id'):
+        return request.session['customer_id']
+    return None
+
+
+def customer_login_redirect(request):
+    """Send a guest to the customer login page and bring them back here afterwards."""
+    return redirect_to_login(request.get_full_path(), login_url=reverse('customer_login'))
 
 def home(request):
     customer_id = request.session.get('customer_id')
@@ -352,13 +365,21 @@ def customer_logout(request):
     return redirect('home')
 
 def print_receipt(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+    # A receipt holds the customer's name, phone and items: only its owner or shop staff may see it.
+    is_staff = request.user.is_authenticated and request.user.is_staff
+    customer_id = session_customer_id(request)
+    if not is_staff and not customer_id:
+        return customer_login_redirect(request)
+    order = get_object_or_404(Order.objects.select_related('customer'), id=order_id)
+    if not is_staff and order.customer_id != customer_id:
+        raise Http404
     shop = ShopSettings.load()
     return render(request, 'receipt.html', {
         'order': order,
         'shop_name': shop.name,
         'shop_tagline': shop.tagline,
         'shop_phone': shop.phone,
+        'is_staff_view': is_staff and order.customer_id != customer_id,
     })
 
 MERCHANT = '00000000-0000-0000-0000-000000000000'
