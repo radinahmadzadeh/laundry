@@ -678,7 +678,7 @@
                 <a href="{% url 'wallet' %}" class="wallet-nav btn-motion inline-flex items-center gap-1.5 whitespace-nowrap bg-emerald-50 border border-emerald-200 text-emerald-700 font-black text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5A2.5 2.5 0 015.5 5H20v14H5.5A2.5 2.5 0 013 16.5v-9Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 9h-4.25a2.25 2.25 0 1 0 0 4.5H20"/><circle cx="15.75" cy="11.25" r=".7" fill="currentColor" stroke="none"/></svg>
                     کیف پول
-                    <span class="hidden sm:inline text-[10px] opacity-70"><span class="money-value">{{ wallet.balance|default:0 }}</span> تومان</span>
+                    <span class="hidden sm:inline text-[10px] opacity-70">{{ wallet.balance|default:0|toman }} تومان</span>
                 </a>
                 <a href="{% url 'account' %}" class="btn-motion inline-flex items-center whitespace-nowrap bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg shadow-sm">حساب کاربری</a>
                 <form method="post" action="{% url 'customer_logout' %}" class="inline-flex">
@@ -861,9 +861,9 @@
 
                             <div class="p-7">
                                 <div class="flex justify-between items-center mb-6">
-                                    <span class="text-gray-500 font-light text-sm">فاکتور <strong class="text-gray-900 text-base tracking-wide">#{{ order.id }}</strong></span>
+                                    <span class="text-gray-500 font-light text-sm">فاکتور <strong class="text-gray-900 text-base tracking-wide">#{{ order.id|fa_digits }}</strong></span>
                                     <span class="text-gray-600 text-xs bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200">
-                                        {{ order.shamsi_date }}
+                                        {{ order.shamsi_date|fa_digits }}
                                     </span>
                                 </div>
 
@@ -919,11 +919,11 @@
                                                 <div class="flex justify-between items-center text-gray-600 text-sm">
                                                     <div class="flex items-center gap-3">
                                                         <span class="text-gray-900">{{ item.item_name }}</span>
-                                                        <span class="text-xs text-gray-400 font-light hidden sm:inline-block">(<span class="money-value">{{ item.price }}</span> تومان)</span>
+                                                        <span class="text-xs text-gray-400 font-light hidden sm:inline-block">({{ item.price|toman }} تومان)</span>
                                                     </div>
                                                     <div class="flex items-center gap-4">
-                                                        <span class="text-xs text-[var(--cyan)] sm:hidden"><span class="money-value">{{ item.price }}</span> تومان</span>
-                                                        <span class="font-bold text-gray-900 bg-white border border-gray-200 px-3 py-1 rounded-lg transition-transform duration-200 hover:scale-110">{{ item.quantity }} عدد</span>
+                                                        <span class="text-xs text-[var(--cyan)] sm:hidden">{{ item.price|toman }} تومان</span>
+                                                        <span class="font-bold text-gray-900 bg-white border border-gray-200 px-3 py-1 rounded-lg transition-transform duration-200 hover:scale-110">{{ item.quantity|fa_digits }} عدد</span>
                                                     </div>
                                                 </div>
                                                 {% if item.description %}
@@ -939,15 +939,15 @@
                                     <div class="border-t border-gray-200 pt-4 mt-2 space-y-3">
                                         <div class="flex justify-between items-center text-gray-500 text-sm">
                                             <span>جمع اقلام:</span>
-                                            <span><span class="money-value">{{ order.subtotal_amount }}</span> تومان</span>
+                                            <span>{{ order.subtotal_amount|toman }} تومان</span>
                                         </div>
                                         <div class="flex justify-between items-center text-gray-500 text-sm">
                                             <span>مالیات (۱۰٪):</span>
-                                            <span><span class="money-value">{{ order.tax_amount }}</span> تومان</span>
+                                            <span>{{ order.tax_amount|toman }} تومان</span>
                                         </div>
                                         <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 group">
                                             <span class="text-gray-700 font-medium">مبلغ نهایی پرداخت:</span>
-                                            <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block"><span class="money-value">{{ order.total_price }}</span> <span class="text-sm font-light text-gray-400">تومان</span></span>
+                                            <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block">{{ order.total_price|toman }} <span class="text-sm font-light text-gray-400">تومان</span></span>
                                         </div>
                                     </div>
                                 </div>
@@ -1058,13 +1058,13 @@
                                         </div>
                                         <div class="flex-1">
                                             <p class="text-[10px] sm:text-xs text-gray-500 mb-1">زمان تحویل</p>
-                                            <p class="text-gray-900 font-black text-sm sm:text-lg tracking-wide">{{ order.shamsi_delivery_date }}</p>
+                                            <p class="text-gray-900 font-black text-sm sm:text-lg tracking-wide">{{ order.shamsi_delivery_date|fa_digits }}</p>
                                         </div>
 
                                         {% if order.status == 'delivered' %}
                                             <span class="text-[10px] sm:text-xs font-bold bg-green-100 text-green-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-green-200 whitespace-nowrap">تحویل داده شده</span>
                                         {% elif order.days_remaining > 0 %}
-                                            <span class="text-[10px] sm:text-xs font-bold bg-blue-100 text-blue-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-blue-200 whitespace-nowrap">{{ order.days_remaining }} روز مانده</span>
+                                            <span class="text-[10px] sm:text-xs font-bold bg-blue-100 text-blue-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-blue-200 whitespace-nowrap">{{ order.days_remaining|fa_digits }} روز مانده</span>
                                         {% elif order.days_remaining == 0 %}
                                             <span class="text-[10px] sm:text-xs font-bold bg-amber-100 text-amber-800 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-amber-200 whitespace-nowrap node-active">آماده تحویل</span>
                                         {% else %}
@@ -1152,7 +1152,7 @@
                     <p class="text-gray-500 text-sm leading-6">فاکتورهای قبلی و سفارش‌هایی که هنوز در جریان هستند را یکجا ببینید.</p>
                 </div>
                 <div class="orders-history-count">
-                    <span class="text-2xl font-black text-gray-900">{{ customer_orders|length }}</span>
+                    <span class="text-2xl font-black text-gray-900">{{ customer_orders|length|fa_digits }}</span>
                     <span class="text-[10px] text-gray-500 font-bold">سفارش ثبت‌شده</span>
                 </div>
             </div>
@@ -1172,20 +1172,20 @@
                                 </div>
                                 <div class="min-w-0">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="font-black text-sm text-gray-900">فاکتور #{{ order.id }}</span>
+                                        <span class="font-black text-sm text-gray-900">فاکتور #{{ order.id|fa_digits }}</span>
                                         {% if order.status == 'delivered' %}
                                         <span class="order-status-badge delivered">تحویل شده</span>
                                         {% else %}
                                         <span class="order-status-badge active">در جریان · {{ order.get_status_display }}</span>
                                         {% endif %}
                                     </div>
-                                    <div class="text-[11px] text-gray-400 mt-1">{{ order.shamsi_date }} · {{ order.orderitem_set.all|length }} قلم</div>
+                                    <div class="text-[11px] text-gray-400 mt-1">{{ order.shamsi_date|fa_digits }} · {{ order.orderitem_set.all|length|fa_digits }} قلم</div>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3 shrink-0">
                                 <div class="hidden sm:block text-left" dir="rtl">
                                     <div class="text-[10px] text-gray-400 mb-0.5">مبلغ فاکتور</div>
-                                    <div class="font-black text-sm text-gray-900"><span class="money-value">{{ order.total_price }}</span> تومان</div>
+                                    <div class="font-black text-sm text-gray-900">{{ order.total_price|toman }} تومان</div>
                                 </div>
                                 <span class="order-history-chevron">⌄</span>
                             </div>
@@ -1203,11 +1203,11 @@
                                 </div>
                                 <div class="order-mini-stat">
                                     <span>اقلام</span>
-                                    <strong>{{ order.orderitem_set.all|length }} قلم</strong>
+                                    <strong>{{ order.orderitem_set.all|length|fa_digits }} قلم</strong>
                                 </div>
                                 <div class="order-mini-stat">
                                     <span>مبلغ</span>
-                                    <strong><span class="money-value">{{ order.total_price }}</span> تومان</strong>
+                                    <strong>{{ order.total_price|toman }} تومان</strong>
                                 </div>
                             </div>
 
@@ -1265,8 +1265,8 @@
                                             {% endif %}
                                         </div>
                                         <div class="flex items-center gap-2 shrink-0">
-                                            <span class="text-[10px] text-gray-400">{{ item.quantity }} عدد</span>
-                                            <span class="font-bold text-xs text-gray-700"><span class="money-value">{{ item.price }}</span></span>
+                                            <span class="text-[10px] text-gray-400">{{ item.quantity|fa_digits }} عدد</span>
+                                            <span class="font-bold text-xs text-gray-700">{{ item.price|toman }}</span>
                                         </div>
                                     </div>
                                     {% endfor %}
@@ -1323,7 +1323,7 @@
                         {% else %}
                         <img src="{% static 'pricing-categories/حوله.png' %}" alt="{{ category.name }}">
                         {% endif %}
-                        <span class="category-showcase-count">{{ category.items.count }} خدمت</span>
+                        <span class="category-showcase-count">{{ category.items.count|fa_digits }} خدمت</span>
                     </div>
                     <div class="category-showcase-body">
                         <div>
@@ -1726,7 +1726,7 @@
                         {% else %}
                         <img src="{% static 'pricing-categories/حوله.png' %}" alt="{{ category.name }}">
                         {% endif %}
-                        <span class="category-showcase-count">{{ category.items.count }} خدمت</span>
+                        <span class="category-showcase-count">{{ category.items.count|fa_digits }} خدمت</span>
                     </div>
                     <div class="category-showcase-body">
                         <div>
@@ -1748,8 +1748,8 @@
             <h2 class="text-2xl sm:text-3xl font-black mb-3">نظر مشتریان</h2>
             <div class="inline-flex items-center gap-2 rounded-full bg-white border border-amber-100 px-4 py-2 shadow-sm">
                 <span class="text-amber-400 text-base leading-none">★</span>
-                <span class="font-black text-sm text-gray-900">{{ review_avg }}</span>
-                <span class="text-[11px] text-gray-400">از ۵ · بر اساس {{ review_count }} نظر ثبت‌شده</span>
+                <span class="font-black text-sm text-gray-900">{{ review_avg|fa_digits }}</span>
+                <span class="text-[11px] text-gray-400">از ۵ · بر اساس {{ review_count|fa_digits }} نظر ثبت‌شده</span>
             </div>
         </div>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -1767,7 +1767,7 @@
                     <span class="review-avatar">{{ review.display_name|slice:":1" }}</span>
                     <span class="min-w-0">
                         <span class="block font-bold text-sm text-gray-900">{{ review.display_name }}</span>
-                        <span class="block text-[10px] text-gray-400 mt-0.5">مشتری تأییدشده · {{ review.shamsi_date }}</span>
+                        <span class="block text-[10px] text-gray-400 mt-0.5">مشتری تأییدشده · {{ review.shamsi_date|fa_digits }}</span>
                     </span>
                 </figcaption>
             </figure>
@@ -1988,6 +1988,7 @@
             if (e.key === 'Escape') closeLoginChooser();
         });
 
+        function faNumber(n){ return Number(n || 0).toLocaleString('fa-IR'); }
         var courierMaps = {};
         var courierMarkers = {};
 
@@ -2333,7 +2334,7 @@
                 '<div class="ready-notice-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"/></svg></div>' +
                 '<div class="min-w-0 flex-1">' +
                     '<p class="text-[10px] font-bold text-emerald-600 mb-0.5">اعلان سفارش</p>' +
-                    '<p class="text-sm font-black text-gray-900">سفارش #' + orderId + ' آماده تحویل است</p>' +
+                    '<p class="text-sm font-black text-gray-900">سفارش #' + faNumber(orderId) + ' آماده تحویل است</p>' +
                     '<p class="text-[11px] text-gray-500 leading-5 mt-1">' + note + '</p>' +
                     '<button type="button" class="ready-notice-cta" data-ready-open>مشاهده سفارش' +
                         '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M15 19l-7-7 7-7"/></svg>' +
@@ -2360,7 +2361,7 @@
             } else if (newStatus === 'delivered' && COURIER_WATCH[orderId] && !COURIER_WATCH[orderId].reviewed && !reviewState.orderId){
                 setTimeout(function(){ openReview(orderId); }, 600);
             } else {
-                showToast('وضعیت سفارش #' + orderId + ': ' + (STATUS_LABELS[newStatus] || newStatus), 5000);
+                showToast('وضعیت سفارش #' + faNumber(orderId) + ': ' + (STATUS_LABELS[newStatus] || newStatus), 5000);
             }
         }
 
@@ -2371,9 +2372,9 @@
             if (kind === 'delivery'){
                 document.querySelectorAll('[data-courier-card-title="' + orderId + '"]').forEach(function(el){ el.textContent = 'پیک شما ارسال شده است'; });
                 document.querySelectorAll('[data-courier-card-note="' + orderId + '"]').forEach(function(el){ el.textContent = 'پیک در مسیر رسیدن به شماست'; });
-                showToast('لباس‌های سفارش #' + orderId + ' به پیک تحویل داده شد و در مسیر رسیدن به شماست.', 6000);
+                showToast('لباس‌های سفارش #' + faNumber(orderId) + ' به پیک تحویل داده شد و در مسیر رسیدن به شماست.', 6000);
             } else {
-                showToast('پیک دریافت سفارش #' + orderId + ' برای شما ارسال شد.', 6000);
+                showToast('پیک دریافت سفارش #' + faNumber(orderId) + ' برای شما ارسال شد.', 6000);
             }
         }
 
@@ -2457,7 +2458,7 @@
             reviewState = { orderId: String(orderId), rating: 0, tags: [], sending: false };
             document.getElementById('rv-form').classList.remove('hidden');
             document.getElementById('rv-thanks').classList.add('hidden');
-            document.getElementById('rv-order-label').textContent = 'سفارش #' + orderId + ' تحویل داده شد';
+            document.getElementById('rv-order-label').textContent = 'سفارش #' + faNumber(orderId) + ' تحویل داده شد';
             document.getElementById('rv-text').value = '';
             document.getElementById('rv-details').classList.remove('show');
             document.getElementById('rv-public-hint').classList.add('hidden');
@@ -2642,7 +2643,6 @@
         var WALLET_BALANCE = Number('{{ wallet.balance|default:0|stringformat:"d" }}') || 0;
         var orderSubmitting = false;
 
-        function faNumber(n){ return Number(n || 0).toLocaleString('fa-IR'); }
         function escapeHtml(text){
             return String(text).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
         }
@@ -2858,13 +2858,6 @@
             });
         }
 
-        function formatVisibleMoney(){
-            document.querySelectorAll('.money-value').forEach(function(el){
-                var raw = String(el.textContent || '').replace(/[^0-9]/g, '');
-                if (raw) el.textContent = Number(raw).toLocaleString('de-DE');
-            });
-        }
-        formatVisibleMoney();
 
         window.addEventListener('load', function(){
             var indicators = document.querySelectorAll('.delivery-indicator');
