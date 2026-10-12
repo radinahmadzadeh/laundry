@@ -1,4 +1,5 @@
 ﻿import json
+import math
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -156,18 +157,15 @@ def account_page(request):
                     request.session.cycle_key()
                 messages.success(request, 'اطلاعات حساب شما ذخیره شد.')
         elif form_type == 'address':
-            lat = request.POST.get('lat', '').strip()
-            lng = request.POST.get('lng', '').strip()
-            postal = request.POST.get('postal', '').strip().translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
             address = request.POST.get('address', '').strip()[:1000]
-            error = validate_courier_location(lat, lng, postal)
+            location, error = clean_courier_location(
+                request.POST.get('lat', ''), request.POST.get('lng', ''), request.POST.get('postal', '')
+            )
             if error:
                 messages.error(request, error)
             else:
                 customer.address = address
-                customer.address_latitude = lat
-                customer.address_longitude = lng
-                customer.address_postal_code = postal
+                customer.address_latitude, customer.address_longitude, customer.address_postal_code = location
                 customer.save()
                 messages.success(request, 'آدرس شما ذخیره شد و در ثبت سفارش‌ها قابل استفاده است.')
         elif form_type == 'address_delete':
@@ -528,17 +526,39 @@ def pricing_menu(request):
     shop = ShopSettings.load()
     return render(request, 'pricing.html', {'categories': categories, 'shop_name': shop.name})
 
-def validate_courier_location(lat, lng, postal):
-    """Returns an error message if the courier pickup location/postal code is invalid, else None."""
+FA_TO_EN_DIGITS = str.maketrans('۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩', '01234567890123456789')
+# Couriers only work inside Iran; anything outside (or NaN/inf) is a broken or forged point.
+IRAN_LAT_RANGE = (24.0, 40.5)
+IRAN_LNG_RANGE = (43.5, 63.5)
+
+
+def clean_courier_location(lat, lng, postal):
+    """Validate a map point and postal code.
+
+    Returns ((lat, lng, postal), None) with normalized strings, or (None, error message).
+    """
     try:
-        float(lat)
-        float(lng)
+        lat_value = float(str(lat).translate(FA_TO_EN_DIGITS))
+        lng_value = float(str(lng).translate(FA_TO_EN_DIGITS))
     except (TypeError, ValueError):
-        return 'موقعیت مکانی نامعتبر است.'
-    postal_digits = str(postal or '').translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
+        return None, 'لطفاً موقعیت خود را روی نقشه انتخاب کنید.'
+    if not (math.isfinite(lat_value) and math.isfinite(lng_value)):
+        return None, 'لطفاً موقعیت خود را روی نقشه انتخاب کنید.'
+    if not (IRAN_LAT_RANGE[0] <= lat_value <= IRAN_LAT_RANGE[1] and IRAN_LNG_RANGE[0] <= lng_value <= IRAN_LNG_RANGE[1]):
+        return None, 'موقعیت انتخاب‌شده خارج از محدوده ارسال است؛ نقطه را روی نقشه درست انتخاب کنید.'
+    postal_digits = re.sub(r'[\s\-‌]', '', str(postal or '').translate(FA_TO_EN_DIGITS))
     if not postal_digits.isdigit() or len(postal_digits) != 10:
-        return 'کد پستی باید ۱۰ رقم باشد.'
-    return None
+        return None, 'کد پستی باید ۱۰ رقم باشد.'
+    return (f'{lat_value:.6f}', f'{lng_value:.6f}', postal_digits), None
+
+
+def validate_courier_location(lat, lng, postal):
+    """Returns an error message if the location/postal code is invalid, else None."""
+    return clean_courier_location(lat, lng, postal)[1]
+
+
+def order_error(message, status=400):
+    return JsonResponse({'status': 'error', 'message': message}, status=status)
 
 
 def submit_review(request):
@@ -575,41 +595,43 @@ def submit_review(request):
 
 
 def request_courier(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            order_id = data.get('order_id')
-            lat = data.get('lat')
-            lng = data.get('lng')
-            postal = data.get('postal')
-            if not request.session.get('customer_logged_in') or not request.session.get('customer_id'):
-                return JsonResponse({'status': 'error', 'message': 'برای درخواست پیک ابتدا وارد حساب مشتری شوید.'}, status=403)
+    """Delivery courier for a ready order. The address can be corrected until the courier leaves."""
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return order_error('برای درخواست پیک ابتدا وارد حساب مشتری شوید.', status=403)
+    if request.method != 'POST':
+        return order_error('درخواست نامعتبر است.', status=405)
+    try:
+        data = json.loads(request.body)
+    except (TypeError, ValueError):
+        data = None
+    if not isinstance(data, dict):
+        return order_error('اطلاعات درخواست پیک نامعتبر است.')
 
-            order = get_object_or_404(Order, id=order_id, customer_id=request.session.get('customer_id'))
-            if order.status != 'ready':
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'این سفارش هنوز آماده تحویل نیست.'
-                })
-            if order.delivery_courier_requested:
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'درخواست پیک برای این فاکتور قبلاً ثبت شده است و امکان تغییر آدرس وجود ندارد.'
-                })
-            error = validate_courier_location(lat, lng, postal)
-            if error:
-                return JsonResponse({'status': 'error', 'message': error})
-            order.delivery_courier_requested = True
-            order.delivery_courier_declined = False
-            order.delivery_latitude = lat
-            order.delivery_longitude = lng
-            order.delivery_postal_code = postal
-            order.delivery_address = str(data.get('address') or '').strip()[:500]
-            order.save()
-            return JsonResponse({'status': 'success', 'message': 'درخواست پیک با موفقیت ثبت شد.'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)})
-    return JsonResponse({'status': 'failed', 'message': 'درخواست نامعتبر است.'})
+    order_id = str(data.get('order_id') or '')
+    order = Order.objects.filter(id=int(order_id), customer_id=customer_id).first() if order_id.isdigit() else None
+    if not order:
+        return order_error('این سفارش در حساب شما پیدا نشد.', status=404)
+    if order.status == 'delivered':
+        return order_error('این سفارش قبلاً تحویل داده شده است.')
+    if order.status != 'ready':
+        return order_error('این سفارش هنوز آماده تحویل نیست؛ وقتی آماده شد می‌توانید پیک درخواست کنید.')
+    if order.delivery_courier_dispatched:
+        return order_error('پیک برای این سفارش ارسال شده و دیگر امکان تغییر آدرس نیست؛ برای هماهنگی با فروشگاه تماس بگیرید.')
+    location, error = clean_courier_location(data.get('lat'), data.get('lng'), data.get('postal'))
+    if error:
+        return order_error(error)
+
+    updating = order.delivery_courier_requested
+    order.delivery_courier_requested = True
+    order.delivery_courier_declined = False
+    order.delivery_latitude, order.delivery_longitude, order.delivery_postal_code = location
+    order.delivery_address = str(data.get('address') or '').strip()[:500]
+    order.save()
+    return JsonResponse({
+        'status': 'success',
+        'message': 'آدرس ارسال به‌روز شد.' if updating else 'درخواست پیک با موفقیت ثبت شد.',
+    })
 
 
 def place_order(request):

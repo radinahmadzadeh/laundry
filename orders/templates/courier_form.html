@@ -1,0 +1,52 @@
+<div id="courier-form-{{ order.id }}">
+    <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
+    <div id="interactive-map-{{ order.id }}" class="interactive-map map-frame w-full h-56 sm:h-64 rounded-xl mb-2"></div>
+    <div id="addr-preview-{{ order.id }}" class="addr-preview" data-state="empty">
+        <span class="addr-preview-icon" aria-hidden="true"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" stroke-width="2"/></svg></span>
+        <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-bold text-gray-400">آدرس نقطه انتخاب‌شده</p>
+            <p id="addr-text-{{ order.id }}" class="addr-preview-text">روی نقشه بزنید تا آدرس نمایش داده شود.</p>
+        </div>
+    </div>
+    <input type="text" id="addr-detail-{{ order.id }}" maxlength="150" placeholder="پلاک، واحد، زنگ (اختیاری)" aria-label="پلاک، واحد، زنگ"
+           class="fab-input w-full bg-white px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-xs mb-3 focus:outline-none">
+    {% if saved_address %}
+    <div class="addr-picker mt-3 mb-3 text-right">
+        <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-black text-gray-700">آدرس ارسال</span>
+            <a href="{% url 'account' %}" class="text-[10px] font-bold text-cyan-700 hover:underline">ویرایش آدرس</a>
+        </div>
+        <div class="grid gap-2">
+            <button type="button" id="addr-btn-saved-{{ order.id }}" onclick="useSavedAddress('{{ order.id }}')" class="addr-option">
+                <span class="addr-radio"></span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-xs font-black text-gray-800">آدرس ثبت‌شده من</span>
+                    <span class="block text-[11px] text-gray-500 leading-5 mt-1">{{ saved_address.address|default:"آدرس متنی ثبت نشده است (فقط موقعیت روی نقشه)." }}</span>
+                    <span class="block text-[10px] text-gray-400 mt-1">کد پستی: <span class="font-bold text-gray-600">{{ saved_address.address_postal_code|default:"-" }}</span></span>
+                </span>
+            </button>
+            <button type="button" id="addr-btn-new-{{ order.id }}" onclick="useNewLocation('{{ order.id }}')" class="addr-option">
+                <span class="addr-radio"></span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-xs font-black text-gray-800">لوکیشن جدید</span>
+                    <span class="block text-[11px] text-gray-500 leading-5 mt-1">نقطه را روی نقشه انتخاب کنید یا از موقعیت فعلی استفاده کنید.</span>
+                </span>
+            </button>
+        </div>
+        <p id="addr-status-{{ order.id }}" class="hidden"></p>
+    </div>
+    {% endif %}
+    <button type="button" onclick="locateCourier('{{ order.id }}')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-3 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
+
+    <input type="hidden" id="lat-{{ order.id }}">
+    <input type="hidden" id="lng-{{ order.id }}">
+
+    <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-{{ order.id }}" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
+           class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-4 focus:outline-none text-center tracking-widest">
+
+    <button type="button" id="courier-submit-{{ order.id }}" onclick="submitCourier('{{ order.id }}')"
+            class="btn-motion w-full bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        {{ submit_label|default:"ثبت آدرس و درخواست پیک" }}
+    </button>
+</div>

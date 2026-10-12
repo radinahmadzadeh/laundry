@@ -1,3 +1,5 @@
+import json
+import re
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
@@ -195,3 +197,60 @@ class WalletVerifyTests(TestCase):
             other.get(self.url)
         self.wallet.refresh_from_db()
         self.assertEqual(self.wallet.balance, 0)
+
+
+class CourierLocationTests(TestCase):
+    def test_clean_courier_location(self):
+        from .views import clean_courier_location
+        ok, error = clean_courier_location('۳۵.۷', '51.3', '۱۲۳۴۵ ۶۷۸۹۰')
+        self.assertIsNone(error)
+        self.assertEqual(ok, ('35.700000', '51.300000', '1234567890'))
+        for lat, lng in [('nan', '51'), ('inf', '51'), ('999', '51'), ('35', '-999'), ('', ''), ('abc', '51')]:
+            self.assertIsNotNone(clean_courier_location(lat, lng, '1234567890')[1], (lat, lng))
+        for postal in ['123456789', '12345678901', 'abcdefghij', '']:
+            self.assertIsNotNone(clean_courier_location('35.7', '51.3', postal)[1], postal)
+
+
+class DeliveryCourierRequestTests(TestCase):
+    def setUp(self):
+        self.customer = Customer.objects.create(name='پیک', phone='09120000015')
+        self.order = Order.objects.create(customer=self.customer, status='ready', total_price=Decimal('100000'))
+        self.client = login_customer(Client(), self.customer)
+
+    def post(self, payload, client=None):
+        return (client or self.client).post(reverse('request_courier'), json.dumps(payload), content_type='application/json')
+
+    def test_request_then_edit_until_dispatched(self):
+        payload = {'order_id': self.order.id, 'lat': '35.7', 'lng': '51.3', 'postal': '۱۲۳۴۵۶۷۸۹۰'}
+        self.assertEqual(self.post(payload).json()['status'], 'success')
+        self.order.refresh_from_db()
+        self.assertTrue(self.order.delivery_courier_requested)
+        self.assertEqual(self.order.delivery_postal_code, '1234567890')
+        payload['postal'] = '1111111111'
+        self.assertEqual(self.post(payload).json()['message'], 'آدرس ارسال به‌روز شد.')
+        self.order.delivery_courier_dispatched = True
+        self.order.save()
+        self.assertEqual(self.post(payload).status_code, 400)
+
+    def test_errors_are_persian(self):
+        other = login_customer(Client(), Customer.objects.create(name='دیگری', phone='09120000016'))
+        for response in [
+            self.post({'order_id': 'abc', 'lat': '35.7', 'lng': '51.3', 'postal': '1234567890'}),
+            self.post({'order_id': self.order.id, 'lat': '35.7', 'lng': '51.3', 'postal': '1234567890'}, other),
+            self.post([]),
+        ]:
+            message = response.json()['message']
+            self.assertTrue(re.search('[آ-ی]', message), message)
+            self.assertNotIn('matches the given query', message)
+        self.order.status = 'delivered'
+        self.order.save()
+        response = self.post({'order_id': self.order.id, 'lat': '35.7', 'lng': '51.3', 'postal': '1234567890'})
+        self.assertEqual(response.json()['message'], 'این سفارش قبلاً تحویل داده شده است.')
+
+    def test_tracking_page_hides_method_chooser_after_request(self):
+        page = self.client.get(reverse('home'), {'order_id': self.order.id}).content.decode()
+        self.assertIn('نحوه دریافت لباس را انتخاب کنید', page)
+        self.post({'order_id': self.order.id, 'lat': '35.7', 'lng': '51.3', 'postal': '1234567890'})
+        page = self.client.get(reverse('home'), {'order_id': self.order.id}).content.decode()
+        self.assertNotIn('نحوه دریافت لباس را انتخاب کنید', page)
+        self.assertIn('ویرایش آدرس ارسال', page)
