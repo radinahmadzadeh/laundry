@@ -17,7 +17,7 @@ html,body{margin:0;overflow-x:hidden}
 body{position:relative;isolation:isolate;background:transparent;color:#0f172a}
 .page-background{
 position:fixed;inset:-20px;z-index:-1;pointer-events:none;
-background-image:linear-gradient(135deg,rgba(8,145,178,.07),rgba(124,58,237,.06)),linear-gradient(rgba(247,250,252,.12),rgba(247,250,252,.12)),url("{% static 'hero/White shirt and folded linens.png' %}");
+background-image:linear-gradient(135deg,rgba(8,145,178,.07),rgba(124,58,237,.06)),linear-gradient(rgba(247,250,252,.12),rgba(247,250,252,.12)),url("{% static 'hero/background.jpg' %}");
 background-position:center center;background-size:cover;background-repeat:no-repeat;
 filter:blur(5px) saturate(1.06);transform:translateZ(0) scale(1.035);opacity:.96
 }
@@ -126,11 +126,11 @@ body.motion-ready .motion-reveal,body.motion-ready .motion-stagger > *{opacity:1
 <article class="category-card motion-stagger motion-card rounded-3xl" id="cat-{{ category.id }}">
 <div class="category-cover">
 {% if 'مرد' in category.name %}
-<img src="{% static 'pricing-categories/کت_شلوار_مردانه.png' %}" alt="پوشاک مردانه">
+<img src="{% static 'pricing-categories/men.jpg' %}" alt="پوشاک مردانه" loading="lazy" decoding="async" width="1000" height="343">
 {% elif 'زن' in category.name %}
-<img src="{% static 'pricing-categories/لباس_زنانه.png' %}" alt="پوشاک زنانه">
+<img src="{% static 'pricing-categories/women.jpg' %}" alt="پوشاک زنانه" loading="lazy" decoding="async" width="1000" height="343">
 {% else %}
-<img src="{% static 'pricing-categories/حوله.png' %}" alt="{{ category.name }}">
+<img src="{% static 'pricing-categories/home.jpg' %}" alt="{{ category.name }}" loading="lazy" decoding="async" width="1000" height="343">
 {% endif %}
 <div class="category-badge">{{ category.items.all|length|fa_digits }} قلم</div>
 <div class="category-title"><h2>{{ category.name }}</h2><p>لیست اقلام و قیمت‌های ثبت‌شده</p></div>
