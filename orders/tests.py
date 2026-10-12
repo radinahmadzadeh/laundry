@@ -148,3 +148,50 @@ class ReceiptAccessTests(TestCase):
         client = Client()
         client.force_login(staff)
         self.assertContains(client.get(self.url), self.owner.name)
+
+
+class WalletVerifyTests(TestCase):
+    def setUp(self):
+        self.customer = Customer.objects.create(name='شارژ کننده', phone='09120000013')
+        self.wallet = Wallet.objects.create(customer=self.customer, balance=Decimal('0'))
+        self.tx = WalletTransaction.objects.create(
+            wallet=self.wallet, transaction_type='credit', amount=Decimal('20000'), authority='A-test-1',
+        )
+        self.client = login_customer(Client(), self.customer)
+        self.url = reverse('verify_wallet') + f'?transaction_id={self.tx.id}&Authority=A-test-1&Status=OK'
+
+    def gateway(self, code=100):
+        from unittest import mock
+        response = mock.Mock(status_code=200, content=b'1')
+        response.json.return_value = {'data': {'code': code, 'ref_id': 12345}}
+        return mock.patch('orders.views.requests.post', return_value=response)
+
+    def test_cancelled_payment_adds_nothing(self):
+        url = reverse('verify_wallet') + f'?transaction_id={self.tx.id}&Authority=A-test-1&Status=NOK'
+        response = self.client.get(url, follow=True)
+        self.assertContains(response, 'پرداخت لغو شد')
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, 0)
+
+    def test_repeated_callback_credits_once(self):
+        with self.gateway(100):
+            self.client.get(self.url)
+        with self.gateway(101):
+            self.client.get(self.url)
+            self.client.get(self.url)
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, Decimal('20000'))
+
+    def test_claim_is_single_use(self):
+        from .views import credit_wallet_transaction
+        self.assertTrue(credit_wallet_transaction(self.tx, '1'))
+        self.assertFalse(credit_wallet_transaction(self.tx, '1'))
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, Decimal('20000'))
+
+    def test_other_customer_cannot_verify(self):
+        other = login_customer(Client(), Customer.objects.create(name='دیگری', phone='09120000014'))
+        with self.gateway(100):
+            other.get(self.url)
+        self.wallet.refresh_from_db()
+        self.assertEqual(self.wallet.balance, 0)

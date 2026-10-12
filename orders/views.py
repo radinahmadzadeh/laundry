@@ -8,8 +8,10 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.views import redirect_to_login
 from django.db import transaction
 import re
+from django.utils import timezone
 from .models import Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
-from django.db.models import Avg, Count
+from .templatetags.fa_format import fa_digits, toman
+from django.db.models import Avg, Count, F
 
 
 def session_customer_id(request):
@@ -268,41 +270,73 @@ def recharge_wallet(request):
     return redirect('wallet')
 
 
+def credit_wallet_transaction(transaction_obj, ref_id):
+    """Add a verified top-up to the wallet exactly once.
+
+    The gateway may call back several times (refresh, double tap, parallel requests). Only the
+    request whose conditional UPDATE claims the still-unreferenced transaction adds the money.
+    """
+    with transaction.atomic():
+        claimed = WalletTransaction.objects.filter(pk=transaction_obj.pk, reference_id='').update(
+            reference_id=ref_id or 'verified'
+        )
+        if claimed:
+            Wallet.objects.filter(pk=transaction_obj.wallet_id).update(
+                balance=F('balance') + transaction_obj.amount, updated_at=timezone.now()
+            )
+    return bool(claimed)
+
+
 def verify_wallet(request):
-    transaction_id = request.GET.get('transaction_id')
+    transaction_id = str(request.GET.get('transaction_id') or '')
     authority = request.GET.get('Authority')
     status = request.GET.get('Status')
-    if not transaction_id or not authority:
-        return HttpResponse('اطلاعات تراکنش کیف پول نامعتبر است.')
-    customer_id = request.session.get('customer_id')
-    transaction_obj = get_object_or_404(
-        WalletTransaction,
-        id=transaction_id,
-        authority=authority,
-        transaction_type='credit',
-        wallet__customer_id=customer_id,
-    )
-    if status != 'OK':
+    customer_id = session_customer_id(request)
+    if not customer_id:
+        return customer_login_redirect(request)
+    transaction_obj = None
+    if transaction_id.isdigit() and authority:
+        transaction_obj = WalletTransaction.objects.filter(
+            id=int(transaction_id),
+            authority=authority,
+            transaction_type='credit',
+            wallet__customer_id=customer_id,
+        ).first()
+    if not transaction_obj:
+        messages.error(request, 'اطلاعات بازگشت از درگاه معتبر نیست؛ موجودی کیف پول تغییری نکرد.')
         return redirect('wallet')
-    amount = int(transaction_obj.amount) * 10
-    data = {'merchant_id': MERCHANT, 'amount': amount, 'authority': authority}
+    if transaction_obj.reference_id:
+        messages.info(request, 'این شارژ قبلاً به کیف پول شما اضافه شده است.')
+        return redirect('wallet')
+    if status != 'OK':
+        messages.warning(request, 'پرداخت لغو شد یا ناموفق بود؛ مبلغی به کیف پول شما اضافه یا از آن کم نشد.')
+        return redirect('wallet')
+
+    data = {'merchant_id': MERCHANT, 'amount': int(transaction_obj.amount) * 10, 'authority': authority}
     try:
         response = requests.post(ZP_API_VERIFY, json=data, headers={'accept': 'application/json'}, timeout=15)
         response_json = response.json() if response.content else {}
-        code = response_json.get('data', {}).get('code')
-        if response.status_code == 200 and code in (100, 101):
-            ref_id = str(response_json.get('data', {}).get('ref_id', ''))
-            with transaction.atomic():
-                locked_wallet = Wallet.objects.select_for_update().get(pk=transaction_obj.wallet_id)
-                if not transaction_obj.reference_id:
-                    locked_wallet.balance += transaction_obj.amount
-                    locked_wallet.save(update_fields=['balance', 'updated_at'])
-                    transaction_obj.reference_id = ref_id or 'verified'
-                    transaction_obj.save(update_fields=['reference_id'])
-            return redirect('wallet')
-    except requests.exceptions.RequestException:
-        pass
-    return HttpResponse('شارژ کیف پول تایید نشد. در صورت کسر وجه، لطفاً با پشتیبانی تماس بگیرید.')
+    except (requests.exceptions.RequestException, ValueError):
+        response, response_json = None, {}
+    payload = response_json.get('data') if isinstance(response_json, dict) else None
+    code = payload.get('code') if isinstance(payload, dict) else None
+    if response is not None and response.status_code == 200 and code in (100, 101):
+        ref_id = str(payload.get('ref_id') or '')
+        if credit_wallet_transaction(transaction_obj, ref_id):
+            messages.success(
+                request,
+                f'کیف پول شما {toman(transaction_obj.amount)} تومان شارژ شد.'
+                + (f' کد پیگیری: {fa_digits(ref_id)}' if ref_id else ''),
+            )
+        else:
+            messages.info(request, 'این شارژ قبلاً به کیف پول شما اضافه شده است.')
+        return redirect('wallet')
+    messages.error(
+        request,
+        'شارژ کیف پول تأیید نشد. اگر مبلغی از حساب بانکی شما کم شده، طبق قوانین بانکی حداکثر تا ۷۲ ساعت برمی‌گردد؛ '
+        'در غیر این صورت با پشتیبانی تماس بگیرید.',
+    )
+    return redirect('wallet')
 
 def normalize_phone(raw):
     digits = str(raw or '').translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹', '0123456789'))
