@@ -1,9 +1,12 @@
+{% load fa_format %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>فیش سفارش #{{ order.id }}</title>
+    <meta name="color-scheme" content="light">
+    <meta name="robots" content="noindex">
+    <title>فاکتور #{{ order.id|fa_digits }} | {{ shop_name|default:"خشکشویی و سفید شویی آرین" }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
@@ -56,7 +59,15 @@
         .info-label{ color:#6b7280; }
         .info-value{ font-weight:700; color:#111827; }
 
-        table.items{ width:100%; font-size:11.5px; border-collapse:collapse; }
+        table.items{ width:100%; font-size:11.5px; border-collapse:collapse; table-layout:fixed; }
+        table.items .col-qty{ width:13%; }
+        table.items .col-price, table.items .col-sum{ width:24%; }
+        table.items td, table.items th{ padding-left:4px; padding-right:4px; }
+        table.items td:first-child, table.items th:first-child{ padding-right:0; }
+        table.items td:last-child, table.items th:last-child{ padding-left:0; }
+        .item-name{ overflow-wrap:anywhere; }
+        .num{ white-space:nowrap; font-variant-numeric:tabular-nums; }
+        .ref-box{ border:1px dashed #cbd5e1; border-radius:10px; padding:8px 10px; text-align:center; font-size:11px; color:#475569; }
         table.items thead th{
             color:#6b7280; font-weight:600; font-size:10.5px;
             padding-bottom:6px; border-bottom:1px solid #e5e7eb;
@@ -78,17 +89,16 @@
             padding:14px 16px;
         }
 
-        .barcode-strip{
-            height:34px;
-            background-image:repeating-linear-gradient(to left, #111827 0 2px, transparent 2px 4px, #111827 4px 5px, transparent 5px 9px, #111827 9px 12px, transparent 12px 15px);
-        }
 
         @keyframes fadeUp{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:translateY(0); } }
         .enter{ animation:fadeUp .5s ease both; }
 
+        @page{ margin:8mm; }
         @media print{
             body{ background-color:#fff; }
-            .receipt-container{ box-shadow:none; margin:0; width:80mm; }
+            /* Fits an 80mm receipt printer and also prints as a tidy, centered slip on A4. */
+            .receipt-container{ box-shadow:none; margin:0 auto; width:100%; max-width:110mm; }
+            .enter{ animation:none; }
             .no-print{ display:none !important; }
             .zigzag{ display:none !important; }
             * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
@@ -114,8 +124,8 @@
                     </svg>
                 </div>
                 <h1 class="text-xl font-black mb-1 tracking-tight">{{ shop_name|default:"خشکشویی و سفید شویی آرین" }}</h1>
-                <p class="text-[11px] text-gray-500">{{ shop_tagline|default:"خدمات خشکشویی و سفیدشویی پریمیوم" }}</p>
-                <p class="text-[11px] text-gray-500 mt-1 dir-ltr">{{ shop_phone|default:"—" }}</p>
+                {% if shop_tagline and shop_tagline != shop_name %}<p class="text-[11px] text-gray-500">{{ shop_tagline }}</p>{% endif %}
+                {% if shop_phone %}<a href="tel:{{ shop_phone|tel_digits }}" class="inline-block text-[11px] text-gray-500 mt-1" dir="ltr">{{ shop_phone }}</a>{% endif %}
             </div>
 
             <div class="dotted-line"></div>
@@ -123,7 +133,7 @@
             <div class="space-y-2 mb-1 text-xs">
                 <div class="info-row">
                     <span class="info-label">شماره فاکتور:</span>
-                    <span class="info-value">#{{ order.id }}</span>
+                    <span class="info-value">#{{ order.id|fa_digits }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">وضعیت سفارش:</span>
@@ -131,14 +141,12 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">تاریخ ثبت:</span>
-                    <span class="info-value">{{ order.shamsi_date }}</span>
+                    <span class="info-value">{{ order.shamsi_date|fa_digits }}</span>
                 </div>
-                {% if order.delivery_date %}
                 <div class="info-row">
                     <span class="info-label">تاریخ تحویل:</span>
-                    <span class="info-value text-[var(--brand)]">{{ order.shamsi_delivery_date }}</span>
+                    {% if order.delivery_date %}<span class="info-value text-[var(--brand)]">{{ order.shamsi_delivery_date|fa_digits }}</span>{% else %}<span class="text-gray-500 text-[11px]">پس از دریافت لباس‌ها اعلام می‌شود</span>{% endif %}
                 </div>
-                {% endif %}
             </div>
 
             <div class="dotted-line"></div>
@@ -150,7 +158,7 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">شماره تماس:</span>
-                    <span class="info-value dir-ltr">{{ order.customer.phone }}</span>
+                    <span class="info-value" dir="ltr">{{ order.customer.phone|fa_digits }}</span>
                 </div>
             </div>
 
@@ -160,23 +168,23 @@
                 <thead>
                     <tr>
                         <th class="text-right">شرح خدمات</th>
-                        <th class="text-center">تعداد</th>
-                        <th class="text-center">فی</th>
-                        <th class="text-left">جمع</th>
+                        <th class="text-center col-qty">تعداد</th>
+                        <th class="text-center col-price">فی</th>
+                        <th class="text-left col-sum">جمع</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in order.orderitem_set.all %}
                     <tr>
-                        <td class="text-right font-bold">
+                        <td class="text-right font-bold item-name">
                             {{ item.item_name }}
                             {% if item.description %}
-                                <div class="mt-1 text-[9px] leading-4 text-gray-500 font-normal">توضیحات: {{ item.description|linebreaksbr }}</div>
+                                <div class="mt-1 text-[9px] leading-4 text-gray-500 font-normal"><bdi>توضیحات: {{ item.description|linebreaksbr }}</bdi></div>
                             {% endif %}
                         </td>
-                        <td class="text-center text-gray-600">{{ item.quantity }}</td>
-                        <td class="text-center text-gray-500"><span class="money">{{ item.price }}</span></td>
-                        <td class="text-left font-semibold"><span class="money">{% widthratio item.price 1 item.quantity %}</span></td>
+                        <td class="text-center text-gray-600 num">{{ item.quantity|fa_digits }}</td>
+                        <td class="text-center text-gray-500 num">{{ item.price|toman }}</td>
+                        <td class="text-left font-semibold num">{% widthratio item.price 1 item.quantity as line_total %}{{ line_total|toman }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -187,42 +195,47 @@
             <div class="space-y-1.5 mb-3 text-xs font-semibold text-gray-600">
                 <div class="info-row">
                     <span>جمع اقلام:</span>
-                    <span><span class="money">{{ order.subtotal_amount }}</span> تومان</span>
+                    <span class="num">{{ order.subtotal_amount|toman }} تومان</span>
                 </div>
                 <div class="info-row">
                     <span>مالیات (۱۰٪):</span>
-                    <span><span class="money">{{ order.tax_amount }}</span> تومان</span>
+                    <span class="num">{{ order.tax_amount|toman }} تومان</span>
                 </div>
             </div>
 
             <div class="total-box info-row mb-4">
                 <span class="font-bold text-xs">مبلغ نهایی پرداخت</span>
-                <span class="font-black text-base"><span class="money">{{ order.total_price }}</span> <span class="font-normal text-[11px] opacity-90">تومان</span></span>
+                <span class="font-black text-base num">{{ order.total_price|toman }} <span class="font-normal text-[11px] opacity-90">تومان</span></span>
             </div>
 
-            {% if order.status == 'ready' or order.status == 'delivered' %}
-            <div class="delivery-card mb-4 text-xs">
-                <div class="info-row mb-1">
-                    <span class="text-gray-600 font-semibold">روش دریافت:</span>
-                    <span class="font-bold" style="color:var(--brand-dark);">
-                        {% if order.courier_requested %}ارسال با پیک{% else %}مراجعه حضوری{% endif %}
-                    </span>
+            <div class="delivery-card mb-4 text-xs space-y-1.5">
+                <div class="info-row">
+                    <span class="text-gray-600 font-semibold">تحویل لباس به فروشگاه:</span>
+                    <span class="font-bold" style="color:var(--brand-dark);">{% if order.courier_requested %}با پیک{% else %}حضوری{% endif %}</span>
                 </div>
                 {% if order.courier_requested and order.postal_code %}
                 <div class="info-row">
-                    <span class="text-gray-600 font-semibold">کد پستی:</span>
-                    <span class="font-bold dir-ltr">{{ order.postal_code }}</span>
+                    <span class="text-gray-600 font-semibold">کد پستی دریافت:</span>
+                    <span class="font-bold" dir="ltr">{{ order.postal_code|fa_digits }}</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="text-gray-600 font-semibold">تحویل لباس به مشتری:</span>
+                    <span class="font-bold" style="color:var(--brand-dark);">{% if order.delivery_courier_requested %}با پیک{% elif order.status == 'delivered' %}حضوری{% else %}هنوز انتخاب نشده{% endif %}</span>
+                </div>
+                {% if order.delivery_courier_requested and order.delivery_postal_code %}
+                <div class="info-row">
+                    <span class="text-gray-600 font-semibold">کد پستی تحویل:</span>
+                    <span class="font-bold" dir="ltr">{{ order.delivery_postal_code|fa_digits }}</span>
                 </div>
                 {% endif %}
             </div>
-            {% endif %}
 
-            <div class="barcode-strip mb-2 opacity-80"></div>
-            <p class="text-center text-[10px] text-gray-400 tracking-widest mb-5 dir-ltr">ORDER-{{ order.id }}</p>
+            <div class="ref-box mb-5">کد پیگیری سفارش: <strong class="text-gray-900">{{ order.id|fa_digits }}</strong></div>
 
             <div class="text-center text-[11px] text-gray-500 mb-6 leading-relaxed">
                 <p>از اعتماد شما سپاسگزاریم</p>
-                <p class="mt-1">پیگیری سفارش با شماره: <span class="dir-ltr">{{ order.customer.phone }}</span></p>
+                <p class="mt-1">پیگیری سفارش: سایت {{ shop_name|default:"فروشگاه" }} ← حساب کاربری ← سفارش‌های من</p>
             </div>
 
             <div class="no-print flex gap-2 w-full">
@@ -238,6 +251,5 @@
         <div class="zigzag bottom"></div>
     </div>
 
-<script>document.querySelectorAll('.money').forEach(function(el){var d=String(el.textContent||'').replace(/[^0-9]/g,'');if(d)el.textContent=Number(d).toLocaleString('de-DE')})</script>
 </body>
 </html>

@@ -144,7 +144,7 @@ class ReceiptAccessTests(TestCase):
 
     def test_owner_and_staff_can_view(self):
         response = login_customer(Client(), self.owner).get(self.url)
-        self.assertContains(response, self.owner.phone)
+        self.assertContains(response, '۰۹۱۲۰۰۰۰۰۱۱')
         self.assertNotContains(response, f'phone={self.owner.phone}')
         staff = get_user_model().objects.create_user('receipt-staff', password='x', is_staff=True)
         client = Client()
