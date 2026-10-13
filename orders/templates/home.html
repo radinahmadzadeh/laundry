@@ -545,7 +545,7 @@
         .item-grid-wrap.printing .item-card{ animation:rowIn .45s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(var(--i, 0) * 32ms + 90ms); }
         @keyframes ticketPrint{ from{ clip-path:inset(-12px -30px 100% -30px); } to{ clip-path:inset(-12px -30px -40px -30px); } }
         @keyframes rowIn{ from{ opacity:0; transform:translateY(-10px); } to{ opacity:1; transform:none; } }
-        .item-card{ position:relative; padding:12px 16px; border-bottom:1px dashed #e2e8f0; transition:background .25s ease; }
+        .item-card{ position:relative; padding:12px 16px; border-bottom:1px dashed #e2e8f0; border-radius:0; transition:background .25s ease, transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s ease, border-radius .4s ease; }
         .item-card:first-child{ padding-top:16px; }
         .item-card:last-child{ border-bottom:0; }
         .item-card:hover{ background:linear-gradient(270deg, var(--tone-soft), rgba(255,255,255,0) 80%); }
@@ -589,6 +589,17 @@
         @keyframes qtyFloat{ from{ opacity:1; transform:translate(-50%, 0) scale(.8); } to{ opacity:0; transform:translate(-50%, -26px) scale(1.15); } }
         .item-note{ margin-top:8px; animation:rowIn .3s ease; }
         .item-note-toggle{ font-size:11px; font-weight:800; color:var(--tone-deep); padding:4px 0; }
+        /* Like the other cards on the site: on mouse hover a row lifts off the receipt and grows a little. */
+        @media (hover:hover) and (pointer:fine){
+            .item-card:hover{ z-index:3; transform:translateY(-5px) scale(1.035); border-radius:14px; border-bottom-color:transparent; background:#fff;
+                box-shadow:0 0 0 1.5px var(--tone-mid), 0 22px 40px -22px var(--tone-glow); }
+            .item-card.selected:hover{ background:linear-gradient(270deg, var(--tone-soft), #fff 85%); }
+            .item-card:hover .item-hanger{ transform:scale(1.12) rotate(-6deg); }
+            .item-card:hover .item-name{ color:var(--tone-deep); }
+            .cat-tag:hover{ transform:translateY(-2px); }
+        }
+        .item-hanger{ transition:background .3s ease, color .3s ease, box-shadow .3s ease, transform .4s cubic-bezier(.3,1.6,.5,1); }
+        .item-name{ transition:color .25s ease; }
         @media (min-width:768px){
             .item-ticket{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:1px; background:linear-gradient(#e2e8f0, #e2e8f0) center / 1px calc(100% - 24px) no-repeat, #fff; }
             .item-card:nth-child(2){ padding-top:16px; }
@@ -609,6 +620,8 @@
             .cat-tag[aria-selected="true"], .cat-tag-count.pop, .item-grid-wrap.printing .item-ticket, .item-grid-wrap.printing .item-card, .item-card.swing .item-hanger svg,
             .iron-pill:has(input:checked), .qty-input.bump, .item-card.selected .qty-wrap, .qty-float, .item-note{ animation:none; }
             .item-card::before{ transition:none; }
+            .item-card, .item-hanger, .cat-tag{ transition:none; }
+            .item-card:hover, .item-card:hover .item-hanger, .cat-tag:hover{ transform:none; }
         }
 
         /* Responsive fit pass: keep every section inside the viewport on phone, tablet and desktop. */
