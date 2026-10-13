@@ -1,0 +1,10 @@
+{# Small stroke icon for one tracker step; pass key=<status>, or key="done" for a check mark. #}
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if key == 'collecting' %}<path d="M2.5 7h11v8h-11z"/><path d="M13.5 10h4l3 3v2h-7z"/><circle cx="6" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/>
+{% elif key == 'received' %}<path d="M5.5 8.5h13l-1 11.5h-11z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/>
+{% elif key == 'washing' %}<rect x="4.5" y="3" width="15" height="18" rx="3"/><path d="M4.5 7h15"/><circle cx="12" cy="14" r="4"/><path d="M9.5 14.3c1-.9 1.8.9 2.6 0s1.6-.9 2.4 0"/>
+{% elif key == 'ironing' %}<path d="M3.5 17h15a3.5 3.5 0 0 0-3.5-5.5H8c-2.4 0-4 2.4-4.5 5.5z"/><path d="M9 11.5c0-2.5 1.5-3.5 4-3.5h3"/>
+{% elif key == 'ready' %}<path d="M10.5 7.5a1.6 1.6 0 1 1 2.3 1.4c-.5.3-.8.7-.8 1.3v.6"/><path d="M12 10.8l8.4 5.6a.9.9 0 0 1-.5 1.6H4.1a.9.9 0 0 1-.5-1.6L12 10.8z"/>
+{% elif key == 'delivered' %}<path d="M4 11l8-6.5 8 6.5"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/>
+{% else %}<path d="M5 12.5l4.5 4.5L19 7.5"/>
+{% endif %}</svg>

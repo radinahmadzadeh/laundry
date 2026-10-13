@@ -805,6 +805,140 @@
             .hiw-card{ transition:none; }
             .hiw-card:hover{ transform:rotate(var(--tilt)); }
         }
+        /* Quick tracking: a claim-ticket search, an animated "what's happening now" card and a clothesline of steps. */
+        [data-tone="emerald"]{ --tone:#059669; --tone-a:#34d399; --tone-deep:#047857; --tone-soft:#ecfdf5; --tone-mid:#a7f3d0; --tone-glow:rgba(5,150,105,.45); }
+        .trk-search{ padding:24px; }
+        .trk-search-head{ display:flex; align-items:center; gap:14px; margin-bottom:18px; }
+        .trk-search-icon{ flex:none; width:52px; height:52px; border-radius:16px; display:flex; align-items:center; justify-content:center; color:#fff;
+            background:linear-gradient(135deg, #22d3ee, #0891b2 55%, #7c3aed); box-shadow:0 12px 24px -12px rgba(8,145,178,.6); }
+        .trk-search-icon svg{ width:30px; height:30px; }
+        .art-drum{ transform-box:view-box; transform-origin:32px 37px; animation:artSpin 2.4s linear infinite; }
+        @keyframes artSpin{ to{ transform:rotate(360deg); } }
+
+        .trk-ticket{ display:flex; align-items:stretch; filter:drop-shadow(0 0 .7px rgba(15,23,42,.45)) drop-shadow(0 12px 22px rgba(15,23,42,.07)); transition:filter .3s ease; }
+        .trk-ticket:focus-within{ filter:drop-shadow(0 0 1.2px #0891b2) drop-shadow(0 0 7px rgba(34,211,238,.45)) drop-shadow(0 14px 24px rgba(8,145,178,.18)); }
+        .trk-ticket-field{ flex:1; min-width:0; display:flex; align-items:center; gap:6px; padding:0 18px 0 12px; background:#fff; border-radius:0 16px 16px 0;
+            -webkit-mask:radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); mask:radial-gradient(circle 9px at 0 50%, transparent 8.5px, #000 9px); cursor:text; }
+        .trk-hash{ font-size:22px; font-weight:900; background:linear-gradient(135deg, #22d3ee, #7c3aed); -webkit-background-clip:text; background-clip:text; color:transparent; }
+        .trk-ticket-field input{ width:100%; min-width:0; height:58px; background:transparent; border:0; outline:0; font-size:18px; font-weight:800; letter-spacing:.06em; color:#0f172a; }
+        .trk-ticket-field input::placeholder{ font-size:14px; font-weight:600; letter-spacing:0; color:#94a3b8; }
+        .trk-go{ position:relative; flex:none; display:flex; align-items:center; gap:8px; padding:0 22px 0 18px; border-radius:16px 0 0 16px; color:#fff; font-size:14px; font-weight:900;
+            background:linear-gradient(120deg, #22d3ee, #0891b2 45%, #7c3aed); background-size:180% 100%; background-position:0 0; transition:background-position .5s ease;
+            -webkit-mask:radial-gradient(circle 9px at 100% 50%, transparent 8.5px, #000 9px); mask:radial-gradient(circle 9px at 100% 50%, transparent 8.5px, #000 9px); }
+        .trk-go::before{ content:""; position:absolute; right:0; top:12px; bottom:12px; border-right:2px dashed rgba(255,255,255,.55); }
+        .trk-go-arrow{ width:18px; height:18px; transition:transform .3s cubic-bezier(.3,1.6,.5,1); }
+        .trk-go-spin{ display:none; width:18px; height:18px; border-radius:50%; border:2.5px solid rgba(255,255,255,.4); border-top-color:#fff; animation:artSpin .7s linear infinite; }
+        .trk-ticket.is-loading .trk-go-arrow{ display:none; }
+        .trk-ticket.is-loading .trk-go-spin{ display:block; }
+
+        .trk-recent{ margin-top:18px; }
+        .trk-recent-label{ display:block; margin-bottom:9px; font-size:11px; font-weight:800; color:#94a3b8; }
+        .trk-recent-list{ display:flex; flex-wrap:wrap; gap:8px; }
+        .trk-chip{ display:inline-flex; align-items:center; gap:7px; padding:7px 12px; border-radius:999px; background:var(--tone-soft); border:1px solid var(--tone-mid); font-size:12px;
+            transition:transform .3s cubic-bezier(.3,1.6,.5,1), box-shadow .3s ease, background .3s ease; animation:chipIn .5s cubic-bezier(.3,1.5,.5,1) both; animation-delay:calc(var(--i) * 70ms + 150ms); }
+        .trk-chip.is-active{ background:#fff; box-shadow:0 0 0 2px var(--tone-a), 0 10px 20px -12px var(--tone-glow); }
+        .trk-chip-dot{ position:relative; width:8px; height:8px; border-radius:50%; background:var(--tone); }
+        .trk-chip-dot.is-live::after{ content:""; position:absolute; inset:-4px; border-radius:50%; border:2px solid var(--tone-a); animation:livePing 1.8s ease-out infinite; }
+        .trk-chip-no{ font-weight:900; color:#0f172a; }
+        .trk-chip-state{ font-weight:700; color:var(--tone-deep); }
+        @keyframes chipIn{ from{ opacity:0; transform:translateY(8px) scale(.9); } to{ opacity:1; transform:none; } }
+        @keyframes livePing{ 0%{ transform:scale(.6); opacity:.9; } 100%{ transform:scale(1.6); opacity:0; } }
+
+        .trk-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:16px; }
+        .trk-date{ font-size:12px; color:#64748b; background:#f8fafc; border:1px solid #e2e8f0; border-radius:999px; padding:5px 14px; }
+        .trk-hero{ position:relative; overflow:hidden; display:flex; align-items:center; gap:16px; padding:16px; border-radius:22px; background:linear-gradient(135deg, var(--tone-soft), #fff 70%); border:1px solid var(--tone-mid); }
+        .trk-hero::after{ content:""; position:absolute; inset:0; background:linear-gradient(110deg, transparent 30%, rgba(255,255,255,.75) 45%, transparent 60%); transform:translateX(-120%); animation:heroSheen 4.5s ease-in-out 1s infinite; pointer-events:none; }
+        @keyframes heroSheen{ 0%,55%{ transform:translateX(120%); } 100%{ transform:translateX(-120%); } }
+        .trk-art{ flex:none; width:84px; height:84px; border-radius:24px; display:flex; align-items:center; justify-content:center; color:#fff;
+            background:linear-gradient(140deg, var(--tone-a), var(--tone) 50%, var(--tone-deep)); box-shadow:0 16px 30px -14px var(--tone-glow); animation:artIn .7s cubic-bezier(.3,1.5,.5,1) both; }
+        .trk-art-svg{ width:58px; height:58px; overflow:visible; }
+        @keyframes artIn{ from{ opacity:0; transform:scale(.6) rotate(-8deg); } to{ opacity:1; transform:none; } }
+        .trk-step-chip{ display:inline-block; font-size:10.5px; font-weight:800; color:var(--tone-deep); background:#fff; border:1px solid var(--tone-mid); border-radius:999px; padding:2px 10px; }
+        .trk-title{ margin-top:6px; font-size:19px; font-weight:900; color:#0f172a; line-height:1.4; }
+        .trk-text{ margin-top:3px; font-size:12.5px; line-height:1.9; color:#64748b; }
+
+        /* Illustration motion, one per status. */
+        .art-bubble{ animation:bubbleUp 2.4s ease-in infinite; }
+        .art-bubble.b2{ animation-delay:.8s; } .art-bubble.b3{ animation-delay:1.5s; }
+        @keyframes bubbleUp{ 0%{ opacity:0; transform:translateY(8px); } 25%{ opacity:1; } 100%{ opacity:0; transform:translateY(-12px); } }
+        .art-iron{ animation:ironGlide 2.2s ease-in-out infinite; }
+        @keyframes ironGlide{ 0%,100%{ transform:translateX(-4px); } 50%{ transform:translateX(5px); } }
+        .art-steam{ animation:steamUp 2.2s ease-out infinite; }
+        .art-steam.s2{ animation-delay:.7s; }
+        @keyframes steamUp{ 0%{ opacity:0; transform:translateY(6px); } 35%{ opacity:.9; } 100%{ opacity:0; transform:translateY(-8px); } }
+        .art-truck{ animation:truckBob .5s ease-in-out infinite alternate; }
+        @keyframes truckBob{ to{ transform:translateY(-1.5px); } }
+        .art-road{ animation:roadMove .6s linear infinite; }
+        @keyframes roadMove{ to{ stroke-dashoffset:12; } }
+        .art-bag{ transform-box:view-box; transform-origin:32px 54px; animation:bagBob 2.4s ease-in-out infinite; }
+        @keyframes bagBob{ 0%,100%{ transform:translateY(0) rotate(0); } 30%{ transform:translateY(-3px) rotate(-3deg); } 60%{ transform:translateY(0) rotate(2deg); } }
+        .art-hanger{ transform-box:view-box; transform-origin:32px 12px; animation:hangSwing 2.6s ease-in-out infinite; }
+        @keyframes hangSwing{ 0%,100%{ transform:rotate(-6deg); } 50%{ transform:rotate(6deg); } }
+        .art-spark{ transform-box:fill-box; transform-origin:center; animation:twinkle 1.8s ease-in-out infinite; }
+        .art-spark.s2{ animation-delay:.6s; } .art-spark.s3{ animation-delay:1.2s; }
+        @keyframes twinkle{ 0%,100%{ opacity:.2; transform:scale(.6); } 50%{ opacity:1; transform:scale(1.1); } }
+        .art-check{ stroke-dasharray:1; stroke-dashoffset:1; animation:checkDraw .8s .5s cubic-bezier(.6,0,.3,1) forwards; }
+        @keyframes checkDraw{ to{ stroke-dashoffset:0; } }
+        .art-ring{ transform-box:fill-box; transform-origin:center; animation:ringPop .6s .2s cubic-bezier(.3,1.6,.5,1) both; }
+        @keyframes ringPop{ from{ transform:scale(.4); opacity:0; } to{ transform:none; opacity:1; } }
+
+        /* Clothesline of steps: a sagging rope that fills up to the current step; each step hangs from a pin. */
+        .trk-line{ position:relative; margin:22px 0 26px; }
+        .trk-rope{ position:absolute; left:0; right:0; top:0; width:100%; height:40px; overflow:visible; }
+        .trk-rope path{ fill:none; stroke-width:2.5; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+        .trk-rope-base{ stroke:#e2e8f0; stroke-dasharray:6 5; }
+        .trk-rope-fill{ stroke-width:3.5 !important; animation:ropeFill 1.4s .35s cubic-bezier(.6,0,.2,1) both; }
+        @keyframes ropeFill{ from{ clip-path:inset(-20px -20px -20px 100%); } to{ clip-path:inset(-20px -20px -20px 0); } }
+        .trk-steps{ position:relative; display:grid; grid-template-columns:repeat(var(--n), minmax(0, 1fr)); list-style:none; margin:0; padding:0; }
+        .trk-step{ display:flex; flex-direction:column; align-items:center; text-align:center; padding-top:4px; transform-origin:50% 4px; animation:stepHang .7s cubic-bezier(.3,1.5,.5,1) both; animation-delay:calc(var(--i) * 90ms + 150ms); }
+        @keyframes stepHang{ from{ opacity:0; transform:translateY(-12px) rotate(-14deg); } to{ opacity:1; transform:none; } }
+        .trk-pin{ width:6px; height:13px; border-radius:3px; background:#cbd5e1; position:relative; z-index:2; }
+        .trk-dot{ position:relative; margin-top:-3px; width:40px; height:40px; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#94a3b8; background:#fff; border:1.5px dashed #cbd5e1; transition:transform .3s ease; }
+        .trk-dot svg{ width:20px; height:20px; }
+        .trk-name{ max-width:100%; margin-top:7px; padding:0 2px; font-size:11px; font-weight:700; line-height:1.4; color:#94a3b8; }
+        .trk-step.is-done .trk-pin, .trk-step.is-current .trk-pin{ background:var(--tone-deep); }
+        .trk-step.is-done .trk-dot{ color:var(--tone-deep); background:var(--tone-soft); border:1.5px solid var(--tone-mid); }
+        .trk-step.is-done .trk-name{ color:#475569; }
+        .trk-step.is-current .trk-dot{ color:#fff; border:0; background:linear-gradient(140deg, var(--tone-a), var(--tone-deep)); box-shadow:0 10px 22px -10px var(--tone-glow); }
+        .trk-step.is-current .trk-dot::after{ content:""; position:absolute; inset:-5px; border-radius:18px; border:2px solid var(--tone-a); animation:livePing 2s ease-out infinite; }
+        .trk-step.is-current .trk-name{ color:var(--tone-deep); font-weight:900; }
+        .trk-step.is-current{ animation:stepHang .7s cubic-bezier(.3,1.5,.5,1) both, stepSwing 3s ease-in-out 1.2s infinite; animation-delay:calc(var(--i) * 90ms + 150ms), 1.4s; }
+        @keyframes stepSwing{ 0%,100%{ transform:rotate(0); } 25%{ transform:rotate(5deg); } 75%{ transform:rotate(-5deg); } }
+
+        @media (hover:hover) and (pointer:fine){
+            .trk-go:hover{ background-position:100% 0; }
+            .trk-go:hover .trk-go-arrow{ transform:translateX(-4px); }
+            .trk-chip:hover{ transform:translateY(-3px); background:#fff; box-shadow:0 0 0 1.5px var(--tone-mid), 0 12px 22px -12px var(--tone-glow); }
+            .trk-step:hover .trk-dot{ transform:scale(1.12); }
+            .trk-hero:hover .trk-art{ transform:rotate(-4deg) scale(1.05); transition:transform .4s cubic-bezier(.3,1.6,.5,1); }
+        }
+        @media (max-width:640px){
+            .trk-search{ padding:18px 16px; }
+            .trk-search-icon{ width:46px; height:46px; border-radius:14px; }
+            .trk-ticket-field{ padding:0 14px 0 8px; }
+            .trk-ticket-field input{ height:54px; font-size:16px; }
+            .trk-go{ padding:0 16px 0 14px; font-size:13px; }
+            .trk-hero{ padding:13px; gap:12px; border-radius:18px; }
+            .trk-art{ width:66px; height:66px; border-radius:19px; }
+            .trk-art-svg{ width:46px; height:46px; }
+            .trk-title{ font-size:16px; }
+            .trk-text{ font-size:12px; line-height:1.8; }
+            .trk-dot{ width:32px; height:32px; border-radius:11px; }
+            .trk-dot svg{ width:16px; height:16px; }
+            .trk-name{ font-size:9.5px; }
+            .trk-step.is-current .trk-dot::after{ border-radius:15px; }
+        }
+        @media (max-width:374px){
+            .trk-go-text{ display:none; }
+            .trk-dot{ width:28px; height:28px; border-radius:10px; }
+            .trk-name{ font-size:8.5px; padding:0; letter-spacing:-.02em; }
+            .trk-line{ margin-left:-6px; margin-right:-6px; }
+        }
+        @media (prefers-reduced-motion:reduce){
+            .art-drum, .art-bubble, .art-iron, .art-steam, .art-truck, .art-road, .art-bag, .art-hanger, .art-spark, .art-ring, .trk-hero::after, .trk-art,
+            .trk-chip, .trk-chip-dot.is-live::after, .trk-rope-fill, .trk-step, .trk-step.is-current, .trk-step.is-current .trk-dot::after{ animation:none; }
+            .art-check{ animation:none; stroke-dashoffset:0; }
+        }
     </style>
 </head>
 <body class="min-h-screen">
@@ -994,21 +1128,43 @@
 
     {% if customer_logged_in %}
     <section id="track-section" class="max-w-2xl mx-auto px-5 mb-20 relative z-10">
-        <div class="panel enter rounded-3xl p-6 sm:p-8">
-            <div class="text-center mb-6">
-                <div class="breathe w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center">
-                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="trk-search panel enter rounded-3xl">
+            <div class="trk-search-head">
+                <span class="trk-search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="11" y="7" width="42" height="50" rx="8"/><path d="M11 18h42"/><circle cx="32" cy="37" r="13"/><g class="art-drum"><path d="M23 38c3-4 6 3 9 0s6-4 9 0"/></g></svg>
+                </span>
+                <div class="min-w-0">
+                    <h2 class="text-lg sm:text-2xl font-black">پیگیری سریع سفارش</h2>
+                    <p class="text-gray-500 text-xs sm:text-sm mt-1">شماره فاکتور را بزنید تا ببینید لباس‌هایتان کجای کارند.</p>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-black">پیگیری سریع سفارش</h2>
-                <p class="text-gray-500 text-xs sm:text-sm mt-2">{% if customer_logged_in %}شماره فاکتور سفارش را وارد کنید{% else %}برای پیگیری، ابتدا وارد حساب مشتری شوید{% endif %}</p>
             </div>
-            <form method="GET" action="#track-section" class="flex flex-col sm:flex-row gap-3">
-                <input type="text" inputmode="numeric" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" aria-label="شماره فاکتور" required maxlength="12" autocomplete="off"
-                       class="w-full sm:flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-cyan-200">
-                <button type="submit" class="btn-motion bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 whitespace-nowrap">
-                    پیگیری کن
+            <form method="GET" action="#track-section" class="trk-ticket" onsubmit="this.classList.add('is-loading')">
+                <label class="trk-ticket-field">
+                    <span class="trk-hash" aria-hidden="true">#</span>
+                    <input type="text" inputmode="numeric" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" aria-label="شماره فاکتور" required maxlength="12" autocomplete="off">
+                </label>
+                <button type="submit" class="trk-go btn-motion">
+                    <span class="trk-go-text">پیگیری</span>
+                    <svg class="trk-go-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+                    <span class="trk-go-spin" aria-hidden="true"></span>
                 </button>
             </form>
+            {% if customer_orders %}
+            <div class="trk-recent">
+                <span class="trk-recent-label">سفارش‌های اخیر شما</span>
+                <div class="trk-recent-list">
+                    {% for recent in customer_orders|slice:":4" %}
+                    {% with now=recent.tracking_current %}
+                    <a href="?order_id={{ recent.id }}#track-section" class="trk-chip{% if orders and orders.0.id == recent.id %} is-active{% endif %}" data-tone="{{ now.tone }}" style="--i:{{ forloop.counter0 }}">
+                        <span class="trk-chip-dot{% if recent.status != 'delivered' %} is-live{% endif %}"></span>
+                        <span class="trk-chip-no">#{{ recent.id|fa_digits }}</span>
+                        <span class="trk-chip-state">{{ now.label }}</span>
+                    </a>
+                    {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
 
         <div class="mt-8">
@@ -1025,52 +1181,38 @@
                             <div class="perf"></div>
 
                             <div class="p-7">
-                                <div class="flex justify-between items-center mb-6">
-                                    <span class="text-gray-500 font-light text-sm">فاکتور <strong class="text-gray-900 text-base tracking-wide">#{{ order.id|fa_digits }}</strong></span>
-                                    <span class="text-gray-600 text-xs bg-gray-50 px-4 py-1.5 rounded-full border border-gray-200">
-                                        {{ order.shamsi_date|fa_digits }}
-                                    </span>
+                                {% with now=order.tracking_current %}
+                                <div class="trk-head">
+                                    <span class="text-gray-500 text-sm">فاکتور <strong class="text-gray-900 text-lg font-black">#{{ order.id|fa_digits }}</strong></span>
+                                    <span class="trk-date">{{ order.shamsi_date|fa_digits }}</span>
                                 </div>
 
-                                <div class="mb-12 mt-10 px-1" dir="rtl">
-                                    <div class="flex items-center justify-between relative {% if order.courier_requested or order.status == 'collecting' %}steps-6{% endif %}">
-                                        <div class="absolute right-0 top-2 w-full h-[2px] clothesline z-0"></div>
-                                        <div class="absolute right-0 top-2 h-[2px] bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] rounded-full z-0 transition-all duration-1000 ease-out"
-                                             style="width: {% if order.courier_requested or order.status == 'collecting' %}{% if order.status == 'collecting' %}0%{% elif order.status == 'received' %}20%{% elif order.status == 'washing' %}40%{% elif order.status == 'ironing' %}60%{% elif order.status == 'ready' %}80%{% elif order.status == 'delivered' %}100%{% endif %}{% else %}{% if order.status == 'received' %}0%{% elif order.status == 'washing' %}25%{% elif order.status == 'ironing' %}50%{% elif order.status == 'ready' %}75%{% elif order.status == 'delivered' %}100%{% endif %}{% endif %}"></div>
-
-                                        {% if order.courier_requested or order.status == 'collecting' %}
-                                        <div class="node relative z-10 flex flex-col items-center {% if order.status == 'collecting' %}node-active{% endif %}">
-                                            <svg class="w-4 h-4 text-[var(--cyan)] {% if order.status == 'collecting' %}truck-bounce{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
-                                            <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'collecting' %}bg-cyan-100 text-cyan-800 font-bold{% else %}text-gray-400{% endif %}">جمع‌آوری</span>
-                                        </div>
-                                        {% endif %}
-
-                                        <div class="node relative z-10 flex flex-col items-center {% if order.status == 'received' %}node-active{% endif %}">
-                                            <svg class="w-4 h-4 {% if order.status != 'collecting' %}text-[var(--cyan)]{% else %}text-gray-300{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2zm1 4V4h0v2z"/></svg>
-                                            <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'received' %}bg-cyan-100 text-cyan-800 font-bold{% else %}text-gray-400{% endif %}">دریافت</span>
-                                        </div>
-
-                                        <div class="node relative z-10 flex flex-col items-center {% if order.status == 'washing' %}node-active{% endif %}">
-                                            <svg class="w-4 h-4 {% if order.status in 'washing,ironing,ready,delivered' %}text-[var(--cyan)]{% else %}text-gray-300{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
-                                            <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'washing' %}bg-cyan-100 text-cyan-800 font-bold{% else %}text-gray-400{% endif %}">شستشو</span>
-                                        </div>
-
-                                        <div class="node relative z-10 flex flex-col items-center {% if order.status == 'ironing' %}node-active{% endif %}">
-                                            <svg class="w-4 h-4 {% if order.status in 'ironing,ready,delivered' %}text-[var(--violet)]{% else %}text-gray-300{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 00-3 3v9a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
-                                            <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'ironing' %}bg-violet-100 text-violet-800 font-bold{% else %}text-gray-400{% endif %}">اتوکشی</span>
-                                        </div>
-
-                                        <div class="node relative z-10 flex flex-col items-center {% if order.status == 'ready' %}node-active{% endif %}">
-                                            <svg class="w-4 h-4 {% if order.status in 'ready,delivered' %}text-[var(--amber)]{% else %}text-gray-300{% endif %}" viewBox="0 0 24 24" fill="currentColor"><path d="M11 2a2 2 0 00-2 2v3H7a3 3 0 003 3h10a3 3 0 003-3v-9a3 3 0 00-3-3h-2V4a2 2 0 00-2-2h-2z"/></svg>
-                                            <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'ready' %}bg-amber-100 text-amber-800 font-bold text-[11px]{% else %}text-gray-400{% endif %}">آماده تحویل</span>
-                                        </div>
-
-                                        <div class="node relative z-10 flex flex-col items-center {% if order.status == 'delivered' %}node-active{% endif %}">
-                                            <svg class="w-4 h-4 {% if order.status == 'delivered' %}text-emerald-600{% else %}text-gray-300{% endif %}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l4 4L19 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                            <span class="mt-3 text-[10px] whitespace-nowrap px-2 py-0.5 rounded {% if order.status == 'delivered' %}bg-emerald-100 text-emerald-800 font-bold{% else %}text-gray-400{% endif %}">تحویل داده شده</span>
-                                        </div>
+                                <div class="trk-hero" data-tone="{{ now.tone }}" data-status="{{ now.key }}">
+                                    <div class="trk-art">{% include "track_art.html" with key=now.key %}</div>
+                                    <div class="min-w-0">
+                                        <span class="trk-step-chip">مرحله {{ now.number|fa_digits }} از {{ now.count|fa_digits }}</span>
+                                        <h4 class="trk-title">{{ now.title }}</h4>
+                                        <p class="trk-text">{{ now.text }}</p>
                                     </div>
                                 </div>
+
+                                <div class="trk-line" style="--n:{{ now.count }}">
+                                    <svg class="trk-rope" viewBox="0 0 {{ order.tracking_rope_width }} 40" preserveAspectRatio="none" aria-hidden="true">
+                                        <defs><linearGradient id="trk-grad-{{ order.id }}" gradientUnits="userSpaceOnUse" x1="{{ order.tracking_rope_width }}" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs>
+                                        <path class="trk-rope-base" d="{{ order.tracking_rope_path }}"/>
+                                        <path class="trk-rope-fill" d="{{ order.tracking_rope_done_path }}" stroke="url(#trk-grad-{{ order.id }})"/>
+                                    </svg>
+                                    <ol class="trk-steps">
+                                        {% for step in order.tracking_steps %}
+                                        <li class="trk-step is-{{ step.state }}" data-tone="{{ step.tone }}" style="--i:{{ forloop.counter0 }}"{% if step.state == 'current' %} aria-current="step"{% endif %}>
+                                            <span class="trk-pin" aria-hidden="true"></span>
+                                            <span class="trk-dot">{% if step.state == 'done' %}{% include "track_icon.html" with key="done" %}{% else %}{% include "track_icon.html" with key=step.key %}{% endif %}</span>
+                                            <span class="trk-name">{{ step.label }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ol>
+                                </div>
+                                {% endwith %}
 
                                 <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
                                     <h4 class="text-sm font-semibold text-gray-600 mb-4 flex items-center gap-2">

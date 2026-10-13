@@ -1,0 +1,44 @@
+{# Animated illustration of what is happening to the order right now; pass key=<status>. #}
+<svg class="trk-art-svg" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{% if key == 'collecting' %}
+    <path class="art-road" d="M4 54h56" stroke-dasharray="6 6"/>
+    <g class="art-truck">
+        <path d="M8 22h26v20H8z"/><path d="M34 29h10l7 7v6H34z"/>
+        <circle cx="16" cy="45" r="4" fill="currentColor"/><circle cx="43" cy="45" r="4" fill="currentColor"/>
+        <path class="art-wind" d="M2 27h3M1 33h4" opacity=".7"/>
+    </g>
+{% elif key == 'received' %}
+    <g class="art-bag">
+        <path d="M14 24h36l-3 30H17z"/><path d="M24 24v-5a8 8 0 0 1 16 0v5"/>
+        <path d="M26 36l4 4 8-8" stroke-width="2.6"/>
+    </g>
+    <path class="art-spark s1" d="M53 12v6M50 15h6"/><path class="art-spark s2" d="M9 14v4M7 16h4"/>
+{% elif key == 'washing' %}
+    <rect x="11" y="7" width="42" height="50" rx="8"/>
+    <path d="M11 18h42"/><circle cx="19" cy="12.5" r="1.4" fill="currentColor"/><circle cx="25" cy="12.5" r="1.4" fill="currentColor"/>
+    <circle cx="32" cy="37" r="13"/>
+    <g class="art-drum"><path d="M23 38c3-4 6 3 9 0s6-4 9 0" stroke-width="2.2"/><circle cx="28" cy="32" r="1.6" fill="currentColor" stroke="none"/><circle cx="36" cy="43" r="1.3" fill="currentColor" stroke="none"/></g>
+    <circle class="art-bubble b1" cx="46" cy="10" r="2.2" stroke-width="1.6"/>
+    <circle class="art-bubble b2" cx="52" cy="14" r="1.6" stroke-width="1.4"/>
+    <circle class="art-bubble b3" cx="41" cy="12" r="1.3" stroke-width="1.3"/>
+{% elif key == 'ironing' %}
+    <path class="art-steam s1" d="M20 22c-3-4 3-6 0-10"/>
+    <path class="art-steam s2" d="M28 22c-3-4 3-6 0-10"/>
+    <g class="art-iron">
+        <path d="M8 46h44a9 9 0 0 0-9-15H20c-6 0-10 6-12 15z"/>
+        <path d="M24 31c0-6 3-9 10-9h8"/>
+        <path d="M14 50h40" opacity=".5"/>
+    </g>
+{% elif key == 'ready' %}
+    <g class="art-hanger">
+        <path d="M29 16a3.5 3.5 0 1 1 5 3.2c-1.2.6-2 1.6-2 3v1.8"/>
+        <path d="M32 24L10 38c-1.8 1.2-1 4 1.2 4h41.6c2.2 0 3-2.8 1.2-4z"/>
+        <path d="M18 42v12h28V42" opacity=".85"/>
+    </g>
+    <path class="art-spark s1" d="M52 10v7M48.5 13.5h7"/><path class="art-spark s2" d="M11 16v5M8.5 18.5h5"/><path class="art-spark s3" d="M54 30v4M52 32h4"/>
+{% else %}
+    <circle class="art-ring" cx="32" cy="32" r="22"/>
+    <path class="art-check" d="M21 33l7.5 7.5L44 25" stroke-width="3.4" pathLength="1"/>
+    <path class="art-spark s1" d="M53 9v6M50 12h6"/><path class="art-spark s2" d="M10 46v5M7.5 48.5h5"/><path class="art-spark s3" d="M8 12v4M6 14h4"/>
+{% endif %}
+</svg>

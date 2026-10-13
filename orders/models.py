@@ -11,6 +11,17 @@ def order_tax(subtotal):
     """10% tax on an order subtotal, rounded down to a whole toman."""
     return int(subtotal) * 10 // 100
 
+
+# Steps of the order tracker: (status, short label, colour tone, headline, what is happening now).
+TRACKING_STEPS = (
+    ('collecting', 'جمع‌آوری', 'cyan', 'در انتظار پیک', 'پیک به‌زودی برای تحویل گرفتن لباس‌ها به آدرس شما می‌آید.'),
+    ('received', 'دریافت', 'cyan', 'لباس‌ها رسید', 'لباس‌ها در فروشگاه بررسی و برای شست‌وشو آماده می‌شوند.'),
+    ('washing', 'شست‌وشو', 'cyan', 'در حال شست‌وشو', 'لباس‌ها با روش مناسب جنس پارچه شسته می‌شوند.'),
+    ('ironing', 'اتوکشی', 'violet', 'در حال اتوکشی', 'لباس‌ها اتو و فرم‌دهی می‌شوند تا مرتب تحویل‌تان شوند.'),
+    ('ready', 'آماده تحویل', 'amber', 'آماده تحویل', 'لباس‌های تمیز و اتوشده منتظر شما هستند.'),
+    ('delivered', 'تحویل شد', 'emerald', 'تحویل داده شد', 'سفارش به دست شما رسید؛ ممنون که ما را انتخاب کردید.'),
+)
+
 class Customer(models.Model):
     name = models.CharField(max_length=100)
     phone = models.CharField(max_length=15, unique=True)
@@ -145,6 +156,58 @@ class Order(models.Model):
     @property
     def delivery_map_point(self):
         return self._map_point(self.delivery_latitude, self.delivery_longitude)
+
+    def _tracking_steps(self):
+        # The pickup step only exists when a courier collects the clothes.
+        if self.courier_requested or self.status == 'collecting':
+            return TRACKING_STEPS
+        return TRACKING_STEPS[1:]
+
+    @property
+    def tracking_steps(self):
+        """Tracker steps with their state: done, current or todo."""
+        steps = self._tracking_steps()
+        current = [s[0] for s in steps].index(self.status)
+        return [
+            {
+                'key': key, 'label': label, 'tone': tone, 'number': i + 1,
+                'state': 'done' if i < current else ('current' if i == current else 'todo'),
+            }
+            for i, (key, label, tone, _title, _text) in enumerate(steps)
+        ]
+
+    @property
+    def tracking_current(self):
+        """The current step with its headline, text and position."""
+        steps = self._tracking_steps()
+        index = [s[0] for s in steps].index(self.status)
+        key, label, tone, title, text = steps[index]
+        return {
+            'key': key, 'label': label, 'tone': tone, 'title': title, 'text': text,
+            'number': index + 1, 'count': len(steps),
+        }
+
+    def _rope_path(self, upto):
+        count = len(self._tracking_steps())
+        xs = [(count - 1 - i) * 100 + 50 for i in range(upto + 1)]
+        d = f'M {xs[0]} 8'
+        for a, b in zip(xs, xs[1:]):
+            d += f' Q {(a + b) / 2:g} 26 {b} 8'
+        return d
+
+    @property
+    def tracking_rope_path(self):
+        """SVG path of the sagging clothesline through every step (first step on the right, RTL)."""
+        return self._rope_path(len(self._tracking_steps()) - 1)
+
+    @property
+    def tracking_rope_done_path(self):
+        """The same clothesline, only as far as the current step."""
+        return self._rope_path(self.tracking_current['number'] - 1)
+
+    @property
+    def tracking_rope_width(self):
+        return len(self._tracking_steps()) * 100
 
     @property
     def subtotal_amount(self):
