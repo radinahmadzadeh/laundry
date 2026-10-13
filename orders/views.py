@@ -479,6 +479,7 @@ def print_receipt(request, order_id):
         'shop_name': shop.name,
         'shop_tagline': shop.tagline,
         'shop_phone': shop.phone,
+        'shop_address': shop.address,
         'is_staff_view': is_staff and order.customer_id != customer_id,
     })
 
