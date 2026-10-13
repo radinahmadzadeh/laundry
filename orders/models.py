@@ -278,6 +278,15 @@ class ShopSettings(models.Model):
     tagline = models.CharField(max_length=150, blank=True, default='خشکشویی و سفید شویی آرین', verbose_name='تگ‌لاین')
     phone = models.CharField(max_length=20, blank=True, default='۰۹۱۲-۳۲۷۷۸۸۱', verbose_name='شماره تماس')
     address = models.TextField(blank=True, default='تهران، ارم، بلوار فردوس غرب، خیابان بهار جنوبی', verbose_name='آدرس')
+    latitude = models.FloatField(null=True, blank=True, default=35.7262837, verbose_name='عرض جغرافیایی فروشگاه')
+    longitude = models.FloatField(null=True, blank=True, default=51.2922665, verbose_name='طول جغرافیایی فروشگاه')
+
+    @property
+    def map_point(self):
+        """'lat,lng' of the shop for map links, or '' when no location is set."""
+        if self.latitude is None or self.longitude is None:
+            return ''
+        return f'{self.latitude},{self.longitude}'
 
     class Meta:
         verbose_name = 'تنظیمات فروشگاه'

@@ -612,6 +612,23 @@ def review_toggle_hidden(request, review_id):
     return redirect_back(request, 'panel_reviews')
 
 
+def parse_map_point(text):
+    """(lat, lng) from '35.72, 51.29' or from a pasted Neshan/Google Maps link; None if not found."""
+    text = text.translate(str.maketrans('۰۱۲۳۴۵۶۷۸۹٫،', '0123456789.,'))
+    lat_match = re.search(r'lat=(-?\d+(?:\.\d+)?)', text)
+    lng_match = re.search(r'lng=(-?\d+(?:\.\d+)?)', text)
+    if lat_match and lng_match:
+        numbers = [lat_match.group(1), lng_match.group(1)]
+    else:
+        numbers = re.findall(r'-?\d+\.\d+', text)[:2]
+    if len(numbers) != 2:
+        return None
+    lat, lng = float(numbers[0]), float(numbers[1])
+    if not (-90 <= lat <= 90 and -180 <= lng <= 180):
+        return None
+    return lat, lng
+
+
 @staff_required
 def shop_settings_view(request):
     shop = ShopSettings.load()
@@ -620,6 +637,15 @@ def shop_settings_view(request):
         shop.tagline = request.POST.get('tagline', shop.tagline).strip()
         shop.phone = request.POST.get('phone', shop.phone).strip()
         shop.address = request.POST.get('address', shop.address).strip()
+        location = request.POST.get('location', '').strip()
+        if not location:
+            shop.latitude = shop.longitude = None
+        else:
+            point = parse_map_point(location)
+            if point is None:
+                messages.error(request, 'موقعیت فروشگاه شناخته نشد؛ عرض و طول جغرافیایی را مثل «35.72, 51.29» وارد کنید.')
+                return redirect('panel_settings')
+            shop.latitude, shop.longitude = point
         shop.save()
         messages.success(request, 'تنظیمات ذخیره شد.')
         return redirect('panel_settings')

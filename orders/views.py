@@ -93,6 +93,7 @@ def home(request):
         'shop_tagline': shop.tagline,
         'shop_phone': shop.phone,
         'shop_address': shop.address,
+        'shop_map_point': shop.map_point,
         'categories': categories,
         'wallet': wallet,
         'tracking_error': tracking_error,

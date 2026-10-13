@@ -1,4 +1,5 @@
 {% extends 'panel/base.html' %}
+{% load maps %}
 {% block title %}{{ customer.name }} | پنل مدیریت{% endblock %}
 {% block content %}
 <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5 mb-6">
@@ -43,7 +44,7 @@
         <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">نام و نام‌خانوادگی</p><p class="font-bold text-white mt-1">{{ customer.name }}</p></div>
         <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">شماره موبایل</p><p class="font-bold text-white mt-1 dir-ltr text-right">{{ customer.phone }}</p></div>
         <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4"><p class="text-[10px] text-gray-500">وضعیت حساب</p><p class="font-bold mt-1 {% if customer.password_hash %}text-emerald-300{% else %}text-amber-300{% endif %}">{% if customer.password_hash %}فعال{% else %}بدون رمز عبور{% endif %}</p></div>
-        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4 sm:col-span-2 xl:col-span-4"><p class="text-[10px] text-gray-500">آدرس ثبت‌شده</p>{% if customer.address or customer.has_saved_address %}<p class="font-bold text-white mt-1">{{ customer.address|default:"(آدرس متنی ثبت نشده)" }}</p><p class="text-xs text-gray-400 mt-1">کد پستی: <span class="dir-ltr">{{ customer.address_postal_code|default:"-" }}</span>{% if customer.has_saved_address %} · <a href="https://www.google.com/maps?q={{ customer.address_latitude }},{{ customer.address_longitude }}" target="_blank" rel="noopener" class="text-cyan-300 font-bold hover:underline">مشاهده روی نقشه</a>{% endif %}</p>{% else %}<p class="text-gray-500 mt-1 text-sm">آدرسی ثبت نشده است.</p>{% endif %}</div>
+        <div class="rounded-xl bg-white/[0.025] border border-white/5 p-4 sm:col-span-2 xl:col-span-4"><p class="text-[10px] text-gray-500">آدرس ثبت‌شده</p>{% if customer.address or customer.has_saved_address %}<p class="font-bold text-white mt-1">{{ customer.address|default:"(آدرس متنی ثبت نشده)" }}</p><p class="text-xs text-gray-400 mt-1">کد پستی: <span class="dir-ltr">{{ customer.address_postal_code|default:"-" }}</span>{% if customer.has_saved_address %} · {% with point=customer.address_latitude|stringformat:"s"|add:","|add:customer.address_longitude %}<a href="{{ point|neshan_url }}" data-neshan="{{ point }}" target="_blank" rel="noopener" class="text-cyan-300 font-bold hover:underline">مشاهده در نشان</a>{% endwith %}{% endif %}</p>{% else %}<p class="text-gray-500 mt-1 text-sm">آدرسی ثبت نشده است.</p>{% endif %}</div>
     </div>
 </div>
 

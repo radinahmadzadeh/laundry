@@ -1,6 +1,7 @@
 {% load static %}
 {% load pwa %}
 {% load fa_format %}
+{% load maps %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -1688,6 +1689,7 @@
                        class="w-full bg-gray-50 border border-gray-200 rounded-xl pr-10 pl-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
             </div>
 
+            <div class="item-picker">
             {% if categories %}
             <div class="cat-tags" role="tablist" aria-label="دسته‌بندی اقلام">
                 {% for category in categories %}
@@ -1766,6 +1768,7 @@
                         فعلاً لیست اقلامی برای سفارش ثبت نشده است؛ لطفاً بعداً دوباره سر بزنید یا با فروشگاه تماس بگیرید.
                     </div>
                 {% endfor %}
+            </div>
             </div>
 
             <!-- قدم ۲: روش دریافت -->
@@ -2211,7 +2214,7 @@
                 <h4 class="font-bold mb-3">تماس با ما</h4>
                 <ul class="space-y-2 text-gray-500">
                     {% if shop_phone %}<li><a href="tel:{{ shop_phone|tel_digits }}" class="inline-block py-1 hover:text-gray-900" dir="ltr">{{ shop_phone }}</a></li>{% endif %}
-                    {% if shop_address %}<li><a href="https://www.google.com/maps/search/?api=1&query={{ shop_address|urlencode }}" target="_blank" rel="noopener" class="inline-block py-1 leading-7 hover:text-gray-900">{{ shop_address }}</a></li>{% endif %}
+                    {% if shop_address %}<li>{% if shop_map_point %}<a href="{{ shop_map_point|neshan_url }}" data-neshan="{{ shop_map_point }}" target="_blank" rel="noopener" class="inline-block py-1 leading-7 hover:text-gray-900">{{ shop_address }}</a>{% else %}<span class="inline-block py-1 leading-7">{{ shop_address }}</span>{% endif %}</li>{% endif %}
                 </ul>
             </div>
         </div>
@@ -2314,19 +2317,15 @@
             positionDeliveryIndicator(orderId, btn || (type === 'pickup' ? btnPickup : btnCourier));
         }
 
-        // The shop map is an external embed: load it only when the customer asks, so it never slows the page.
+        // The shop map loads its tiles only when the customer asks, so it never slows the page.
         function loadShopMap(btn){
             var box = btn.closest('[data-shop-map]');
-            if (!box) return;
-            var iframe = document.createElement('iframe');
-            iframe.src = 'https://maps.google.com/maps?q=' + encodeURIComponent(box.getAttribute('data-shop-map')) + '&z=17&ie=UTF8&iwloc=&output=embed';
-            iframe.title = 'موقعیت فروشگاه روی نقشه';
-            iframe.width = '100%';
-            iframe.height = '100%';
-            iframe.style.border = '0';
-            iframe.setAttribute('allowfullscreen', '');
+            if (!box || typeof L === 'undefined') return;
+            var point = box.getAttribute('data-shop-map').split(',').map(parseFloat);
             box.innerHTML = '';
-            box.appendChild(iframe);
+            var map = L.map(box, { gestureHandling: true, gestureHandlingOptions: { text: { touch: 'برای جابه‌جا کردن نقشه از دو انگشت استفاده کنید', scroll: 'برای بزرگ‌نمایی، Ctrl را نگه دارید و اسکرول کنید', scrollMac: 'برای بزرگ‌نمایی، ⌘ را نگه دارید و اسکرول کنید' } } }).setView(point, 16);
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors', maxZoom: 19, referrerPolicy: 'strict-origin-when-cross-origin' }).addTo(map);
+            L.marker(point).addTo(map).bindPopup(box.getAttribute('data-shop-name')).openPopup();
         }
 
         function initCourierMap(orderId){
@@ -3299,5 +3298,6 @@
 })();
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
+<script src="{% static 'js/neshan-links.js' %}?v=1" defer></script>
 </body>
 </html>
