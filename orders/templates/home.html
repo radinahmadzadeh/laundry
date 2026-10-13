@@ -45,7 +45,7 @@
             isolation:isolate;
             color:var(--ink);
             background:transparent;
-            overflow-x:hidden;
+            overflow-x:clip;
         }
         /* A fixed photo layer behind the page content, without changing content positioning. */
         .page-background{
@@ -284,15 +284,9 @@
         ::-webkit-scrollbar-thumb{ background:#cbd5e1; border-radius:10px; }
 
         /* --- Online ordering --- */
-        .item-card{ background:#fff; border:1px solid var(--line); border-radius:1rem; transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
-        .item-card:hover{ transform:translateY(-3px); box-shadow:0 20px 40px -25px rgba(15,23,42,0.25); }
-        .item-card.selected{ border-color:var(--cyan-soft); box-shadow:0 0 0 3px rgba(73,224,214,0.18); }
         .item-icon-wrap{
             background:radial-gradient(circle at 30% 20%, rgba(73,224,214,0.18), rgba(155,140,251,0.14) 70%, transparent 100%);
         }
-        .qty-btn{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:900; transition:transform .15s ease, background .15s ease; user-select:none; }
-        .qty-btn:active{ transform:scale(0.88); }
-        .qty-input{ width:34px; text-align:center; font-weight:800; background:transparent; }
         .cart-bar{
             position:fixed; bottom:0; left:0; right:0; z-index:40;
             background:#ffffff; border-top:1px solid var(--line);
@@ -515,26 +509,72 @@
         .addr-option.active .addr-radio::after{ transform:scale(1); }
         .wallet-nav{ transition:transform .2s ease, box-shadow .2s ease; }
         .wallet-nav:hover{ transform:translateY(-1px); box-shadow:0 10px 22px -14px rgba(16,185,129,.5); }
-        .item-section-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px; }
-        .item-section-title{ display:flex; align-items:center; gap:9px; min-width:0; }
-        .item-section-dot{ width:7px; height:7px; border-radius:999px; background:linear-gradient(135deg,var(--cyan),var(--violet)); box-shadow:0 0 0 5px rgba(8,145,178,.07); flex:none; }
-        .item-count-badge{ flex:none; font-size:10px; font-weight:800; color:#64748b; background:#f8fafc; border:1px solid #e2e8f0; border-radius:999px; padding:5px 9px; }
-        .item-grid-wrap{ padding:14px; border:1px solid #eef2f7; background:linear-gradient(180deg,#fbfdff,#f8fafc); border-radius:18px; }
-        .item-card{ position:relative; min-height:144px; padding:15px; border-radius:16px; }
-        .item-card::before{ content:''; position:absolute; right:0; top:16px; bottom:16px; width:3px; border-radius:99px; background:linear-gradient(180deg,var(--cyan-soft),var(--violet-soft)); opacity:0; transition:opacity .2s ease; }
-        .item-card.selected::before{ opacity:1; }
-        .item-card .item-price-row{ min-height:20px; display:flex; align-items:center; gap:7px; }
-        .item-price-empty{ color:#94a3b8; font-size:10px; }
-        .item-card .qty-wrap{ margin-top:auto; }
         .item-search-wrap{ position:relative; }
         .item-search-wrap input{ padding-right:42px !important; }
         .item-search-icon{ position:absolute; right:14px; top:15px; color:#94a3b8; pointer-events:none; }
-        #item-grid .item-card{ min-height:150px; }
-        .item-card.search-hidden, [data-category-block].search-hidden{ display:none; }
+        /* Order items: category hang-tags over a receipt-style list; "افزودن" turns into a stepper. */
+        .cat-tags{ position:sticky; top:var(--header-h, 68px); z-index:20; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; margin:0 -6px 6px; padding:8px 6px 12px; background:linear-gradient(#fff 78%, rgba(255,255,255,0)); }
+        .cat-tags::-webkit-scrollbar{ display:none; }
+        .cat-tag{ flex:none; display:inline-flex; align-items:center; gap:7px; padding:9px 24px 9px 14px; font-size:13px; font-weight:800; color:#475569; background:#f1f5f9;
+            clip-path:polygon(0 0, calc(100% - 13px) 0, 100% 50%, calc(100% - 13px) 100%, 0 100%); border-radius:10px 0 0 10px; transition:background .2s ease, color .2s ease; }
+        .cat-tag:hover{ background:#e2e8f0; }
+        .cat-tag-hole{ width:6px; height:6px; border-radius:50%; background:#fff; box-shadow:inset 0 1px 1px rgba(15,23,42,.25); margin-right:-10px; margin-left:2px; order:-1; }
+        .cat-tag[aria-selected="true"]{ background:var(--ink); color:#fff; }
+        .cat-tag[aria-selected="true"] .cat-tag-hole{ background:#475569; box-shadow:none; }
+        .cat-tags.is-searching .cat-tag[aria-selected="true"]{ background:#f1f5f9; color:#475569; }
+        .cat-tag-count{ min-width:19px; height:19px; padding:0 5px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; font-size:11px; color:#04141a; background:var(--cyan-soft); }
+        .cat-tag-count:empty{ display:none; }
+        .item-grid-wrap.cat-hidden, [data-category-block].search-hidden, .item-card.search-hidden{ display:none; }
+        .item-section-head{ display:none; align-items:center; gap:8px; margin:16px 4px 4px; }
+        #item-grid.searching .item-section-head{ display:flex; }
+        #item-grid.searching .item-grid-wrap:first-of-type .item-section-head{ margin-top:4px; }
+        .item-section-dot{ width:7px; height:7px; border-radius:999px; background:linear-gradient(135deg,var(--cyan),var(--violet)); flex:none; }
+        .item-ticket{ position:relative; margin-top:10px; background:#fff; border-radius:3px 3px 16px 16px;
+            filter:drop-shadow(0 0 .6px rgba(15,23,42,.4)) drop-shadow(0 14px 18px rgba(15,23,42,.06)); }
+        .item-ticket::before{ content:""; position:absolute; left:0; right:0; top:-7px; height:8px; background:radial-gradient(circle at 8px 0, transparent 5px, #fff 5.5px) repeat-x; background-size:16px 8px; }
+        .item-card{ position:relative; padding:12px 16px; border-bottom:1px dashed #e2e8f0; transition:background .2s ease; }
+        .item-card:last-child{ border-bottom:0; }
+        .item-card::before{ content:""; position:absolute; right:0; top:10px; bottom:10px; width:3px; border-radius:3px 0 0 3px; background:linear-gradient(180deg,var(--cyan-soft),var(--violet-soft)); opacity:0; transition:opacity .2s ease; }
+        .item-card.selected{ background:linear-gradient(270deg, rgba(73,224,214,.09), rgba(73,224,214,0) 70%); }
+        .item-card.selected::before{ opacity:1; }
+        .item-row{ display:flex; align-items:center; gap:12px; }
+        .item-name{ font-size:14px; font-weight:800; color:#111827; line-height:1.55; }
+        .item-meta{ display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin-top:1px; }
+        .item-price{ font-size:12px; font-weight:700; color:#64748b; }
+        .item-price-empty{ font-size:11px; color:#94a3b8; }
+        .iron-pill{ position:relative; display:inline-flex; align-items:center; padding:1px 9px; border:1px dashed #cbd5e1; border-radius:999px; font-size:10.5px; font-weight:800; color:#64748b; cursor:pointer; user-select:none; transition:all .2s ease; }
+        .iron-pill input{ position:absolute; inset:0; opacity:0; cursor:pointer; margin:0; }
+        .iron-pill:has(input:checked){ border-style:solid; border-color:#fcd34d; background:#fffbeb; color:var(--amber); }
+        .iron-pill:has(input:focus-visible){ outline:2px solid var(--cyan); outline-offset:2px; }
+        .item-ctrl{ flex:none; width:108px; }
+        .qty-btn{ display:flex; align-items:center; justify-content:center; user-select:none; transition:transform .15s ease, background .15s ease; }
+        .qty-btn:active{ transform:scale(.9); }
+        .qty-btn:disabled{ opacity:.5; }
+        .item-add{ width:100%; height:40px; gap:5px; border-radius:12px; border:1.5px solid #a5f3fc; background:#fff; color:#0e7490; font-size:13px; font-weight:800; }
+        .item-add:hover{ background:#ecfeff; }
+        .item-add span{ font-size:17px; line-height:1; }
+        .item-card .qty-wrap{ display:none; height:40px; padding:0 3px; border-radius:12px; background:var(--ink); color:#fff; align-items:center; justify-content:space-between; }
+        .item-card .qty-wrap .qty-btn{ width:34px; height:34px; border-radius:9px; font-size:18px; font-weight:900; }
+        .item-card .qty-wrap .qty-btn:hover{ background:rgba(255,255,255,.14); }
+        .qty-input{ min-width:24px; text-align:center; font-size:14px; font-weight:800; }
+        .item-card.selected .item-add{ display:none; }
+        .item-card.selected .qty-wrap{ display:flex; animation:qtyIn .22s cubic-bezier(.2,.8,.2,1); }
+        @keyframes qtyIn{ from{ opacity:.4; transform:scale(.92); } to{ opacity:1; transform:none; } }
+        .item-note{ margin-top:8px; }
+        .item-note-toggle{ font-size:11px; font-weight:800; color:#0e7490; padding:4px 0; }
+        @media (min-width:768px){
+            .item-ticket{ display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:1px; background:linear-gradient(#e2e8f0, #e2e8f0) center / 1px calc(100% - 24px) no-repeat, #fff; }
+            .item-card:nth-last-child(2):nth-child(odd){ border-bottom:0; }
+        }
+        @media (max-width:480px){
+            .item-card{ padding:11px 13px; }
+            .item-ctrl{ width:100px; }
+        }
+        @media (prefers-reduced-motion:reduce){ .item-card.selected .qty-wrap{ animation:none; } }
 
         /* Responsive fit pass: keep every section inside the viewport on phone, tablet and desktop. */
         html{scroll-behavior:smooth;overflow-x:hidden;}
-        body{min-width:0;overflow-x:hidden;}
+        body{min-width:0;overflow-x:clip;}
         img,svg,video,canvas{max-width:100%;height:auto;}
         button,a,input,select,textarea{max-width:100%;}
         .site-header-inner{width:100%;min-width:0;}
@@ -555,9 +595,6 @@
             main{padding-left:14px!important;padding-right:14px!important;}
             .panel{border-radius:20px!important;}
             .grid{min-width:0;}
-            .item-grid-wrap{padding:9px;}
-            .item-card{min-height:0;padding:12px;}
-            .item-card .grid{gap:10px;}
             .cart-bar{padding-bottom:max(8px,env(safe-area-inset-bottom));}
             .cart-bar > div{padding-left:12px!important;padding-right:12px!important;}
             .toast-msg{bottom:calc(18px + env(safe-area-inset-bottom));}
@@ -571,11 +608,7 @@
             main{padding-left:10px!important;padding-right:10px!important;}
             .welcome-card{border-radius:20px!important;}
             .welcome-card .p-5,.welcome-card .p-6{padding:14px!important;}
-            .item-section-head{align-items:flex-start;}
-            .item-section-title{font-size:12px;}
             input:not([type="checkbox"]):not([type="radio"]),select,textarea{font-size:16px;}
-            .item-card .qty-btn{width:40px;height:40px;font-size:18px;}
-            .item-card .qty-input{width:30px;}
             .cart-bar .text-lg{font-size:16px!important;}
         }
         @media (max-width:360px){
@@ -1427,70 +1460,76 @@
                 <h3 class="font-bold text-sm sm:text-base">انتخاب اقلام لباس</h3>
             </div>
 
-            <div class="item-search-wrap mb-5">
+            <div class="item-search-wrap mb-3">
                 <svg class="item-search-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M20 20l-3.5-3.5"/></svg>
                 <input type="search" id="item-search" placeholder="جستجوی لباس (مثلاً کاپشن)" aria-label="جستجوی لباس" autocomplete="off"
                        class="w-full bg-gray-50 border border-gray-200 rounded-xl pr-10 pl-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
-                <p id="item-search-empty" class="hidden text-center text-xs text-gray-400 py-6">موردی با این نام پیدا نشد.</p>
             </div>
 
-            <div id="item-grid" class="space-y-5 mb-2">
+            {% if categories %}
+            <div class="cat-tags" role="tablist" aria-label="دسته‌بندی اقلام">
                 {% for category in categories %}
-                    <div class="item-grid-wrap" data-category-block>
+                <button type="button" role="tab" class="cat-tag" id="cat-tag-{{ category.id }}" data-cat="{{ category.id }}"
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" onclick="showItemCategory('{{ category.id }}')">
+                    <span class="cat-tag-hole" aria-hidden="true"></span>
+                    <span>{{ category.name }}</span>
+                    <span class="cat-tag-count" id="cat-count-{{ category.id }}" aria-label="تعداد انتخاب‌شده"></span>
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div id="item-grid" class="mb-2">
+                <p id="item-search-empty" class="hidden text-center text-xs text-gray-400 py-6">موردی با این نام پیدا نشد.</p>
+                {% for category in categories %}
+                    <div class="item-grid-wrap{% if not forloop.first %} cat-hidden{% endif %}" data-category-block data-cat="{{ category.id }}">
                         <div class="item-section-head">
-                            <div class="item-section-title">
-                                <span class="item-section-dot"></span>
-                                <h4 class="font-black text-sm text-gray-800">{{ category.name }}</h4>
-                            </div>
-                            <span class="item-count-badge">{{ category.items.all|length|fa_digits }} قلم</span>
+                            <span class="item-section-dot"></span>
+                            <h4 class="font-black text-xs text-gray-700">{{ category.name }}</h4>
                         </div>
 
-                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
+                        <div class="item-ticket">
                             {% for item in category.items.all %}
-                                <div class="item-card flex flex-col bg-white" id="item-card-{{ item.id }}"
+                                <div class="item-card" id="item-card-{{ item.id }}"
                                      data-name="{{ item.name }}"
                                      data-category="{{ category.name }}"
                                      data-dry-price="{{ item.dry_clean_price }}"
                                      data-iron-price="{{ item.iron_only_price|default:'' }}">
-                                    <div class="flex items-center gap-3">
-                                        <div class="item-icon-wrap w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
-                                            <svg viewBox="0 0 24 24" class="w-5 h-5 text-[var(--cyan)]" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8 3l4 2 4-2 4 4-3 3v11H7V10L4 7l4-4z"/></svg>
-                                        </div>
-                                        <div class="min-w-0">
-                                            <p class="font-black text-sm text-gray-900 truncate">{{ item.name }}</p>
-                                            <div class="item-price-row" id="price-label-{{ item.id }}">
-                                                {% if item.dry_clean_price %}
-                                                    <span class="text-xs font-bold text-gray-500">{{ item.dry_clean_price|toman }} تومان</span>
-                                                {% else %}
-                                                    <span class="item-price-empty">قیمت پس از بررسی لباس اعلام می‌شود</span>
+                                    <div class="item-row">
+                                        <div class="min-w-0 flex-1">
+                                            <p class="item-name">{{ item.name }}</p>
+                                            <div class="item-meta">
+                                                <span class="item-price-row" id="price-label-{{ item.id }}">
+                                                    {% if item.dry_clean_price %}
+                                                        <span class="item-price">{{ item.dry_clean_price|toman }} تومان</span>
+                                                    {% else %}
+                                                        <span class="item-price-empty">قیمت پس از بررسی</span>
+                                                    {% endif %}
+                                                </span>
+                                                {% if item.iron_only_price %}
+                                                <label class="iron-pill" title="فقط اتو: {{ item.iron_only_price|toman }} تومان">
+                                                    <input type="checkbox" onchange="toggleIronOnly('{{ item.id }}', this.checked)">
+                                                    <span>فقط اتو</span>
+                                                </label>
                                                 {% endif %}
                                             </div>
                                         </div>
-                                    </div>
-
-                                    {% if item.iron_only_price %}
-                                    <label class="mt-3 flex items-center gap-2 text-[11px] text-gray-500 cursor-pointer select-none">
-                                        <input type="checkbox" class="w-4 h-4 accent-[var(--cyan)]" onchange="toggleIronOnly('{{ item.id }}', this.checked)">
-                                        <span>فقط اتو</span>
-                                        <span class="mr-auto text-[10px] font-bold text-gray-400">{{ item.iron_only_price|toman }} تومان</span>
-                                    </label>
-                                    {% endif %}
-
-                                    <div class="qty-wrap mt-4 flex items-center justify-between gap-3 bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5">
-                                        <span class="text-[10px] font-bold text-gray-400">تعداد</span>
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" class="qty-btn bg-white border border-gray-200 text-gray-600 hover:text-[var(--cyan)] hover:border-cyan-200"
-                                                    aria-label="کم کردن {{ item.name }}" onclick="changeQty('{{ item.id }}', -1)">−</button>
-                                            <span class="qty-input text-sm min-w-[34px]" id="qty-{{ item.id }}" aria-live="polite">۰</span>
-                                            <button type="button" class="qty-btn bg-white border border-gray-200 text-gray-600 hover:text-[var(--cyan)] hover:border-cyan-200"
-                                                    aria-label="افزودن {{ item.name }}" onclick="changeQty('{{ item.id }}', 1)">+</button>
+                                        <div class="item-ctrl">
+                                            <button type="button" class="item-add qty-btn" aria-label="افزودن {{ item.name }}" onclick="changeQty('{{ item.id }}', 1)">
+                                                <span aria-hidden="true">+</span> افزودن
+                                            </button>
+                                            <div class="qty-wrap">
+                                                <button type="button" class="qty-btn" aria-label="افزودن یکی دیگر {{ item.name }}" onclick="changeQty('{{ item.id }}', 1)">+</button>
+                                                <span class="qty-input" id="qty-{{ item.id }}" aria-live="polite">۰</span>
+                                                <button type="button" class="qty-btn" aria-label="کم کردن {{ item.name }}" onclick="changeQty('{{ item.id }}', -1)">−</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div id="item-note-wrap-{{ item.id }}" class="hidden mt-3">
-                                        <label for="item-note-{{ item.id }}" class="block text-[11px] font-bold text-gray-600 mb-1.5">توضیحات این لباس (اختیاری)</label>
-                                        <textarea id="item-note-{{ item.id }}" rows="2" maxlength="500"
+                                    <div id="item-note-wrap-{{ item.id }}" class="hidden item-note">
+                                        <button type="button" class="item-note-toggle" id="item-note-btn-{{ item.id }}" onclick="openItemNote('{{ item.id }}')">+ توضیح برای این لباس (اختیاری)</button>
+                                        <textarea id="item-note-{{ item.id }}" rows="2" maxlength="500" aria-label="توضیحات {{ item.name }}"
                                             oninput="updateItemDescription('{{ item.id }}', this.value)"
-                                            class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs resize-y focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                                            class="hidden w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs resize-y focus:outline-none focus:ring-2 focus:ring-cyan-200"
                                             placeholder="مثلاً: لکه روی یقه، دکمه شل است…"></textarea>
                                     </div>
                                 </div>
@@ -2743,8 +2782,8 @@
             var price = parsePrice(checked ? cardEl.dataset.ironPrice : cardEl.dataset.dryPrice);
             if (priceLabel){
                 priceLabel.innerHTML = price === null
-                    ? '<span class="item-price-empty">قیمت پس از بررسی لباس اعلام می‌شود</span>'
-                    : '<span class="text-xs font-bold text-gray-500">' + faNumber(price) + ' تومان</span>';
+                    ? '<span class="item-price-empty">قیمت پس از بررسی</span>'
+                    : '<span class="item-price">' + faNumber(price) + ' تومان</span>';
             }
             if (cart[itemId]){
                 cart[itemId] = cartEntry(itemId, cart[itemId].qty, cart[itemId].description);
@@ -2772,28 +2811,80 @@
             cardEl.classList.toggle('selected', next > 0);
             var noteWrap = document.getElementById('item-note-wrap-' + itemId); if (noteWrap) noteWrap.classList.toggle('hidden', next <= 0);
             updateCartUI();
+            updateCategoryCounts();
         }
 
-        // Find an item quickly instead of scrolling past every card.
+        function openItemNote(itemId){
+            document.getElementById('item-note-btn-' + itemId).classList.add('hidden');
+            var note = document.getElementById('item-note-' + itemId);
+            note.classList.remove('hidden');
+            note.focus();
+        }
+
+        // Each category tag shows how many pieces were picked from it, so nothing gets lost behind another tab.
+        function updateCategoryCounts(){
+            document.querySelectorAll('[data-category-block]').forEach(function(block){
+                var total = 0;
+                block.querySelectorAll('.item-card').forEach(function(card){
+                    var entry = cart[card.id.replace('item-card-', '')];
+                    if (entry) total += entry.qty;
+                });
+                var badge = document.getElementById('cat-count-' + block.dataset.cat);
+                if (badge) badge.textContent = total ? faNumber(total) : '';
+            });
+        }
+
+        // One category at a time keeps the list short on phones; a search looks through all of them.
+        var firstCatTag = document.querySelector('.cat-tag');
+        var activeItemCategory = firstCatTag ? firstCatTag.dataset.cat : null;
+
+        function showItemCategory(catId){
+            activeItemCategory = catId;
+            var input = document.getElementById('item-search');
+            if (input) input.value = '';
+            document.querySelectorAll('.cat-tag').forEach(function(tag){
+                tag.setAttribute('aria-selected', tag.dataset.cat === catId ? 'true' : 'false');
+            });
+            filterItems();
+            var grid = document.getElementById('item-grid');
+            var tags = document.querySelector('.cat-tags');
+            if (grid && tags && grid.getBoundingClientRect().top < tags.getBoundingClientRect().bottom){
+                window.scrollBy(0, grid.getBoundingClientRect().top - tags.getBoundingClientRect().bottom);
+            }
+        }
+
+        function filterItems(){
+            var input = document.getElementById('item-search');
+            var grid = document.getElementById('item-grid');
+            if (!input || !grid) return;
+            var q = input.value.trim().replace(/ي/g, 'ی').replace(/ك/g, 'ک');
+            var anyVisible = false;
+            grid.classList.toggle('searching', !!q);
+            var tags = document.querySelector('.cat-tags');
+            if (tags) tags.classList.toggle('is-searching', !!q);
+            document.querySelectorAll('[data-category-block]').forEach(function(block){
+                var blockVisible = false;
+                block.querySelectorAll('.item-card').forEach(function(card){
+                    var text = (card.dataset.name || '') + ' ' + (card.dataset.category || '');
+                    var match = !q || text.indexOf(q) !== -1;
+                    card.classList.toggle('search-hidden', !match);
+                    if (match) blockVisible = true;
+                });
+                block.classList.toggle('search-hidden', !blockVisible);
+                block.classList.toggle('cat-hidden', !q && block.dataset.cat !== activeItemCategory);
+                if (blockVisible) anyVisible = true;
+            });
+            document.getElementById('item-search-empty').classList.toggle('hidden', anyVisible);
+        }
+
         (function initItemSearch(){
             var input = document.getElementById('item-search');
-            if (!input) return;
-            input.addEventListener('input', function(){
-                var q = input.value.trim().replace(/ي/g, 'ی').replace(/ك/g, 'ک');
-                var anyVisible = false;
-                document.querySelectorAll('[data-category-block]').forEach(function(block){
-                    var blockVisible = false;
-                    block.querySelectorAll('.item-card').forEach(function(card){
-                        var text = (card.dataset.name || '') + ' ' + (card.dataset.category || '');
-                        var match = !q || text.indexOf(q) !== -1;
-                        card.classList.toggle('search-hidden', !match);
-                        if (match) blockVisible = true;
-                    });
-                    block.classList.toggle('search-hidden', !blockVisible);
-                    if (blockVisible) anyVisible = true;
-                });
-                document.getElementById('item-search-empty').classList.toggle('hidden', anyVisible);
-            });
+            if (input) input.addEventListener('input', filterItems);
+            // The category tags dock right under the sticky header, whose height changes with the screen.
+            var header = document.querySelector('.site-header');
+            function syncHeaderHeight(){ if (header) document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px'); }
+            syncHeaderHeight();
+            window.addEventListener('resize', syncHeaderHeight);
         })();
 
         function getOrderCsrfToken(){
@@ -2871,7 +2962,7 @@
                 document.getElementById('order-success-msg').textContent =
                     'مبلغ فاکتور: ' + faNumber(data.total) + ' تومان. ' + paymentText + ' وضعیت سفارش را همیشه در بخش «سفارش‌های من» می‌بینید.';
                 document.getElementById('order-success-track').href = data.track_url;
-                document.getElementById('order-form').querySelectorAll('input, textarea, .qty-btn, .delivery-tab, #submit-order-btn').forEach(function(el){ el.disabled = true; });
+                document.getElementById('order-form').querySelectorAll('input, textarea, .qty-btn, .item-note-toggle, .cat-tag, .delivery-tab, #submit-order-btn').forEach(function(el){ el.disabled = true; });
                 btn.innerHTML = '✓ سفارش ثبت شد';
                 btn.classList.remove('opacity-75');
                 document.getElementById('order-success').classList.remove('hidden');
