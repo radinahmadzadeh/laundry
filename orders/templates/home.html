@@ -679,12 +679,16 @@
             .hiw-card:nth-of-type(4n+1), .hiw-card:nth-of-type(4n){ --tilt:-2.5deg; }
         }
         @media (max-width:639px){
-            .hiw-track{ grid-template-columns:minmax(0, 1fr); max-width:300px; gap:20px; }
+            .hiw-track{ grid-template-columns:minmax(0, 1fr); max-width:300px; gap:36px; }
+            /* Stacked notes: a dashed thread runs down from each card, tucked behind both papers. */
+            .hiw-card:not(:last-of-type)::after{ content:""; position:absolute; top:calc(100% - 20px); left:50%; z-index:-1; width:2px; height:76px; margin-left:-1px;
+                background:repeating-linear-gradient(to bottom, #94a3b8 0 8px, transparent 8px 14px); animation:hiwDrop .3s linear infinite; }
+            @keyframes hiwDrop{ to{ background-position:0 14px; } }
             .hiw-card:nth-of-type(odd){ --tilt:-2.5deg; }
             .hiw-card:nth-of-type(even){ --tilt:2.5deg; }
         }
         @media (prefers-reduced-motion:reduce){
-            .hiw-path path{ animation:none; }
+            .hiw-path path, .hiw-card::after{ animation:none; }
             .hiw-card{ transition:none; }
             .hiw-card:hover{ transform:rotate(var(--tilt)); }
         }
