@@ -1830,7 +1830,7 @@
                 <button type="button" onclick="locateCourier('neworder')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-3 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
                 <input type="hidden" id="lat-neworder">
                 <input type="hidden" id="lng-neworder">
-                <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-neworder" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
+                <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-neworder" data-postal-lookup="{% url 'postal_lookup' %}" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
                        class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-3 focus:outline-none text-center tracking-widest">
                 <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                     <input type="checkbox" id="save-address-neworder" class="w-4 h-4 accent-[var(--cyan)]" {% if not saved_address %}checked{% endif %}>
@@ -2521,6 +2521,23 @@
             setAddrMode(orderId, 'new');
             showToast('نقطه جدید را روی نقشه انتخاب کنید یا از موقعیت فعلی استفاده کنید.');
         }
+
+        // A confirmed postal code brings its own point: put the pin there (the customer can still drag it).
+        document.addEventListener('postal:found', function(e){
+            var orderId = (e.target.id || '').replace(/^postal-/, '');
+            var map = courierMaps[orderId];
+            if (!map || !e.target.id) return;
+            var point = L.latLng(e.detail.lat, e.detail.lng);
+            map.setView(point, 17);
+            placeCourierMarker(orderId, point);
+            setAddrMode(orderId, 'new');
+            if (e.detail.address){
+                addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+                setAddrPreview(orderId, 'found', e.detail.address);
+            } else {
+                lookupAddress(orderId, point);
+            }
+        });
 
         function locateCourier(orderId){
             var map = courierMaps[orderId];
@@ -3299,5 +3316,6 @@
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
 <script src="{% static 'js/neshan-links.js' %}?v=1" defer></script>
+<script src="{% static 'js/postal-lookup.js' %}?v=1" defer></script>
 </body>
 </html>

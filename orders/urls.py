@@ -20,4 +20,5 @@ urlpatterns = [
     path('courier-status/', views.courier_status, name='courier_status'),
     path('review/', views.submit_review, name='submit_review'),
     path('place-order/', views.place_order, name='place_order'),
+    path('postal-lookup/', views.postal_lookup, name='postal_lookup'),
 ]

@@ -146,3 +146,9 @@ PWA_APP_ICONS_APPLE = [
 # The package defaults point at splash images that do not exist (404s on iOS).
 PWA_APP_SPLASH_SCREEN = []
 PWA_SERVICE_WORKER_PATH = BASE_DIR / 'static' / 'pwa' / 'serviceworker.js'
+
+# Postal code lookup (map.ir). Both come from map.ir after a request to info@map.ir;
+# MAPIR_POSTAL_URL is their postal-code address with {code} where the postal code goes.
+# Left empty, only the 10-digit check runs.
+MAPIR_API_KEY = os.environ.get('MAPIR_API_KEY', '')
+MAPIR_POSTAL_URL = os.environ.get('MAPIR_POSTAL_URL', '')

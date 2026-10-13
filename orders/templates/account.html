@@ -98,7 +98,7 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
       <div id="map" class="w-full h-60 rounded-xl border border-gray-200"></div>
       <button type="button" id="locate-btn" class="btn-motion w-full bg-white border border-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl">استفاده از موقعیت فعلی من</button>
       <textarea name="address" rows="2" maxlength="1000" placeholder="آدرس متنی (خیابان، کوچه، پلاک، واحد)" class="field">{{ customer.address }}</textarea>
-      <input name="postal" value="{{ customer.address_postal_code }}" type="tel" inputmode="numeric" maxlength="10" placeholder="کد پستی (۱۰ رقمی)" class="field text-center tracking-widest">
+      <input name="postal" value="{{ customer.address_postal_code }}" type="tel" inputmode="numeric" maxlength="10" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی" data-postal-lookup="{% url 'postal_lookup' %}" class="field text-center tracking-widest">
       <button class="btn-main btn-motion text-sm">ذخیره آدرس</button>
     </form>
     {% if customer.has_saved_address %}
@@ -162,10 +162,18 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
       map.setView(ll, 17); setPoint(ll);
     }, function(){ alert('دسترسی به موقعیت ممکن نشد؛ نقطه را روی نقشه انتخاب کنید.'); }, {enableHighAccuracy:true, timeout:10000});
   });
+  // A confirmed postal code brings its own point and address.
+  document.querySelector('input[name=postal]').addEventListener('postal:found', function(e){
+    var ll = L.latLng(e.detail.lat, e.detail.lng);
+    map.setView(ll, 17);
+    setPoint(ll, !!e.detail.address);
+    if (e.detail.address && (!addrEl.value.trim() || addrEl.value === lastAuto)){ addrEl.value = lastAuto = e.detail.address + '، '; }
+  });
   document.getElementById('address-form').addEventListener('submit', function(e){
     if (!latEl.value){ e.preventDefault(); alert('لطفاً موقعیت خود را روی نقشه انتخاب کنید.'); }
   });
 })();
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
+<script src="{% static 'js/postal-lookup.js' %}?v=1" defer></script>
 </body></html>

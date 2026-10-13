@@ -41,7 +41,7 @@
     <input type="hidden" id="lat-{{ order.id }}">
     <input type="hidden" id="lng-{{ order.id }}">
 
-    <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-{{ order.id }}" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
+    <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-{{ order.id }}" data-postal-lookup="{% url 'postal_lookup' %}" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
            class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-4 focus:outline-none text-center tracking-widest">
 
     <button type="button" id="courier-submit-{{ order.id }}" onclick="submitCourier('{{ order.id }}')"

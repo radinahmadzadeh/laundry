@@ -211,6 +211,82 @@ class CourierLocationTests(TestCase):
             self.assertIsNotNone(clean_courier_location('35.7', '51.3', postal)[1], postal)
 
 
+@override_settings(MAPIR_API_KEY='test-key', MAPIR_POSTAL_URL='https://map.example/postal/{code}')
+class PostalLookupTests(TestCase):
+    """map.ir is mocked: these check how each kind of answer is read, not the real service."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+
+    def answer(self, status=200, data=None, text=''):
+        from unittest import mock
+        response = mock.Mock(status_code=status, text=text or json.dumps(data))
+        response.json.return_value = data
+        if data is None:
+            response.json.side_effect = ValueError
+        return mock.patch('orders.postal.requests.get', return_value=response)
+
+    def test_found_answer_gives_point_and_address(self):
+        from .postal import lookup_postal_code
+        data = {'value': [{'geometry': {'coordinates': [51.29, 35.72]}, 'address': 'تهران، خیابان بهار'}]}
+        with self.answer(data=data) as get:
+            result = lookup_postal_code('۱۳۴۵۶۷۸۹۱۰')
+        self.assertEqual(result, {'status': 'found', 'lat': 35.72, 'lng': 51.29, 'address': 'تهران، خیابان بهار'})
+        self.assertEqual(get.call_args.args[0], 'https://map.example/postal/1345678910')
+        self.assertEqual(get.call_args.kwargs['headers']['x-api-key'], 'test-key')
+
+    def test_found_answers_are_cached(self):
+        from .postal import lookup_postal_code
+        with self.answer(data={'lat': 35.7, 'lng': 51.3}) as get:
+            lookup_postal_code('1345678910')
+            lookup_postal_code('1345678910')
+        self.assertEqual(get.call_count, 1)
+
+    def test_missing_code_is_not_found(self):
+        from .postal import lookup_postal_code
+        with self.answer(status=404, data={}):
+            self.assertEqual(lookup_postal_code('1345678910')['status'], 'not_found')
+        with self.answer(data={'value': []}):
+            self.assertEqual(lookup_postal_code('1345678911')['status'], 'not_found')
+
+    def test_unclear_or_failed_answers_never_block(self):
+        from .postal import lookup_postal_code
+        with self.answer(data={'something': 'else'}):
+            self.assertEqual(lookup_postal_code('1345678910')['status'], 'unavailable')
+        with self.answer(status=500, data={}):
+            self.assertEqual(lookup_postal_code('1345678912')['status'], 'unavailable')
+        with self.answer(data=None, text='<html>'):
+            self.assertEqual(lookup_postal_code('1345678913')['status'], 'unavailable')
+        with self.answer(data={'lat': 48.8, 'lng': 2.3}):  # outside Iran: not understood
+            self.assertEqual(lookup_postal_code('1345678914')['status'], 'unavailable')
+
+    @override_settings(MAPIR_API_KEY='', MAPIR_POSTAL_URL='')
+    def test_without_settings_nothing_is_called(self):
+        from .postal import lookup_postal_code
+        with self.answer(data={}) as get:
+            self.assertEqual(lookup_postal_code('1345678910')['status'], 'unavailable')
+        get.assert_not_called()
+
+    def test_courier_location_rejects_unknown_postal_code(self):
+        from .views import clean_courier_location
+        with self.answer(status=404, data={}):
+            location, error = clean_courier_location('35.7', '51.3', '1345678910')
+        self.assertIsNone(location)
+        self.assertIn('پیدا نشد', error)
+
+    def test_lookup_endpoint_needs_login_and_reports_result(self):
+        url = reverse('postal_lookup')
+        self.assertEqual(self.client.get(url, {'code': '1345678910'}).status_code, 403)
+        customer = Customer.objects.create(name='مشتری', phone='09120000001')
+        login_customer(self.client, customer)
+        self.assertEqual(self.client.get(url, {'code': '123'}).json()['status'], 'invalid')
+        with self.answer(data={'lat': 35.7, 'lng': 51.3, 'address': 'تهران'}):
+            body = self.client.get(url, {'code': '۱۳۴۵۶۷۸۹۱۰'}).json()
+        self.assertEqual(body['status'], 'found')
+        self.assertEqual(body['address'], 'تهران')
+
+
 class DeliveryCourierRequestTests(TestCase):
     def setUp(self):
         self.customer = Customer.objects.create(name='پیک', phone='09120000015')

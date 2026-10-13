@@ -133,6 +133,8 @@ Environment variables:
 |---------------------|-------------------------------------------|---------|
 | `DJANGO_DEBUG`      | `1` under `runserver`, `0` everywhere else | Debug pages expose code and settings — keep it `0` on the server. |
 | `DJANGO_SECRET_KEY` | the development key in `settings.py`       | Set a long random value on the server. |
+| `MAPIR_API_KEY`     | empty                                     | map.ir key for postal-code lookup (request it from info@map.ir). |
+| `MAPIR_POSTAL_URL`  | empty                                     | map.ir postal-code address from their docs, with `{code}` where the postal code goes. Empty = only the 10-digit check. |
 
 With `DEBUG` off, static files are still served by WhiteNoise straight from
 the `static/` folders (`WHITENOISE_USE_FINDERS`), so no `collectstatic` step
