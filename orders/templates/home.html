@@ -652,37 +652,36 @@
         @media (prefers-reduced-motion:reduce){
             .category-showcase-card,.category-showcase-image img,.category-showcase-arrow,.order-history-card,.order-history-chevron{transition:none}
         }
-        /* "How it works": pinned notes on ruled paper, linked by a moving dashed path. */
-        .hiw-board{ position:relative; overflow:hidden; padding:56px 24px; border-radius:28px; }
-        .hiw-board::before{ content:""; position:absolute; inset:4px 0 0; pointer-events:none; opacity:.08;
-            background-image:linear-gradient(#000 1px, transparent 1px); background-size:100% 32px;
-            -webkit-mask-image:linear-gradient(to right, transparent, #000 35%, #000 65%, transparent);
-            mask-image:linear-gradient(to right, transparent, #000 35%, #000 65%, transparent); }
-        .hiw-track{ position:relative; z-index:1; max-width:1000px; margin:0 auto; height:830px; }
-        .hiw-path{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; color:var(--line-strong); }
+        /* "How it works": a row of pinned notes linked by a moving dashed garland. */
+        .hiw-track{ position:relative; max-width:1000px; margin:0 auto; height:330px; }
+        .hiw-path{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; color:#94a3b8; }
         .hiw-path path{ animation:hiwDash 3s linear infinite; }
         @keyframes hiwDash{ from{ stroke-dashoffset:0; } to{ stroke-dashoffset:-140; } }
-        .hiw-card{ position:absolute; width:280px; transform:rotate(var(--tilt)); transition:transform .3s ease; }
+        .hiw-card{ position:absolute; width:210px; transform:rotate(var(--tilt)); transition:transform .3s ease; }
         .hiw-card:hover{ z-index:30; transform:rotate(var(--tilt)) scale(1.05); }
-        .hiw-card:nth-of-type(1){ top:0; right:15%; --tilt:-8deg; }
-        .hiw-card:nth-of-type(2){ top:120px; left:15%; --tilt:8deg; }
-        .hiw-card:nth-of-type(3){ top:450px; right:15%; --tilt:-8deg; }
-        .hiw-card:nth-of-type(4){ top:570px; left:10%; --tilt:8deg; }
-        .hiw-paper{ background:#fff; padding:8px; border-radius:25px; border:1px solid #f5f5f5; box-shadow:0 10px 20px 0 #d3d3d3; }
-        .hiw-pin{ display:block; width:32px; height:32px; margin:0 auto 24px; color:var(--hiw-text); }
-        .hiw-note{ background:var(--hiw-bg); border:1px solid var(--hiw-border); border-radius:15px; padding:15px; }
-        .hiw-num{ display:block; margin-bottom:16px; color:var(--hiw-text); font-size:36px; font-weight:300; line-height:1; }
-        .hiw-note h3{ margin-bottom:10px; color:#262626; font-size:22px; font-weight:800; line-height:1.2; }
-        .hiw-note p{ color:#737373; font-size:14px; line-height:1.85; }
+        .hiw-card:nth-of-type(1){ top:0; left:78%; --tilt:-5deg; }
+        .hiw-card:nth-of-type(2){ top:70px; left:53%; --tilt:4deg; }
+        .hiw-card:nth-of-type(3){ top:0; left:28%; --tilt:-4deg; }
+        .hiw-card:nth-of-type(4){ top:70px; left:3%; --tilt:5deg; }
+        .hiw-paper{ background:#fff; padding:6px; border-radius:20px; border:1px solid #f1f5f9; box-shadow:0 12px 28px -12px rgba(15,23,42,.28); }
+        .hiw-pin{ display:block; width:26px; height:26px; margin:2px auto 12px; color:var(--hiw-text); }
+        .hiw-note{ background:var(--hiw-bg); border:1px solid var(--hiw-border); border-radius:14px; padding:12px; }
+        .hiw-num{ display:block; margin-bottom:8px; color:var(--hiw-text); font-size:28px; font-weight:300; line-height:1; }
+        .hiw-note h3{ margin-bottom:6px; color:#262626; font-size:17px; font-weight:800; line-height:1.3; }
+        .hiw-note p{ color:#737373; font-size:13px; line-height:1.8; }
         .hiw-cyan{ --hiw-bg:#ecfeff; --hiw-border:#cffafe; --hiw-text:var(--cyan); }
         .hiw-violet{ --hiw-bg:#f5f3ff; --hiw-border:#ede9fe; --hiw-text:var(--violet); }
         .hiw-amber{ --hiw-bg:#fffbeb; --hiw-border:#fef3c7; --hiw-text:var(--amber); }
-        @media (max-width:767px){
-            .hiw-board{ padding:40px 28px 56px; }
-            .hiw-track{ height:auto; display:flex; flex-direction:column; gap:32px; }
+        @media (max-width:1023px){
+            .hiw-track{ height:auto; max-width:620px; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:28px 24px; padding:0 8px; }
             .hiw-path{ display:none; }
-            .hiw-card, .hiw-card:nth-of-type(n){ position:relative; inset:auto; width:100%; max-width:340px; margin:0 auto; --tilt:3deg; }
-            .hiw-card:nth-of-type(odd){ --tilt:-3deg; }
+            .hiw-card, .hiw-card:nth-of-type(n){ position:relative; inset:auto; width:auto; --tilt:2.5deg; }
+            .hiw-card:nth-of-type(4n+1), .hiw-card:nth-of-type(4n){ --tilt:-2.5deg; }
+        }
+        @media (max-width:639px){
+            .hiw-track{ grid-template-columns:minmax(0, 1fr); max-width:300px; gap:20px; }
+            .hiw-card:nth-of-type(odd){ --tilt:-2.5deg; }
+            .hiw-card:nth-of-type(even){ --tilt:2.5deg; }
         }
         @media (prefers-reduced-motion:reduce){
             .hiw-path path{ animation:none; }
@@ -1678,10 +1677,10 @@
             <h2 class="text-2xl sm:text-3xl font-black mb-2">روند کار چطوریه؟</h2>
             <p class="text-gray-500 text-sm">فقط چهار قدم ساده</p>
         </div>
-        <div class="hiw-board panel enter">
+        <div class="hiw-board enter">
             <div class="hiw-track">
-                <svg class="hiw-path" viewBox="0 0 1000 830" preserveAspectRatio="none" aria-hidden="true">
-                    <path d="M 710 150 C 500 150, 450 270, 290 270 C 150 270, 500 350, 710 450 C 710 600, 450 720, 250 720" stroke="currentColor" stroke-width="2" stroke-dasharray="8 6" stroke-linecap="round" fill="none" vector-effect="non-scaling-stroke"/>
+                <svg class="hiw-path" viewBox="0 0 1000 330" preserveAspectRatio="none" aria-hidden="true">
+                    <path d="M 885 180 C 885 320, 635 330, 635 240 C 635 330, 385 320, 385 180 C 385 320, 135 330, 135 240" stroke="currentColor" stroke-width="2" stroke-dasharray="8 6" stroke-linecap="round" fill="none" vector-effect="non-scaling-stroke"/>
                 </svg>
                 <div class="hiw-card hiw-cyan">
                     <div class="hiw-paper">
