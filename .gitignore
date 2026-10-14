@@ -1,4 +1,4 @@
-﻿venv/
+venv/
 __pycache__/
 *.pyc
 db.sqlite3
@@ -11,3 +11,7 @@ SECURITY_AUDIT.md
 
 # Tailwind build tooling (static/css/tailwind.css itself is committed)
 node_modules/
+# Keep Tailwind build tooling local; prebuilt CSS is committed
+/package.json
+/package-lock.json
+/tailwind.config.js
