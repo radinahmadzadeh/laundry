@@ -7,20 +7,20 @@
 <meta name="color-scheme" content="light">
 <title>حساب کاربری | خشکشویی و سفید شویی آرین</title>
 {% progressive_web_app_meta %}
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" />
-<script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js"></script>
+<script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js" defer></script>
 <style>
 :root{--ink:#101828;--line:#e2e8f0;--cyan:#0891b2;--violet:#7c3aed;--cyan-soft:#49e0d6;--violet-soft:#9b8cfb}
 *{box-sizing:border-box}
 html{background:transparent}
 body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:var(--ink);background:transparent;overflow-x:hidden}
 .page-background{position:fixed;inset:-20px;z-index:-1;pointer-events:none;
-  background-image:linear-gradient(135deg,rgba(8,145,178,.07),rgba(124,58,237,.06)),linear-gradient(rgba(247,250,252,.12),rgba(247,250,252,.12)),url("{% static 'hero/background.jpg' %}");
-  background-position:center center;background-size:cover;background-repeat:no-repeat;filter:blur(5px) saturate(1.06);transform:translateZ(0) scale(1.035);opacity:.96}
+  background-image:linear-gradient(135deg,rgba(8,145,178,.07),rgba(124,58,237,.06)),linear-gradient(rgba(247,250,252,.12),rgba(247,250,252,.12)),url("{% static 'hero/background-soft.jpg' %}");
+  background-position:center center;background-size:cover;background-repeat:no-repeat;transform:translateZ(0) scale(1.035);opacity:.96}
 @media(max-width:760px){.page-background{inset:-12px;background-position:60% center;transform:translateZ(0) scale(1.045)}}
 .weave{position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.008;background-image:repeating-linear-gradient(45deg,var(--ink) 0 1px,transparent 1px 6px),repeating-linear-gradient(-45deg,var(--ink) 0 1px,transparent 1px 6px)}
 @keyframes bubbleFloat{0%{transform:translate3d(0,34px,0) scale(.88);opacity:.28}18%{opacity:.82}50%{transform:translate3d(18px,-16px,0) scale(1.05);opacity:1}82%{opacity:.72}100%{transform:translate3d(-10px,-62px,0) scale(.9);opacity:.22}}
@@ -44,7 +44,8 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
 .step-dot{width:7px;height:7px;border-radius:999px;background:linear-gradient(135deg,var(--cyan),var(--violet));box-shadow:0 0 0 5px rgba(8,145,178,.07)}
 @media(max-width:480px){.card{padding:18px!important;border-radius:20px!important}}
 @media(prefers-reduced-motion:reduce){.bubble,.enter{animation:none}.card,.btn-motion{transition:none}}
-</style></head>
+</style>    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
+</head>
 <body>
 <div class="page-background" aria-hidden="true"></div>
 <div class="weave"></div>
@@ -116,7 +117,8 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
   </form>
 </div>
 <script>
-(function(){
+// Leaflet is deferred, so build the map once the page (and Leaflet) are ready.
+document.addEventListener('DOMContentLoaded', function(){
   var latEl = document.getElementById('lat'), lngEl = document.getElementById('lng');
   var hasSaved = latEl.value && lngEl.value;
   var start = hasSaved ? [parseFloat(latEl.value), parseFloat(lngEl.value)] : [35.7262837, 51.2922665];
@@ -172,7 +174,7 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
   document.getElementById('address-form').addEventListener('submit', function(e){
     if (!latEl.value){ e.preventDefault(); alert('لطفاً موقعیت خود را روی نقشه انتخاب کنید.'); }
   });
-})();
+});
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
 <script src="{% static 'js/postal-lookup.js' %}?v=1" defer></script>

@@ -8,8 +8,8 @@
 <meta name="color-scheme" content="light">
 <title>ورود مشتری | {{ shop_name|default:"خشکشویی و سفید شویی آرین" }}</title>
 {% progressive_web_app_meta %}
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
 <style>
 *{box-sizing:border-box}body{font-family:Vazirmatn,sans-serif;background:#f5f8fa;overflow-x:hidden}
 .bubble-layer{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
@@ -34,6 +34,7 @@
 }
 @media(prefers-reduced-motion:reduce){.bubble{animation:none}.submit{transition:none}}
 </style>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
 </head>
 <body>
 <div class="bubble-layer" aria-hidden="true">

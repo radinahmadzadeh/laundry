@@ -1,0 +1,9 @@
+/* Vazirmatn v33.003 (SIL Open Font License, see static/fonts/OFL.txt), served from this site:
+   one variable file covers every weight, so text never waits on an outside CDN. */
+@font-face {
+  font-family: Vazirmatn;
+  src: url('../fonts/Vazirmatn-wght.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}

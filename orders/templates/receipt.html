@@ -1,3 +1,4 @@
+{% load static %}
 {% load fa_format %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -7,7 +8,8 @@
     <meta name="color-scheme" content="light">
     <meta name="robots" content="noindex">
     <title>فاکتور #{{ order.id|fa_digits }} | {{ shop_name|default:"خشکشویی و سفید شویی آرین" }}</title>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
     <style>
         :root{
             --brand:#0891b2;

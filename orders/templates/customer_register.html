@@ -8,8 +8,8 @@
 <meta name="color-scheme" content="light">
 <title>ساخت حساب مشتری | {{ shop_name|default:"خشکشویی و سفید شویی آرین" }}</title>
 {% progressive_web_app_meta %}
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+<link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
 <style>
 :root{--cyan:#49e0d6;--violet:#9b8cfb}*{box-sizing:border-box}body{font-family:Vazirmatn,sans-serif;background:#f5f8fa}
 .panel{background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border:1px solid #e2e8f0;box-shadow:0 25px 50px -25px rgba(15,23,42,.18)}
@@ -18,7 +18,8 @@
 .shell{position:relative;z-index:2;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
 @media(max-width:640px){.shell{padding:10px}.panel{padding:22px!important;border-radius:22px!important}}
 @media(max-width:420px){.shell{padding:7px}.panel{padding:17px!important;border-radius:18px!important}.panel input,.panel button{font-size:12px}.panel h1{font-size:20px!important}.panel p{font-size:11px;line-height:1.8}}
-</style></head>
+</style>    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
+</head>
 <body>
 <div class="site-bubbles"><div class="bubble" style="width:118px;height:118px;top:8%;right:7%"></div><div class="bubble" style="width:72px;height:72px;top:62%;left:8%;animation-delay:1s"></div><div class="bubble" style="width:44px;height:44px;top:28%;left:18%;animation-delay:.5s"></div></div>
 <div class="shell"><div class="panel w-full max-w-md rounded-3xl p-7">

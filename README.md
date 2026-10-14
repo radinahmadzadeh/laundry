@@ -45,7 +45,7 @@ pricing, customers, couriers — from a dedicated admin panel.
 |------------|---------------------------------------------------------|
 | Backend    | Django 6.0 (Python)                                     |
 | Database   | SQLite (default, swappable via `DATABASES`)             |
-| Frontend   | Django templates + Tailwind CSS                         |
+| Frontend   | Django templates + Tailwind CSS (prebuilt, see below)   |
 | Maps       | Leaflet.js (courier pickup location picker)              |
 | Payments   | Zarinpal (sandbox gateway)                               |
 | Calendar   | `jdatetime` (Shamsi/Jalali dates for Persian users)      |
@@ -120,6 +120,20 @@ python manage.py runserver
 - Customer site: http://127.0.0.1:8000/
 - Staff panel: http://127.0.0.1:8000/panel/
 - Django admin: http://127.0.0.1:8000/admin/
+
+### Styles (Tailwind)
+
+The Tailwind classes are compiled ahead of time into `static/css/tailwind.css`
+(no CDN, so pages paint without waiting for an in-browser compiler). After
+adding or changing Tailwind classes in templates, rebuild it (needs Node.js):
+
+```bash
+npm install
+npm run build:css
+```
+
+`npm run watch:css` rebuilds on every save while you work. Commit the rebuilt
+`static/css/tailwind.css`; the server itself needs no Node.
 
 ## ⚙️ Configuration
 

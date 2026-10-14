@@ -8,3 +8,6 @@ inspect_motion.py
 
 # Security audit report (keep local, do not push)
 SECURITY_AUDIT.md
+
+# Tailwind build tooling (static/css/tailwind.css itself is committed)
+node_modules/

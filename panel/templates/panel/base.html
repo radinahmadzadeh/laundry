@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}خشکشویی و سفید شویی آرین | پنل مدیریت{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
     <style>
         :root{
             --bg:#07111f;--sidebar:#091625;--panel:rgba(12,27,43,.88);--panel-strong:#0e2236;
@@ -79,6 +79,7 @@
         @media(prefers-reduced-motion:reduce){.admin-bubble,.nav-link,.btn-primary{animation:none!important;transition:none!important}}
     </style>
     {% block extra_head %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
 </head>
 <body class="min-h-screen md:flex">
 <div class="admin-bg" aria-hidden="true">
