@@ -13,6 +13,8 @@
 //   "postal:pin-moved" (detail.latId)   the pin moved: ask again
 // and listens for "postal:found" (detail: lat, lng, address) on the field to move its pin.
 // window.PostalCheck.markConfirmed(field, addressText) marks a saved, already-known code as confirmed.
+// window.PostalCheck.suggest(field, code) fills in the code found for the map pin (OpenStreetMap),
+// unless the customer typed their own; the card then asks them to compare it with their bill.
 (function () {
     'use strict';
 
@@ -167,8 +169,9 @@
         }
 
         var here = pin(input), official = s.status === 'found', html, hasPin = !!here;
+        var suggested = input.dataset.pcAuto === '1';
         var head = '<div class="pc-head"><span class="pc-ico">' + ICON_MAIL + '</span><div><span class="pc-code">' + pretty(code) + '</span>' +
-            '<span class="pc-sub">' + (official ? 'این کد در سامانه پست پیدا شد' : 'کد پستی ۱۰ رقمی') + '</span></div></div>';
+            '<span class="pc-sub">' + (official ? 'این کد در سامانه پست پیدا شد' : (suggested ? 'از روی نقشه برای این نقطه پیدا شد' : 'کد پستی ۱۰ رقمی')) + '</span></div></div>';
         if (official) {
             html = head + '<div class="pc-addr"><small>آدرس ثبت‌شده برای این کد پستی</small>' + esc(s.address || 'بدون آدرس متنی؛ موقعیتش روی نقشه مشخص است') + '</div>';
             if (here) {
@@ -186,9 +189,10 @@
             var text = pinAddress(input);
             html = head + '<div class="pc-addr' + (text ? '' : ' empty') + '"><small>آدرس نقطه‌ای که روی نقشه انتخاب کردید</small>' +
                 (text ? esc(text) : (hasPin ? 'در حال پیدا کردن آدرس این نقطه…' : 'هنوز نقطه‌ای روی نقشه انتخاب نشده است.')) + '</div>' +
-                '<p class="pc-q">این کد پستی مال همین آدرس است؟</p>' +
+                '<p class="pc-q">' + (suggested ? 'این همان کد پستی روی قبض شماست؟' : 'این کد پستی مال همین آدرس است؟') + '</p>' +
                 '<div class="pc-actions"><button type="button" class="pc-yes" data-act="yes"' + (hasPin ? '' : ' disabled') + '>بله، درست است</button>' +
-                '<button type="button" class="pc-no" data-act="no">نه، اصلاحش می‌کنم</button></div>' +
+                '<button type="button" class="pc-no" data-act="no">' + (suggested ? 'نه، کد خودم را می‌نویسم' : 'نه، اصلاحش می‌کنم') + '</button></div>' +
+                (suggested ? '<p class="pc-hint">کد پستی هر واحد آپارتمان جداست؛ اگر با کد روی قبض آب، برق یا گاز شما فرق دارد، کد خودتان را بنویسید.</p>' : '') +
                 (hasPin ? '' : '<p class="pc-hint">اول محل خانه را روی نقشه بزنید تا آدرسش را ببینید و کد پستی را با آن مقایسه کنید.</p>');
         }
         if (s.retry) html += '<p class="pc-hint">کد پستی را دوباره وارد کنید یا نقطه را روی نقشه جابه‌جا کنید.</p>';
@@ -216,6 +220,17 @@
             s.confirmedAt = pinKey(input);
         } else if (what === 'no') {
             s.retry = true;
+            if (input.dataset.pcAuto === '1') {
+                // Their own code is different: empty the field and let them type it.
+                delete input.dataset.pcAuto;
+                input.value = '';
+                input._pcData = null;
+                input.setCustomValidity('کد پستی باید ۱۰ رقم باشد.');
+                meter(input, '');
+                setState(input, 'typing', '', '');
+                input.focus();
+                return;
+            }
             input.focus();
             input.select();
         } else if (what === 'change') {
@@ -264,6 +279,7 @@
         var input = event.target;
         if (input.matches && input.matches('input[data-postal-lookup]')) {
             var code = normalize(input.value);
+            delete input.dataset.pcAuto;  // their own typing: no longer our suggestion
             meter(input, code);
             if (input._pcData && input._pcData.code !== code) { input._pcData = null; }
             clearTimeout(timers.get(input));
@@ -312,6 +328,22 @@
             meter(input, code);
             input._pcData = { code: code, status: 'unavailable', confirmed: true, confirmedText: text || '', confirmedAt: pinKey(input) };
             render(input);
+        },
+        suggest: function (input, raw) {
+            // Never overwrite a code the customer typed or a confirmed saved one.
+            if (normalize(input.value) && input.dataset.pcAuto !== '1') return;
+            var code = normalize(raw);
+            if (!/^\d{10}$/.test(code) || /^(\d)\1{9}$/.test(code)) {
+                // No code for the new point: drop the previous point's suggestion.
+                if (input.dataset.pcAuto === '1') { delete input.dataset.pcAuto; input.value = ''; window.PostalCheck.reset(input); }
+                return;
+            }
+            if (input.dataset.pcAuto === '1' && normalize(input.value) === code) return render(input);
+            input.value = fa(code);
+            input.dataset.pcAuto = '1';
+            input._pcData = null;
+            box(input);
+            check(input);
         },
         reset: function (input) {
             input._pcData = null;

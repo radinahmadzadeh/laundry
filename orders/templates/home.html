@@ -2582,15 +2582,29 @@
             return joinAddressParts([p.city || p.county || p.state, p.locality || p.district, p.street, num, p.name]);
         }
 
+        // {text, postcode}: the readable address of a point and, when OpenStreetMap knows it,
+        // the postal code of the nearest registered building (a suggestion: flats each have their own).
         function fetchAddress(lat, lng){
             var nominatim = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=fa&lat=' + lat + '&lon=' + lng;
             var photon = 'https://photon.komoot.io/reverse?lang=default&limit=1&lat=' + lat + '&lon=' + lng;
             return fetch(nominatim, { referrerPolicy: 'strict-origin-when-cross-origin' })
                 .then(function(r){ if (!r.ok) throw new Error('nominatim ' + r.status); return r.json(); })
-                .then(function(d){ var t = formatNominatim(d); if (!t) throw new Error('empty'); return t; })
+                .then(function(d){
+                    var t = formatNominatim(d);
+                    if (!t) throw new Error('empty');
+                    return { text: t, postcode: (d.address && d.address.postcode) || '' };
+                })
                 .catch(function(){
-                    return fetch(photon).then(function(r){ if (!r.ok) throw new Error('photon'); return r.json(); }).then(formatPhoton);
+                    return fetch(photon).then(function(r){ if (!r.ok) throw new Error('photon'); return r.json(); }).then(function(d){
+                        var p = (d && d.features && d.features[0] && d.features[0].properties) || {};
+                        return { text: formatPhoton(d), postcode: p.postcode || '' };
+                    });
                 });
+        }
+
+        function suggestPostal(orderId, postcode){
+            var field = document.getElementById('postal-' + orderId);
+            if (field && window.PostalCheck) PostalCheck.suggest(field, postcode);
         }
 
         function lookupAddress(orderId, latlng){
@@ -2598,15 +2612,16 @@
             var key = lat + ',' + lng;
             var seq = addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
             clearTimeout(addrTimers[orderId]);
-            if (addrCache[key]){ setAddrPreview(orderId, 'found', addrCache[key]); return; }
+            if (addrCache[key]){ setAddrPreview(orderId, 'found', addrCache[key].text); suggestPostal(orderId, addrCache[key].postcode); return; }
             setAddrPreview(orderId, 'loading', 'در حال پیدا کردن آدرس…');
             // Short debounce: fast repeated taps/drags send only one request (Nominatim allows ~1 req/s).
             addrTimers[orderId] = setTimeout(function(){
-                fetchAddress(lat, lng).then(function(text){
+                fetchAddress(lat, lng).then(function(found){
                     if (seq !== addrSeq[orderId]) return;
-                    if (text){
-                        addrCache[key] = text;
-                        setAddrPreview(orderId, 'found', text);
+                    if (found && found.text){
+                        addrCache[key] = found;
+                        setAddrPreview(orderId, 'found', found.text);
+                        suggestPostal(orderId, found.postcode);
                     } else {
                         setAddrPreview(orderId, 'empty', 'آدرس این نقطه پیدا نشد؛ لطفاً جزئیات را در کادر زیر بنویسید.');
                     }
@@ -3507,6 +3522,6 @@
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
 <script src="{% static 'js/neshan-links.js' %}?v=1" defer></script>
-<script src="{% static 'js/postal-lookup.js' %}?v=2" defer></script>
+<script src="{% static 'js/postal-lookup.js' %}?v=3" defer></script>
 </body>
 </html>

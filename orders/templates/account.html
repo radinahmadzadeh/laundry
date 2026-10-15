@@ -127,21 +127,25 @@ document.addEventListener('DOMContentLoaded', function(){
   var addrEl = document.querySelector('#address-form textarea[name="address"]');
   var lastAuto = '', seq = 0, timer = null;
   function join(parts){ var seen = {}; return parts.filter(function(p){ p = (p || '').trim(); if (!p || seen[p]) return false; seen[p] = true; return true; }).join('، '); }
+  function postcodeOf(d){ return (d && d.address && d.address.postcode) || (d && d.features && d.features[0] && d.features[0].properties && d.features[0].properties.postcode) || ''; }
   function fromNominatim(d){ var a = (d && d.address) || {}; return join([a.city || a.town || a.village || a.county || a.state, a.neighbourhood || a.suburb || a.quarter || a.city_district, a.road || a.pedestrian || a.residential, a.house_number ? 'پلاک ' + a.house_number : '']); }
   function fromPhoton(d){ var p = (d && d.features && d.features[0] && d.features[0].properties) || {}; return join([p.city || p.county || p.state, p.locality || p.district, p.street, p.housenumber ? 'پلاک ' + p.housenumber : '']); }
-  // Fill the address box from the chosen point, unless the customer has written their own text.
+  // Fill the address box from the chosen point (unless the customer has written their own text)
+  // and suggest the point's postal code (unless they typed their own).
   function lookup(ll){
     var my = ++seq; clearTimeout(timer);
-    if (addrEl.value.trim() && addrEl.value !== lastAuto) return;
-    addrEl.placeholder = 'در حال پیدا کردن آدرس…';
+    var keepText = addrEl.value.trim() && addrEl.value !== lastAuto;
+    if (!keepText) addrEl.placeholder = 'در حال پیدا کردن آدرس…';
     timer = setTimeout(function(){
       var lat = ll.lat.toFixed(5), lng = ll.lng.toFixed(5);
       fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=fa&lat=' + lat + '&lon=' + lng, {referrerPolicy:'strict-origin-when-cross-origin'})
-        .then(function(r){ if (!r.ok) throw 0; return r.json(); }).then(function(d){ var t = fromNominatim(d); if (!t) throw 0; return t; })
-        .catch(function(){ return fetch('https://photon.komoot.io/reverse?lang=default&limit=1&lat=' + lat + '&lon=' + lng).then(function(r){ return r.json(); }).then(fromPhoton); })
-        .then(function(t){
+        .then(function(r){ if (!r.ok) throw 0; return r.json(); }).then(function(d){ var t = fromNominatim(d); if (!t) throw 0; return { t: t, postcode: postcodeOf(d) }; })
+        .catch(function(){ return fetch('https://photon.komoot.io/reverse?lang=default&limit=1&lat=' + lat + '&lon=' + lng).then(function(r){ return r.json(); }).then(function(d){ return { t: fromPhoton(d), postcode: postcodeOf(d) }; }); })
+        .then(function(found){
           if (my !== seq) return;
+          var t = found.t;
           addrEl.placeholder = 'آدرس متنی (خیابان، کوچه، پلاک، واحد)';
+          if (window.PostalCheck) PostalCheck.suggest(document.querySelector('input[name=postal]'), found.postcode);
           if (t && (!addrEl.value.trim() || addrEl.value === lastAuto)){ addrEl.value = lastAuto = t + '، '; addrEl.dispatchEvent(new Event('input', {bubbles:true})); }
         })
         .catch(function(){ addrEl.placeholder = 'آدرس متنی (خیابان، کوچه، پلاک، واحد)'; });
@@ -183,5 +187,5 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
-<script src="{% static 'js/postal-lookup.js' %}?v=2" defer></script>
+<script src="{% static 'js/postal-lookup.js' %}?v=3" defer></script>
 </body></html>
