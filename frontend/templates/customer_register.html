@@ -10,15 +10,8 @@
 {% progressive_web_app_meta %}
 <link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
-<style>
-:root{--cyan:#49e0d6;--violet:#9b8cfb}*{box-sizing:border-box}body{font-family:Vazirmatn,sans-serif;background:#f5f8fa}
-.panel{background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border:1px solid #e2e8f0;box-shadow:0 25px 50px -25px rgba(15,23,42,.18)}
-.site-bubbles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}.bubble{position:absolute;border-radius:50%;border:1px solid rgba(73,170,205,.4);background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.98) 0 11%,rgba(255,255,255,.55) 12% 20%,rgba(73,224,214,.22) 42%,rgba(155,140,251,.13) 68%,transparent 80%);box-shadow:inset -8px -10px 18px rgba(124,58,237,.07),0 14px 35px rgba(8,145,178,.11);animation:bubbleFloat 6s ease-in-out infinite}
-@keyframes bubbleFloat{0%,100%{transform:translate3d(0,28px,0) scale(.92);opacity:.4}50%{transform:translate3d(-10px,-30px,0) scale(1.04);opacity:.9}}
-.shell{position:relative;z-index:2;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
-@media(max-width:640px){.shell{padding:10px}.panel{padding:22px!important;border-radius:22px!important}}
-@media(max-width:420px){.shell{padding:7px}.panel{padding:17px!important;border-radius:18px!important}.panel input,.panel button{font-size:12px}.panel h1{font-size:20px!important}.panel p{font-size:11px;line-height:1.8}}
-</style>    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/register.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
 </head>
 <body>
 <div class="site-bubbles"><div class="bubble" style="width:118px;height:118px;top:8%;right:7%"></div><div class="bubble" style="width:72px;height:72px;top:62%;left:8%;animation-delay:1s"></div><div class="bubble" style="width:44px;height:44px;top:28%;left:18%;animation-delay:.5s"></div></div>
@@ -39,16 +32,6 @@
 </form>
 <div class="flex items-center justify-between mt-5 text-xs"><a href="/" class="text-gray-500 py-2">بازگشت به سایت</a><a href="{% url 'customer_login' %}{% if next != '/' %}?next={{ next|urlencode }}{% endif %}" class="font-bold text-gray-700 py-2">قبلاً حساب دارم</a></div>
 </div></div>
-<script>
-(function () {
-  const password = document.getElementById('password');
-  const toggle = document.getElementById('show-register-password');
-  if (password && toggle) {
-    toggle.addEventListener('change', function () {
-      password.type = toggle.checked ? 'text' : 'password';
-    });
-  }
-})();
-</script>
+<script src="{% static 'js/password-toggle.js' %}?v=1"></script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
 </body></html>

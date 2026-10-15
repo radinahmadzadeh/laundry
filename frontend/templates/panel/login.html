@@ -6,20 +6,7 @@
 <title>ورود مدیریت | خشکشویی و سفید شویی آرین</title>
 <link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
-<style>
-*{box-sizing:border-box}body{font-family:Vazirmatn,sans-serif;background:#f5f8fa;overflow-x:hidden}
-.bubble-layer{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
-.bubble{position:absolute;border-radius:50%;border:1px solid rgba(73,170,205,.35);background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.98) 0 11%,rgba(255,255,255,.55) 12% 20%,rgba(73,224,214,.20) 42%,rgba(155,140,251,.13) 68%,transparent 80%);box-shadow:inset -8px -10px 18px rgba(124,58,237,.06),0 14px 35px rgba(8,145,178,.10);animation:float 6s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translate3d(0,28px,0) scale(.92);opacity:.35}50%{transform:translate3d(-12px,-32px,0) scale(1.05);opacity:.85}}
-.shell{position:relative;z-index:2;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:22px}
-.card{width:min(980px,100%);background:rgba(255,255,255,.93);backdrop-filter:blur(18px);border:1px solid rgba(15,23,42,.08);box-shadow:0 35px 85px -42px rgba(15,23,42,.32);overflow:hidden}
-.field{height:52px;border-radius:16px;background:#f8fafc;border:1px solid #e2e8f0;padding:0 16px;font-size:13px;text-align:right;width:100%;transition:.2s}
-.field:focus{outline:none;border-color:rgba(8,145,178,.45);box-shadow:0 0 0 3px rgba(8,145,178,.10);background:#fff}
-.submit{height:52px;border-radius:16px;border:0;background:linear-gradient(115deg,#9b8cfb,#49e0d6);font-weight:900;color:#0b2430;transition:.25s;box-shadow:0 14px 30px -18px rgba(8,145,178,.5)}
-.submit:hover{transform:translateY(-2px);filter:brightness(1.03)}
-@media(max-width:760px){.shell{padding:14px}.card{border-radius:26px}.hero{min-height:220px!important;padding:30px 22px!important}.form-side{padding:30px 20px!important}}
-@media(prefers-reduced-motion:reduce){.bubble{animation:none}.submit{transition:none}}
-</style>
+<link rel="stylesheet" href="{% static 'css/panel-login.css' %}?v=1">
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
 </head>
 <body>

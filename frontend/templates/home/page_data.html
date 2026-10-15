@@ -1,0 +1,13 @@
+{# Home: values from the server that js/home/app.js reads. #}
+{{ courier_watch|json_script:"courier-watch-data" }}
+{{ status_labels|json_script:"status-labels-data" }}
+<script>
+    var HOME_URLS = {
+        home: '{% url "home" %}',
+        placeOrder: '{% url "place_order" %}',
+        submitReview: '{% url "submit_review" %}',
+        courierStatus: '{% url "courier_status" %}'
+    };
+    var SAVED_ADDRESS = {% if saved_address %}{lat: "{{ saved_address.address_latitude|escapejs }}", lng: "{{ saved_address.address_longitude|escapejs }}", postal: "{{ saved_address.address_postal_code|escapejs }}", text: "{{ saved_address.address|escapejs }}"}{% else %}null{% endif %};
+    var WALLET_BALANCE = Number('{{ wallet.balance|default:0|stringformat:"d" }}') || 0;
+</script>

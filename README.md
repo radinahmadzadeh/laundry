@@ -67,19 +67,29 @@ frontend/                what the browser gets
   templates/             Django templates (looked up here first)
     home.html            home page skeleton; its parts live in home/
     home/                header, hero, tracking, order form, services, FAQ, footer…
-      styles/            the home page's CSS, one file per area
-      scripts/           the home page's JavaScript, one file per feature
     account.html         account page skeleton; its parts live in account/
-    account/             dashboard, settings, styles and scripts
+    account/             dashboard and settings
     components/          pieces shared by several pages (maps, courier form, icons…)
     errors/              base layout of the 400/403/404/500 pages
     panel/               staff panel pages
-  static/                served at /static/ — css, js, fonts, images, PWA files
+  static/                served at /static/
+    css/                 one stylesheet per page (home.css, account.css, panel.css…)
+                         plus vazirmatn.css and the Tailwind build (tailwind.css)
+    js/                  page scripts (home/, account/, panel/, pricing.js…) and
+                         shared ones (form-errors, neshan-links, postal-lookup)
+    fonts/ hero/ …       fonts, images and PWA files
   styles/                Tailwind input (built into static/css/tailwind.css)
   package.json           Tailwind build (kept local, see .gitignore)
+extras/                  unused originals (full-size photos…), kept but not served
 manage.py                Django management entry point (adds backend/ to the path)
 requirements.txt         Python dependencies
 ```
+
+Templates hold the markup only. Styles and scripts live in `frontend/static/css` and
+`frontend/static/js`; the few values a script needs from the server (URLs, the saved
+address, the wallet balance) are written into the page by a small template, e.g.
+`home/page_data.html`. After editing a CSS/JS file, raise its `?v=` number in the
+template that links it, so browsers and the offline cache fetch the new copy.
 
 ### Core models (`backend/orders/models.py`)
 
@@ -141,7 +151,7 @@ python manage.py runserver
 
 The Tailwind classes are compiled ahead of time into `frontend/static/css/tailwind.css`
 (no CDN, so pages paint without waiting for an in-browser compiler). After
-adding or changing Tailwind classes in templates, rebuild it (needs Node.js):
+adding or changing Tailwind classes in templates or in `static/js`, rebuild it (needs Node.js):
 
 ```bash
 cd frontend

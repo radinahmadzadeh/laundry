@@ -17,23 +17,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" media="print" onload="this.media='all'" />
     <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js" defer></script>
-    <style>
-        {% include "home/styles/base.html" %}
-        {% include "home/styles/forms.html" %}
-        {% include "home/styles/cart.html" %}
-        {% include "home/styles/gallery.html" %}
-        {% include "home/styles/hero.html" %}
-        {% include "home/styles/header.html" %}
-        {% include "home/styles/reviews.html" %}
-        {% include "home/styles/notices.html" %}
-        {% include "home/styles/item_picker.html" %}
-        {% include "home/styles/responsive.html" %}
-        {% include "home/styles/orders.html" %}
-        {% include "home/styles/how_it_works.html" %}
-        {% include "home/styles/tracking.html" %}
-        {% include "home/styles/services.html" %}
-        {% include "home/styles/scroll_reveal.html" %}
-    </style>
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=1">
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
 </head>
 <body class="min-h-screen">
@@ -64,9 +48,10 @@
 
     {# Overlays and scripts. #}
     {% include "home/review_modal.html" %}
-    {% include "home/scripts/app.html" %}
-    {% include "home/scripts/scroll_motion.html" %}
-    {% include "home/scripts/services_motion.html" %}
+    {% include "home/page_data.html" %}
+    <script src="{% static 'js/home/app.js' %}?v=1"></script>
+    <script src="{% static 'js/home/scroll-motion.js' %}?v=1"></script>
+    <script src="{% static 'js/home/services-motion.js' %}?v=1"></script>
     <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
     <script src="{% static 'js/neshan-links.js' %}?v=1" defer></script>
     <script src="{% static 'js/postal-lookup.js' %}?v=3" defer></script>

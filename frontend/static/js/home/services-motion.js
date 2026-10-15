@@ -1,0 +1,40 @@
+// Services labels motion (home page).
+
+// Services: hang the labels in when they scroll into view, tilt them toward the mouse, and keep the phone dots in sync.
+(function(){
+    var board = document.getElementById('svc-board');
+    if (!board) return;
+    var head = board.parentElement.querySelector('.svc-head');
+    var tags = board.querySelectorAll('.svc-tag');
+    function reveal(){ board.classList.add('is-in'); if (head) head.classList.add('is-in'); }
+    if (!('IntersectionObserver' in window)) reveal();
+    else {
+        var io = new IntersectionObserver(function(entries){
+            if (entries.some(function(e){ return e.isIntersecting; })){ reveal(); io.disconnect(); }
+        }, { threshold:.2 });
+        io.observe(board);
+    }
+    if (window.matchMedia('(hover:hover) and (pointer:fine)').matches && !window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+        tags.forEach(function(tag){
+            tag.addEventListener('pointermove', function(e){
+                var r = tag.getBoundingClientRect();
+                var x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+                tag.style.setProperty('--ry', (x * 10).toFixed(2) + 'deg');
+                tag.style.setProperty('--rx', (-y * 8).toFixed(2) + 'deg');
+            });
+            tag.addEventListener('pointerleave', function(){ tag.style.removeProperty('--rx'); tag.style.removeProperty('--ry'); });
+        });
+    }
+    var dots = document.querySelectorAll('#svc-dots span');
+    function syncDots(){
+        var mid = board.getBoundingClientRect().left + board.clientWidth / 2, best = 0, bestGap = Infinity;
+        tags.forEach(function(tag, i){
+            var r = tag.getBoundingClientRect(), gap = Math.abs(r.left + r.width / 2 - mid);
+            if (gap < bestGap){ bestGap = gap; best = i; }
+        });
+        dots.forEach(function(d, i){ d.classList.toggle('on', i === best); });
+    }
+    board.addEventListener('scroll', function(){ window.requestAnimationFrame(syncDots); }, { passive:true });
+    window.addEventListener('load', syncDots);
+    syncDots();
+})();
