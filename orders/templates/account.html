@@ -98,8 +98,8 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
       <input type="hidden" name="lng" id="lng" value="{{ customer.address_longitude }}">
       <div id="map" class="w-full h-60 rounded-xl border border-gray-200"></div>
       <button type="button" id="locate-btn" class="btn-motion w-full bg-white border border-gray-200 text-gray-600 font-bold text-xs py-2.5 rounded-xl">استفاده از موقعیت فعلی من</button>
-      <textarea name="address" rows="2" maxlength="1000" placeholder="آدرس متنی (خیابان، کوچه، پلاک، واحد)" class="field">{{ customer.address }}</textarea>
-      <input name="postal" value="{{ customer.address_postal_code }}" type="tel" inputmode="numeric" maxlength="10" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی" data-postal-lookup="{% url 'postal_lookup' %}" class="field text-center tracking-widest">
+      <textarea name="address" id="address-text" rows="2" maxlength="1000" placeholder="آدرس متنی (خیابان، کوچه، پلاک، واحد)" class="field">{{ customer.address }}</textarea>
+      <input name="postal" value="{{ customer.address_postal_code }}" type="tel" inputmode="numeric" maxlength="10" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی" data-postal-lookup="{% url 'postal_lookup' %}" data-lat="lat" data-lng="lng" data-addr="address-text" class="field text-center tracking-widest">
       <button class="btn-main btn-motion text-sm">ذخیره آدرس</button>
     </form>
     {% if customer.has_saved_address %}
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function(){
         .then(function(t){
           if (my !== seq) return;
           addrEl.placeholder = 'آدرس متنی (خیابان، کوچه، پلاک، واحد)';
-          if (t && (!addrEl.value.trim() || addrEl.value === lastAuto)){ addrEl.value = lastAuto = t + '، '; }
+          if (t && (!addrEl.value.trim() || addrEl.value === lastAuto)){ addrEl.value = lastAuto = t + '، '; addrEl.dispatchEvent(new Event('input', {bubbles:true})); }
         })
         .catch(function(){ addrEl.placeholder = 'آدرس متنی (خیابان، کوچه، پلاک، واحد)'; });
     }, 450);
@@ -151,11 +151,17 @@ document.addEventListener('DOMContentLoaded', function(){
   function setPoint(ll, skipLookup){
     if (marker) map.removeLayer(marker);
     marker = L.marker(ll, {draggable:true}).addTo(map);
-    marker.on('dragend', function(){ var p = marker.getLatLng(); latEl.value = p.lat; lngEl.value = p.lng; lookup(p); });
+    marker.on('dragend', function(){ var p = marker.getLatLng(); latEl.value = p.lat; lngEl.value = p.lng; lookup(p); pinMoved(); });
     latEl.value = ll.lat; lngEl.value = ll.lng;
     if (!skipLookup) lookup(ll);
+    pinMoved();
   }
+  // Tell the postal-code check (static/js/postal-lookup.js) the pin moved.
+  function pinMoved(){ document.dispatchEvent(new CustomEvent('postal:pin-moved', { detail: { latId: 'lat' } })); }
   if (hasSaved) setPoint(L.latLng(start[0], start[1]), true);
+  // The saved postal code was confirmed when the address was saved.
+  var postalEl = document.querySelector('input[name=postal]');
+  if (hasSaved && postalEl.value && window.PostalCheck) PostalCheck.markConfirmed(postalEl, addrEl.value);
   map.on('click', function(e){ setPoint(e.latlng); });
   document.getElementById('locate-btn').addEventListener('click', function(){
     if (!navigator.geolocation){ alert('مرورگر شما امکان دریافت موقعیت را ندارد؛ نقطه را روی نقشه انتخاب کنید.'); return; }
@@ -177,5 +183,5 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
-<script src="{% static 'js/postal-lookup.js' %}?v=1" defer></script>
+<script src="{% static 'js/postal-lookup.js' %}?v=2" defer></script>
 </body></html>

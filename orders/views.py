@@ -14,7 +14,7 @@ import re
 from django.utils import timezone
 from .models import order_tax, Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 from .templatetags.fa_format import fa_digits, toman
-from .postal import lookup_postal_code, normalize_postal, is_postal_format
+from .postal import lookup_postal_code, normalize_postal, postal_format_error
 from django.db.models import Avg, Count, F
 
 
@@ -631,8 +631,8 @@ def clean_courier_location(lat, lng, postal):
     if not (IRAN_LAT_RANGE[0] <= lat_value <= IRAN_LAT_RANGE[1] and IRAN_LNG_RANGE[0] <= lng_value <= IRAN_LNG_RANGE[1]):
         return None, 'موقعیت انتخاب‌شده خارج از محدوده ارسال است؛ نقطه را روی نقشه درست انتخاب کنید.'
     postal_digits = normalize_postal(postal)
-    if not is_postal_format(postal_digits):
-        return None, 'کد پستی باید ۱۰ رقم باشد.'
+    if postal_format_error(postal_digits):
+        return None, postal_format_error(postal_digits)
     if lookup_postal_code(postal_digits)['status'] == 'not_found':
         return None, 'این کد پستی در سامانه پست پیدا نشد؛ لطفاً دوباره بررسی کنید.'
     return (f'{lat_value:.6f}', f'{lng_value:.6f}', postal_digits), None
@@ -644,8 +644,8 @@ def postal_lookup(request):
     if not session_customer_id(request) and not is_staff:
         return JsonResponse({'status': 'error', 'message': 'ابتدا وارد حساب شوید.'}, status=403)
     code = normalize_postal(request.GET.get('code'))
-    if not is_postal_format(code):
-        return JsonResponse({'status': 'invalid', 'message': 'کد پستی باید ۱۰ رقم باشد.'})
+    if postal_format_error(code):
+        return JsonResponse({'status': 'invalid', 'message': postal_format_error(code)})
     # Each lookup costs money: cap how often one visitor can ask.
     who = request.session.session_key or request.META.get('REMOTE_ADDR', '')
     rate_key = f'postal-rate:{who}'

@@ -207,7 +207,7 @@ class CourierLocationTests(TestCase):
         self.assertEqual(ok, ('35.700000', '51.300000', '1234567890'))
         for lat, lng in [('nan', '51'), ('inf', '51'), ('999', '51'), ('35', '-999'), ('', ''), ('abc', '51')]:
             self.assertIsNotNone(clean_courier_location(lat, lng, '1234567890')[1], (lat, lng))
-        for postal in ['123456789', '12345678901', 'abcdefghij', '']:
+        for postal in ['123456789', '12345678901', 'abcdefghij', '', '0000000000', '۱۱۱۱۱۱۱۱۱۱']:
             self.assertIsNotNone(clean_courier_location('35.7', '51.3', postal)[1], postal)
 
 
@@ -302,7 +302,7 @@ class DeliveryCourierRequestTests(TestCase):
         self.order.refresh_from_db()
         self.assertTrue(self.order.delivery_courier_requested)
         self.assertEqual(self.order.delivery_postal_code, '1234567890')
-        payload['postal'] = '1111111111'
+        payload['postal'] = '1357924680'
         self.assertEqual(self.post(payload).json()['message'], 'آدرس ارسال به‌روز شد.')
         self.order.delivery_courier_dispatched = True
         self.order.save()

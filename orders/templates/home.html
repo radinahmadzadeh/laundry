@@ -1919,7 +1919,7 @@
                 <button type="button" onclick="locateCourier('neworder')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-3 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
                 <input type="hidden" id="lat-neworder">
                 <input type="hidden" id="lng-neworder">
-                <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-neworder" data-postal-lookup="{% url 'postal_lookup' %}" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
+                <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-neworder" data-postal-lookup="{% url 'postal_lookup' %}" data-lat="lat-neworder" data-lng="lng-neworder" data-addr="addr-text-neworder" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
                        class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-3 focus:outline-none text-center tracking-widest">
                 <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
                     <input type="checkbox" id="save-address-neworder" class="w-4 h-4 accent-[var(--cyan)]" {% if not saved_address %}checked{% endif %}>
@@ -2506,7 +2506,12 @@
             var point = L.latLng(parseFloat(SAVED_ADDRESS.lat), parseFloat(SAVED_ADDRESS.lng));
             map.setView(point, 17);
             placeCourierMarker(orderId, point);
-            if (SAVED_ADDRESS.postal) document.getElementById('postal-' + orderId).value = SAVED_ADDRESS.postal;
+            if (SAVED_ADDRESS.postal){
+                var savedPostal = document.getElementById('postal-' + orderId);
+                savedPostal.value = SAVED_ADDRESS.postal;
+                // The customer confirmed this code when they saved the address.
+                if (window.PostalCheck) PostalCheck.markConfirmed(savedPostal, SAVED_ADDRESS.text);
+            }
             setAddrMode(orderId, 'saved');
             if (SAVED_ADDRESS.text){
                 addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
@@ -2529,10 +2534,17 @@
                 document.getElementById('lng-' + orderId).value = p.lng;
                 setAddrMode(orderId, 'new');
                 lookupAddress(orderId, p);
+                pinMoved(orderId);
             });
             courierMarkers[orderId] = marker;
             document.getElementById('lat-' + orderId).value = latlng.lat;
             document.getElementById('lng-' + orderId).value = latlng.lng;
+            pinMoved(orderId);
+        }
+
+        // Tell the postal-code check (static/js/postal-lookup.js) that this map's pin moved.
+        function pinMoved(orderId){
+            document.dispatchEvent(new CustomEvent('postal:pin-moved', { detail: { latId: 'lat-' + orderId } }));
         }
 
         function setAddrPreview(orderId, state, text){
@@ -2632,7 +2644,9 @@
             if (courierMarkers[orderId]){ map.removeLayer(courierMarkers[orderId]); delete courierMarkers[orderId]; }
             document.getElementById('lat-' + orderId).value = '';
             document.getElementById('lng-' + orderId).value = '';
-            document.getElementById('postal-' + orderId).value = '';
+            var postalField = document.getElementById('postal-' + orderId);
+            postalField.value = '';
+            if (window.PostalCheck) PostalCheck.reset(postalField);
             addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
             setAddrPreview(orderId, 'empty', 'روی نقشه بزنید تا آدرس نمایش داده شود.');
             setAddrMode(orderId, 'new');
@@ -3022,6 +3036,8 @@
                 flashInvalid(postalEl, 'کد پستی باید ۱۰ رقم باشد.');
                 return;
             }
+            // Not confirmed for this address yet: the form-error toast explains and points at it.
+            if (!postalEl.checkValidity()) return;
 
             var btn = document.getElementById('courier-submit-' + orderId);
             if (!btn || btn.disabled) return;
@@ -3320,6 +3336,7 @@
                 var postal = normalizePostal(postalEl.value);
                 if (!lat){ flashInvalid(document.getElementById('interactive-map-neworder'), 'لطفاً موقعیت خود را روی نقشه انتخاب کنید.'); return; }
                 if (!/^\d{10}$/.test(postal)){ flashInvalid(postalEl, 'کد پستی باید ۱۰ رقم باشد.'); return; }
+                if (!postalEl.checkValidity()) return;
                 var saveEl = document.getElementById('save-address-neworder');
                 payload.lat = lat; payload.lng = lng; payload.postal = postal; payload.address = getCourierAddress('neworder');
                 payload.save_address = !!(saveEl && saveEl.checked);
@@ -3490,6 +3507,6 @@
 </script>
 <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
 <script src="{% static 'js/neshan-links.js' %}?v=1" defer></script>
-<script src="{% static 'js/postal-lookup.js' %}?v=1" defer></script>
+<script src="{% static 'js/postal-lookup.js' %}?v=2" defer></script>
 </body>
 </html>

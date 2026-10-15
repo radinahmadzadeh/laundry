@@ -26,7 +26,20 @@ def normalize_postal(value):
 
 
 def is_postal_format(code):
-    return code.isdigit() and len(code) == 10
+    """10 digits, and not one digit repeated (0000000000 is never a real code).
+
+    Only these checks: the post office publishes no further structure rule we could rely on.
+    """
+    return code.isdigit() and len(code) == 10 and len(set(code)) > 1
+
+
+def postal_format_error(code):
+    """Why a normalized code is not a usable postal code, or '' when it is."""
+    if not code.isdigit() or len(code) != 10:
+        return 'کد پستی باید ۱۰ رقم باشد.'
+    if not is_postal_format(code):
+        return 'این کد پستی معتبر به نظر نمی‌رسد؛ ارقام را دوباره بررسی کنید.'
+    return ''
 
 
 def lookup_enabled():
