@@ -15,6 +15,7 @@ from django.utils import timezone
 from .models import order_tax, Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 from .templatetags.fa_format import fa_digits, toman
 from .postal import lookup_postal_code, normalize_postal, postal_format_error
+from .insights import customer_insights
 from django.db.models import Avg, Count, F
 
 
@@ -184,7 +185,8 @@ def account_page(request):
             messages.success(request, 'آدرس ثبت‌شده حذف شد.')
         return redirect('account')
 
-    return render(request, 'account.html', {'customer': customer})
+    wallet, _ = Wallet.objects.get_or_create(customer=customer)
+    return render(request, 'account.html', {'customer': customer, 'wallet': wallet, 'insights': customer_insights(customer)})
 
 
 def wallet_page(request):

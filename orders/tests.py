@@ -287,6 +287,37 @@ class PostalLookupTests(TestCase):
         self.assertEqual(body['address'], 'تهران')
 
 
+class AccountInsightsTests(TestCase):
+    def setUp(self):
+        from .models import OrderItem
+        self.customer = Customer.objects.create(name='مشتری آمار', phone='09120000099')
+        first = Order.objects.create(customer=self.customer, courier_requested=True)
+        OrderItem.objects.create(order=first, item_name='کت مردانه (خشکشویی + اتو)', quantity=2, price=Decimal('100000'))
+        OrderItem.objects.create(order=first, item_name='شلوار مردانه (فقط اتو)', quantity=1, price=Decimal('50000'))
+        second = Order.objects.create(customer=self.customer, status='delivered')
+        OrderItem.objects.create(order=second, item_name='کت مردانه (خشکشویی + اتو)', quantity=1, price=Decimal('100000'))
+
+    def test_counts_top_items_and_facts(self):
+        from .insights import customer_insights, split_item_name
+        self.assertEqual(split_item_name('کت و شلوار مردانه (خشکشویی + اتو)'), ('کت و شلوار مردانه', 'خشکشویی + اتو'))
+        s = customer_insights(self.customer)
+        self.assertEqual((s['orders_count'], s['pieces'], s['active']), (2, 4, 1))
+        self.assertEqual(s['top_items'][0]['name'], 'کت مردانه')
+        self.assertEqual(s['top_items'][0]['count'], 3)
+        self.assertEqual((s['dry_pieces'], s['iron_pieces'], s['dry_share']), (3, 1, 75))
+        self.assertEqual(s['courier_orders'], 1)
+        self.assertIn('کت مردانه', s['facts'][0]['text'])
+
+    def test_account_page_shows_dashboard(self):
+        login_customer(self.client, self.customer)
+        html = self.client.get(reverse('account')).content.decode()
+        self.assertIn('بیشتر چه چیزهایی سفارش داده‌اید؟', html)
+        self.assertIn('کت مردانه', html)
+        empty = Customer.objects.create(name='تازه', phone='09120000098')
+        login_customer(self.client, empty)
+        self.assertIn('هنوز سفارشی ثبت نکرده‌اید', self.client.get(reverse('account')).content.decode())
+
+
 class DeliveryCourierRequestTests(TestCase):
     def setUp(self):
         self.customer = Customer.objects.create(name='پیک', phone='09120000015')
