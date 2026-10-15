@@ -1,0 +1,40 @@
+{# Quick tracking: invoice-number search and recent orders. #}
+{% load fa_format %}
+<div class="trk-search panel enter rounded-3xl">
+    <div class="trk-search-head">
+        <span class="trk-search-icon" aria-hidden="true">
+            <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="11" y="7" width="42" height="50" rx="8"/><path d="M11 18h42"/><circle cx="32" cy="37" r="13"/><g class="art-drum"><path d="M23 38c3-4 6 3 9 0s6-4 9 0"/></g></svg>
+        </span>
+        <div class="min-w-0">
+            <h2 class="text-lg sm:text-2xl font-black">پیگیری سریع سفارش</h2>
+            <p class="text-gray-500 text-xs sm:text-sm mt-1">شماره فاکتور را بزنید تا ببینید لباس‌هایتان کجای کارند.</p>
+        </div>
+    </div>
+    <form method="GET" action="#track-section" class="trk-ticket" onsubmit="this.classList.add('is-loading')">
+        <label class="trk-ticket-field">
+            <span class="trk-hash" aria-hidden="true">#</span>
+            <input type="text" inputmode="numeric" name="order_id" value="{{ request.GET.order_id|default:'' }}" placeholder="شماره فاکتور" aria-label="شماره فاکتور" required maxlength="12" autocomplete="off">
+        </label>
+        <button type="submit" class="trk-go btn-motion">
+            <span class="trk-go-text">پیگیری</span>
+            <svg class="trk-go-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+            <span class="trk-go-spin" aria-hidden="true"></span>
+        </button>
+    </form>
+    {% if customer_orders %}
+    <div class="trk-recent">
+        <span class="trk-recent-label">سفارش‌های اخیر شما</span>
+        <div class="trk-recent-list">
+            {% for recent in customer_orders|slice:":4" %}
+            {% with now=recent.tracking_current %}
+            <a href="?order_id={{ recent.id }}#track-section" class="trk-chip{% if orders and orders.0.id == recent.id %} is-active{% endif %}" data-tone="{{ now.tone }}" style="--i:{{ forloop.counter0 }}">
+                <span class="trk-chip-dot{% if recent.status != 'delivered' %} is-live{% endif %}"></span>
+                <span class="trk-chip-no">#{{ recent.id|fa_digits }}</span>
+                <span class="trk-chip-state">{{ now.label }}</span>
+            </a>
+            {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>

@@ -1,0 +1,96 @@
+{# Order form, step 1: choosing the items. #}
+{% load fa_format %}
+<!-- قدم ۱: انتخاب اقلام -->
+<div class="flex items-center gap-2 mb-4">
+    <span class="step-num">۱</span>
+    <h3 class="font-bold text-sm sm:text-base">انتخاب اقلام لباس</h3>
+</div>
+
+<div class="item-search-wrap mb-3">
+    <svg class="item-search-icon w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M20 20l-3.5-3.5"/></svg>
+    <input type="search" id="item-search" placeholder="جستجوی لباس (مثلاً کاپشن)" aria-label="جستجوی لباس" autocomplete="off"
+           class="w-full bg-gray-50 border border-gray-200 rounded-xl pr-10 pl-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-200">
+</div>
+
+<div class="item-picker">
+{% if categories %}
+<div class="cat-tags" role="tablist" aria-label="دسته‌بندی اقلام">
+    {% for category in categories %}
+    <button type="button" role="tab" class="cat-tag" id="cat-tag-{{ category.id }}" data-cat="{{ category.id }}" data-tone="{% cycle 'cyan' 'violet' 'amber' %}"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" onclick="showItemCategory('{{ category.id }}')">
+        <span class="cat-tag-hole" aria-hidden="true"></span>
+        <span>{{ category.name }}</span>
+        <span class="cat-tag-count" id="cat-count-{{ category.id }}" aria-label="تعداد انتخاب‌شده"></span>
+    </button>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div id="item-grid" class="mb-2">
+    <p id="item-search-empty" class="hidden text-center text-xs text-gray-400 py-6">موردی با این نام پیدا نشد.</p>
+    {% for category in categories %}
+        <div class="item-grid-wrap{% if not forloop.first %} cat-hidden{% endif %}" data-category-block data-cat="{{ category.id }}" data-tone="{% cycle 'cyan' 'violet' 'amber' %}">
+            <div class="item-section-head">
+                <span class="item-section-dot"></span>
+                <h4 class="font-black text-xs text-gray-700">{{ category.name }}</h4>
+            </div>
+
+            <div class="item-ticket">
+                {% for item in category.items.all %}
+                    <div class="item-card" id="item-card-{{ item.id }}" style="--i:{{ forloop.counter0 }}"
+                         data-name="{{ item.name }}"
+                         data-category="{{ category.name }}"
+                         data-dry-price="{{ item.dry_clean_price }}"
+                         data-iron-price="{{ item.iron_only_price|default:'' }}">
+                        <div class="item-row">
+                            <span class="item-hanger" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6.5a2 2 0 1 1 3 1.7c-.6.4-1 .9-1 1.6v.7"/><path d="M12 10.5l8.6 6.1a1 1 0 0 1-.6 1.9H4a1 1 0 0 1-.6-1.9L12 10.5z"/></svg>
+                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="item-name">{{ item.name }}</p>
+                                <div class="item-meta">
+                                    <span class="item-price-row" id="price-label-{{ item.id }}">
+                                        {% if item.dry_clean_price %}
+                                            <span class="item-price">{{ item.dry_clean_price|toman }} تومان</span>
+                                        {% else %}
+                                            <span class="item-price-empty">قیمت پس از بررسی</span>
+                                        {% endif %}
+                                    </span>
+                                    {% if item.iron_only_price %}
+                                    <label class="iron-pill" title="فقط اتو: {{ item.iron_only_price|toman }} تومان">
+                                        <input type="checkbox" onchange="toggleIronOnly('{{ item.id }}', this.checked)">
+                                        <span>فقط اتو</span>
+                                    </label>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="item-ctrl">
+                                <button type="button" class="item-add qty-btn" aria-label="افزودن {{ item.name }}" onclick="changeQty('{{ item.id }}', 1)">
+                                    <span aria-hidden="true">+</span> افزودن
+                                </button>
+                                <div class="qty-wrap">
+                                    <button type="button" class="qty-btn" aria-label="افزودن یکی دیگر {{ item.name }}" onclick="changeQty('{{ item.id }}', 1)">+</button>
+                                    <span class="qty-input" id="qty-{{ item.id }}" aria-live="polite">۰</span>
+                                    <button type="button" class="qty-btn" aria-label="کم کردن {{ item.name }}" onclick="changeQty('{{ item.id }}', -1)">−</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="item-note-wrap-{{ item.id }}" class="hidden item-note">
+                            <button type="button" class="item-note-toggle" id="item-note-btn-{{ item.id }}" onclick="openItemNote('{{ item.id }}')">+ توضیح برای این لباس (اختیاری)</button>
+                            <textarea id="item-note-{{ item.id }}" rows="2" maxlength="500" aria-label="توضیحات {{ item.name }}"
+                                oninput="updateItemDescription('{{ item.id }}', this.value)"
+                                class="hidden w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-xs resize-y focus:outline-none focus:ring-2 focus:ring-cyan-200"
+                                placeholder="مثلاً: لکه روی یقه، دکمه شل است…"></textarea>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="text-center text-gray-400 text-sm py-8">
+            فعلاً لیست اقلامی برای سفارش ثبت نشده است؛ لطفاً بعداً دوباره سر بزنید یا با فروشگاه تماس بگیرید.
+        </div>
+    {% endfor %}
+</div>
+</div>
+

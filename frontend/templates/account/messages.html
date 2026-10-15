@@ -1,0 +1,8 @@
+{# Account: one-time messages from the server. #}
+{% if messages %}
+<div class="enter mb-4 space-y-2">
+  {% for message in messages %}
+  <div class="rounded-xl p-3 text-xs font-bold border leading-6 {% if message.tags == 'error' %}bg-red-50 border-red-200 text-red-600{% elif message.tags == 'warning' %}bg-amber-50 border-amber-200 text-amber-700{% elif message.tags == 'info' %}bg-blue-50 border-blue-200 text-blue-700{% else %}bg-emerald-50 border-emerald-200 text-emerald-700{% endif %}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}

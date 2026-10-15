@@ -1,0 +1,17 @@
+{# Account settings: name, phone and password. #}
+<form method="post" class="card rv-a rounded-3xl p-6 mb-5 space-y-3.5">
+  {% csrf_token %}
+  <input type="hidden" name="form_type" value="profile">
+  <h2 class="font-black text-sm mb-1 flex items-center gap-2"><span class="step-dot"></span>اطلاعات شخصی</h2>
+  <label class="block text-[11px] text-gray-500">نام و نام‌خانوادگی
+    <input name="name" value="{{ customer.name }}" required minlength="2" maxlength="100" autocomplete="name" class="field mt-1"></label>
+  <label class="block text-[11px] text-gray-500">شماره موبایل
+    <input name="phone" value="{{ customer.phone }}" type="tel" inputmode="numeric" maxlength="16" required autocomplete="tel" class="field mt-1 text-center"></label>
+  <div class="rounded-xl bg-gray-50 border border-gray-100 p-3.5 space-y-3">
+    <p class="text-[11px] text-gray-500 font-bold">تغییر رمز عبور (اختیاری)</p>
+    <p class="text-[10px] text-gray-400 leading-5">برای تغییر شماره موبایل یا رمز عبور، رمز عبور فعلی را هم وارد کنید.</p>
+    <input name="current_password" type="password" autocomplete="current-password" placeholder="رمز عبور فعلی" aria-label="رمز عبور فعلی" class="field">
+    <input name="new_password" type="password" autocomplete="new-password" minlength="8" placeholder="رمز عبور جدید (حداقل ۸ کاراکتر)" aria-label="رمز عبور جدید" class="field">
+  </div>
+  <button class="btn-main btn-motion text-sm">ذخیره اطلاعات</button>
+</form>

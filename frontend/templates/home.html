@@ -1,0 +1,74 @@
+{% load static %}
+{% load pwa %}
+{% load fa_format %}
+{% load maps %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+    <title>{{ shop_name|default:"خشکشویی و سفید شویی آرین" }} | ثبت سفارش و پیگیری آنلاین</title>
+    {% progressive_web_app_meta %}
+    <link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
+    <!-- Maps open on demand: their files must not hold up the first paint. -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" media="print" onload="this.media='all'" />
+    <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js" defer></script>
+    <style>
+        {% include "home/styles/base.html" %}
+        {% include "home/styles/forms.html" %}
+        {% include "home/styles/cart.html" %}
+        {% include "home/styles/gallery.html" %}
+        {% include "home/styles/hero.html" %}
+        {% include "home/styles/header.html" %}
+        {% include "home/styles/reviews.html" %}
+        {% include "home/styles/notices.html" %}
+        {% include "home/styles/item_picker.html" %}
+        {% include "home/styles/responsive.html" %}
+        {% include "home/styles/orders.html" %}
+        {% include "home/styles/how_it_works.html" %}
+        {% include "home/styles/tracking.html" %}
+        {% include "home/styles/services.html" %}
+        {% include "home/styles/scroll_reveal.html" %}
+    </style>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
+</head>
+<body class="min-h-screen">
+    <div class="page-background" aria-hidden="true"></div>
+
+    {% include "home/header.html" %}
+    {% include "home/flash_messages.html" %}
+
+    {# Top of the page. #}
+    {% include "home/hero.html" %}
+    {% include "home/gallery.html" %}
+
+    {# Customers: tracking, order history and the order form. Guests: the ordering teaser. #}
+    {% include "home/track.html" %}
+    {% include "home/my_orders.html" %}
+    {% include "home/order_teaser.html" %}
+    {% include "home/order.html" %}
+
+    {# About the shop. #}
+    {% include "home/why_us.html" %}
+    {% include "home/services.html" %}
+    {% include "home/how_it_works.html" %}
+    {% include "home/reviews.html" %}
+    {% include "home/faq.html" %}
+    {% include "home/order_cta.html" %}
+
+    {% include "home/footer.html" %}
+
+    {# Overlays and scripts. #}
+    {% include "home/review_modal.html" %}
+    {% include "home/scripts/app.html" %}
+    {% include "home/scripts/scroll_motion.html" %}
+    {% include "home/scripts/services_motion.html" %}
+    <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
+    <script src="{% static 'js/neshan-links.js' %}?v=1" defer></script>
+    <script src="{% static 'js/postal-lookup.js' %}?v=3" defer></script>
+</body>
+</html>

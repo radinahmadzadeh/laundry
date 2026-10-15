@@ -1,0 +1,22 @@
+{# Account dashboard: recent orders. #}
+{% load fa_format %}
+{% if s.recent_orders %}
+<section class="card ac-block rv-a rounded-3xl">
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <h2 class="ac-title mb-0"><span class="step-dot"></span>سفارش‌های اخیر</h2>
+    <a href="{% url 'home' %}#my-orders" class="text-[11px] font-black text-cyan-700">همه‌ی سفارش‌ها ←</a>
+  </div>
+  <div class="ac-recent">
+    {% for o in s.recent_orders %}
+    {% with now=o.tracking_current %}
+    <a href="{% url 'home' %}?order_id={{ o.id }}#track-section" class="ac-order" data-tone="{{ now.tone }}" style="--d:{{ forloop.counter0 }}">
+      <span class="ac-order-no">#{{ o.id|fa_digits }}</span>
+      <span class="ac-order-date">{{ o.shamsi_date|fa_digits }}</span>
+      <span class="ac-order-state">{{ now.label }}</span>
+      <span class="ac-order-sum">{% if o.total_price %}{{ o.total_price|toman }} تومان{% else %}پس از بررسی{% endif %}</span>
+    </a>
+    {% endwith %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}

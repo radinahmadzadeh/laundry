@@ -1,0 +1,19 @@
+{# Home: one-time messages from the server. #}
+{% if messages %}
+<div class="flash-stack" id="flash-stack" role="status" aria-live="polite">
+    {% for message in messages %}
+    <div class="flash-msg {{ message.tags }}">
+        <p>{{ message }}</p>
+        <button type="button" class="flash-close" aria-label="بستن پیام" onclick="this.parentElement.remove()">×</button>
+    </div>
+    {% endfor %}
+</div>
+<script>
+    // Confirmations fade after a while; errors and warnings stay until the customer closes them.
+    window.addEventListener('load', function(){
+        setTimeout(function(){
+            document.querySelectorAll('#flash-stack .flash-msg.success, #flash-stack .flash-msg.info').forEach(function(el){ el.remove(); });
+        }, 10000);
+    });
+</script>
+{% endif %}

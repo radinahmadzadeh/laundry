@@ -1,0 +1,57 @@
+{# Account dashboard: counters, top garments and fun facts (or the empty state). #}
+{% load fa_format %}
+{% if s.orders_count %}
+<section class="ac-stats">
+  <div class="ac-stat rv-a" style="--d:0"><span>سفارش‌ها</span><b data-count="{{ s.orders_count }}">{{ s.orders_count|fa_digits }}</b><small>فاکتور ثبت‌شده</small></div>
+  <div class="ac-stat rv-a" style="--d:1"><span>تکه لباس</span><b data-count="{{ s.pieces }}">{{ s.pieces|fa_digits }}</b><small>به ما سپرده‌اید</small></div>
+  <div class="ac-stat rv-a" style="--d:2"><span>مجموع فاکتورها</span><b data-count="{{ s.invoiced }}" data-money>{{ s.invoiced|toman }}</b><small>تومان</small></div>
+  <div class="ac-stat rv-a" style="--d:3"><span>میانگین هر سفارش</span><b data-count="{{ s.average }}" data-money>{{ s.average|toman }}</b><small>تومان</small></div>
+</section>
+
+<section class="card ac-block rv-a rounded-3xl">
+  <h2 class="ac-title"><span class="step-dot"></span>بیشتر چه چیزهایی سفارش داده‌اید؟</h2>
+  <ol class="ac-bars">
+    {% for item in s.top_items %}
+    <li style="--w:{{ item.width }}%; --d:{{ forloop.counter0 }}">
+      <span class="ac-rank">{{ forloop.counter|fa_digits }}</span>
+      <div class="ac-bar-body">
+        <div class="ac-bar-label"><b>{{ item.name }}</b><span>{{ item.count|fa_digits }} تکه · {{ item.share|fa_digits }}٪</span></div>
+        <div class="ac-bar"><i></i></div>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  <div class="ac-split">
+    <div class="ac-donut" style="--p:{{ s.dry_share }}" role="img" aria-label="{{ s.dry_share|fa_digits }} درصد خشکشویی و اتو">
+      <svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" class="bg"/><circle cx="21" cy="21" r="15.9" class="fg" pathLength="100"/></svg>
+      <b>{{ s.dry_share|fa_digits }}٪</b>
+    </div>
+    <div class="ac-legend">
+      <p><i class="c1"></i>خشکشویی + اتو <b>{{ s.dry_pieces|fa_digits }} تکه</b></p>
+      <p><i class="c2"></i>فقط اتو <b>{{ s.iron_pieces|fa_digits }} تکه</b></p>
+      <p class="ac-legend-sub">{% if s.courier_orders %}{{ s.courier_orders|fa_digits }} سفارش با پیک، {{ s.pickup_orders|fa_digits }} حضوری{% else %}همه‌ی سفارش‌ها حضوری بوده‌اند{% endif %}</p>
+    </div>
+  </div>
+</section>
+
+{% if s.facts %}
+<section class="ac-facts-wrap rv-a">
+  <h2 class="ac-title px-1"><span class="step-dot"></span>فکت‌های جالب درباره‌ی شما</h2>
+  <div class="ac-facts">
+    {% for fact in s.facts %}
+    <div class="ac-fact" style="--d:{{ forloop.counter0 }}">
+      <span class="ac-fact-ico">{% include "components/account_icon.html" with key=fact.icon %}</span>
+      <p>{{ fact.text|fa_digits }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% else %}
+<section class="card ac-empty rv-a rounded-3xl">
+  <span class="ac-empty-ico">{% include "components/account_icon.html" with key="hanger" %}</span>
+  <h2>هنوز سفارشی ثبت نکرده‌اید</h2>
+  <p>بعد از اولین سفارش، اینجا می‌بینید بیشتر چه لباس‌هایی سپرده‌اید، چقدر خرج کرده‌اید و چند فکت جالب درباره‌ی سفارش‌هایتان.</p>
+  <a href="{% url 'home' %}#order-section" class="btn-main btn-motion inline-block">ثبت اولین سفارش</a>
+</section>
+{% endif %}

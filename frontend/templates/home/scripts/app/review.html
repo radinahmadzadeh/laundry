@@ -1,0 +1,176 @@
+{# Home script: rating sheet after delivery. #}
+// ---------- Review / rating after delivery ----------
+var REVIEW_FACES = {
+    1: { color: '#f87171', mouth: 'M8 17q4-3.6 8 0',   label: 'خیلی ناراضی بودم' },
+    2: { color: '#fb923c', mouth: 'M8.5 16.4q3.5-2 7 0', label: 'ناراضی بودم' },
+    3: { color: '#fbbf24', mouth: 'M8.5 15.5h7',        label: 'معمولی بود' },
+    4: { color: '#34d399', mouth: 'M8.5 14.6q3.5 2.4 7 0', label: 'راضی بودم' },
+    5: { color: '#10b981', mouth: 'M7.8 14q4.2 4.6 8.4 0', label: 'عالی بود!' }
+};
+var REVIEW_SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
+var reviewState = { orderId: null, rating: 0, tags: [], sending: false };
+
+function reviewSnoozed(orderId){
+    try { return Date.now() - Number(localStorage.getItem('reviewSnooze:' + orderId) || 0) < REVIEW_SNOOZE_MS; } catch (e) { return false; }
+}
+
+function setReviewRating(value, animate){
+    reviewState.rating = value;
+    var face = REVIEW_FACES[value];
+    document.querySelectorAll('#rv-stars button').forEach(function(b){
+        var v = Number(b.getAttribute('data-v'));
+        b.classList.toggle('on', v <= value);
+        b.setAttribute('aria-checked', v === value ? 'true' : 'false');
+        if (animate && v <= value){
+            b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+            b.style.animationDelay = (v * 35) + 'ms';
+        }
+    });
+    var faceEl = document.getElementById('rv-face');
+    faceEl.style.setProperty('--rv-face', face.color);
+    faceEl.classList.remove('bump'); void faceEl.offsetWidth; faceEl.classList.add('bump');
+    document.getElementById('rv-mouth').setAttribute('d', face.mouth);
+    document.getElementById('rv-label').textContent = face.label;
+    var happy = value >= 4;
+    document.getElementById('rv-chips-title').textContent = happy ? 'چه چیزی را بیشتر دوست داشتید؟' : 'کدام بخش باید بهتر شود؟';
+    document.getElementById('rv-text').placeholder = happy
+        ? 'اگر دوست دارید، چند کلمه از تجربه‌تان بنویسید…'
+        : 'بگویید کجای کار مشکل داشت تا جبرانش کنیم…';
+    document.getElementById('rv-public-hint').classList.toggle('hidden', value < 5);
+    document.getElementById('rv-details').classList.add('show');
+    document.getElementById('rv-submit').disabled = false;
+}
+
+function openReview(orderId, rating){
+    var modal = document.getElementById('review-modal');
+    if (!modal) return;
+    reviewState = { orderId: String(orderId), rating: 0, tags: [], sending: false };
+    document.getElementById('rv-form').classList.remove('hidden');
+    document.getElementById('rv-thanks').classList.add('hidden');
+    document.getElementById('rv-order-label').textContent = 'سفارش #' + faNumber(orderId) + ' تحویل داده شد';
+    document.getElementById('rv-text').value = '';
+    document.getElementById('rv-details').classList.remove('show');
+    document.getElementById('rv-public-hint').classList.add('hidden');
+    document.getElementById('rv-label').textContent = 'روی ستاره‌ها بزنید';
+    document.getElementById('rv-mouth').setAttribute('d', 'M8.5 15.5h7');
+    document.getElementById('rv-face').style.removeProperty('--rv-face');
+    document.getElementById('rv-submit').disabled = true;
+    document.getElementById('rv-submit').textContent = 'ثبت نظر';
+    document.querySelectorAll('#rv-stars button').forEach(function(b){ b.classList.remove('on', 'pop'); b.setAttribute('aria-checked', 'false'); });
+    document.querySelectorAll('#rv-chips .rv-chip').forEach(function(c){ c.classList.remove('on'); });
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.documentElement.style.overflow = 'hidden';
+    if (rating) setTimeout(function(){ setReviewRating(rating, true); }, 120);
+    setTimeout(function(){ document.querySelector('#rv-stars button').focus({ preventScroll: true }); }, 200);
+}
+
+function closeReview(snooze){
+    var modal = document.getElementById('review-modal');
+    if (!modal || !modal.classList.contains('open')) return;
+    if (snooze && reviewState.orderId){
+        try { localStorage.setItem('reviewSnooze:' + reviewState.orderId, String(Date.now())); } catch (e) {}
+    }
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.documentElement.style.overflow = '';
+    reviewState.orderId = null;
+}
+
+function markOrderReviewed(orderId, rating){
+    if (COURIER_WATCH[orderId]) COURIER_WATCH[orderId].reviewed = true;
+    var stars = '';
+    for (var i = 1; i <= 5; i++) stars += '<span class="' + (i > rating ? 'off' : '') + '">★</span>';
+    document.querySelectorAll('[data-review-cta="' + orderId + '"]').forEach(function(el){
+        el.outerHTML =
+            '<div class="review-done mt-4 mb-3 rounded-2xl px-4 py-3 flex items-center justify-between gap-3">' +
+                '<div class="min-w-0"><p class="text-[11px] font-bold text-gray-500">امتیاز شما به این سفارش</p>' +
+                '<div class="review-stars sm mt-1">' + stars + '</div></div>' +
+                '<span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-3 py-1 shrink-0">ممنون از نظرتان</span>' +
+            '</div>';
+    });
+}
+
+function burstConfetti(host){
+    var colors = ['#22d3ee', '#a78bfa', '#fbbf24', '#34d399', '#f472b6'];
+    for (var i = 0; i < 22; i++){
+        var p = document.createElement('span');
+        var angle = (Math.PI * 2 * i) / 22, dist = 60 + Math.random() * 50;
+        p.className = 'rv-confetti';
+        p.style.background = colors[i % colors.length];
+        p.style.setProperty('--x', Math.cos(angle) * dist + 'px');
+        p.style.setProperty('--y', Math.sin(angle) * dist + 'px');
+        p.style.setProperty('--r', (Math.random() * 540 - 270) + 'deg');
+        p.style.animationDelay = (Math.random() * 120) + 'ms';
+        host.appendChild(p);
+        setTimeout(function(el){ return function(){ el.remove(); }; }(p), 1300);
+    }
+}
+
+function submitReview(){
+    if (!reviewState.orderId || !reviewState.rating || reviewState.sending) return;
+    reviewState.sending = true;
+    var btn = document.getElementById('rv-submit');
+    btn.disabled = true;
+    btn.textContent = 'در حال ثبت…';
+    var orderId = reviewState.orderId, rating = reviewState.rating;
+    fetch('{% url "submit_review" %}', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('#review-modal input[name="csrfmiddlewaretoken"]').value },
+        body: JSON.stringify({ order_id: orderId, rating: rating, tags: reviewState.tags, comment: document.getElementById('rv-text').value })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+        reviewState.sending = false;
+        if (data.status !== 'success'){
+            btn.disabled = false;
+            btn.textContent = 'ثبت نظر';
+            showToast(data.message || 'ثبت نظر انجام نشد؛ دوباره تلاش کنید.');
+            if (/قبلاً/.test(data.message || '')) { markOrderReviewed(orderId, rating); closeReview(false); }
+            return;
+        }
+        markOrderReviewed(orderId, rating);
+        document.getElementById('rv-thanks-text').textContent = (data.pending_approval && rating >= 5)
+            ? 'خوشحالیم که از ما راضی بودید! نظر شما پس از تأیید فروشگاه در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شود.'
+            : (rating >= 4
+                ? 'خوشحالیم که از ما راضی بودید. منتظر سفارش بعدی‌تان هستیم.'
+                : 'متأسفیم که تجربه‌تان کامل نبود. نظر شما به دست مدیریت رسید و برای بهتر شدن از آن استفاده می‌کنیم.');
+        document.getElementById('rv-form').classList.add('hidden');
+        document.getElementById('rv-thanks').classList.remove('hidden');
+        if (rating >= 4) burstConfetti(document.getElementById('rv-thanks-icon'));
+    })
+    .catch(function(){
+        reviewState.sending = false;
+        btn.disabled = false;
+        btn.textContent = 'ثبت نظر';
+        showToast('ارتباط برقرار نشد؛ دوباره تلاش کنید.');
+    });
+}
+
+(function initReview(){
+    var modal = document.getElementById('review-modal');
+    if (!modal) return;
+    document.querySelectorAll('#rv-stars button').forEach(function(b){
+        b.addEventListener('click', function(){ setReviewRating(Number(b.getAttribute('data-v')), true); });
+    });
+    document.querySelectorAll('#rv-chips .rv-chip').forEach(function(c){
+        c.addEventListener('click', function(){
+            var tag = c.getAttribute('data-tag'), i = reviewState.tags.indexOf(tag);
+            if (i === -1) reviewState.tags.push(tag); else reviewState.tags.splice(i, 1);
+            c.classList.toggle('on', i === -1);
+        });
+    });
+    modal.addEventListener('click', function(e){ if (e.target === modal) closeReview(true); });
+    document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeReview(true); });
+
+    // Ask once for the most recent delivered order that has no review yet (unless snoozed).
+    var pending = Object.keys(COURIER_WATCH).filter(function(id){
+        var s = COURIER_WATCH[id];
+        return s.status === 'delivered' && !s.reviewed;
+    }).sort(function(a, b){ return Number(b) - Number(a); });
+    if (pending.length && !reviewSnoozed(pending[0])){
+        setTimeout(function(){ if (!reviewState.orderId) openReview(pending[0]); }, 1600);
+    }
+})();
+

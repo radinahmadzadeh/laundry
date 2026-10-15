@@ -2,6 +2,10 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from pathlib import Path
+
+# The Django code lives in backend/: make its packages (core, orders, panel) importable.
+sys.path.insert(0, str(Path(__file__).resolve().parent / 'backend'))
 
 
 def main():

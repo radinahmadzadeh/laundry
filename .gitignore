@@ -9,9 +9,9 @@ inspect_motion.py
 # Security audit report (keep local, do not push)
 SECURITY_AUDIT.md
 
-# Tailwind build tooling (static/css/tailwind.css itself is committed)
+# Tailwind build tooling (frontend/static/css/tailwind.css itself is committed)
 node_modules/
 # Keep Tailwind build tooling local; prebuilt CSS is committed
-/package.json
-/package-lock.json
-/tailwind.config.js
+/frontend/package.json
+/frontend/package-lock.json
+/frontend/tailwind.config.js

@@ -1,0 +1,131 @@
+{# Home script: live courier/order status and "order ready" notices. #}
+// Courier status watcher: as soon as the admin marks a courier as dispatched, the
+// customer page updates in place and shows a toast (no reload, so open forms are kept).
+var COURIER_WATCH = JSON.parse(document.getElementById('courier-watch-data').textContent || '{}');
+var STATUS_LABELS = JSON.parse(document.getElementById('status-labels-data').textContent || '{}');
+var courierPollTimer = null;
+
+// Keep polling while something can still change for the customer: a courier that has not left yet,
+// or an order that has not reached "ready" yet.
+function courierHasPending(){
+    return Object.keys(COURIER_WATCH).some(function(id){
+        var s = COURIER_WATCH[id];
+        return (s.pickup[0] && !s.pickup[1]) || (s.delivery[0] && !s.delivery[1]) ||
+               (s.status !== 'ready' && s.status !== 'delivered');
+    });
+}
+
+function readyNoticeSeen(orderId){
+    try { return localStorage.getItem('readyNoticeSeen:' + orderId) === '1'; } catch (e) { return false; }
+}
+
+function dismissReadyNotice(orderId){
+    try { localStorage.setItem('readyNoticeSeen:' + orderId, '1'); } catch (e) {}
+    var el = document.getElementById('ready-notice-' + orderId);
+    if (!el) return;
+    el.classList.add('leaving');
+    setTimeout(function(){ el.remove(); }, 300);
+}
+
+function openReadyOrder(orderId){
+    var panel = document.getElementById('delivery-track-' + orderId);
+    dismissReadyNotice(orderId);
+    if (panel){
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+        window.location.href = '{% url "home" %}?order_id=' + encodeURIComponent(orderId) + '#track-section';
+    }
+}
+
+function showReadyNotice(orderId){
+    var box = document.getElementById('ready-notices');
+    if (!box || readyNoticeSeen(orderId) || document.getElementById('ready-notice-' + orderId)) return;
+    if (box.children.length >= 3) return;
+    var s = COURIER_WATCH[orderId] || {};
+    var note = (s.delivery && s.delivery[0])
+        ? 'لباس‌ها شسته و اتو شده‌اند و به‌زودی تحویل پیک می‌شوند.'
+        : 'لباس‌ها شسته و اتو شده‌اند. می‌توانید حضوری تحویل بگیرید یا ارسال با پیک را انتخاب کنید.';
+    var el = document.createElement('div');
+    el.className = 'ready-notice';
+    el.id = 'ready-notice-' + orderId;
+    el.setAttribute('role', 'status');
+    el.innerHTML =
+        '<div class="ready-notice-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"/></svg></div>' +
+        '<div class="min-w-0 flex-1">' +
+            '<p class="text-[10px] font-bold text-emerald-600 mb-0.5">اعلان سفارش</p>' +
+            '<p class="text-sm font-black text-gray-900">سفارش #' + faNumber(orderId) + ' آماده تحویل است</p>' +
+            '<p class="text-[11px] text-gray-500 leading-5 mt-1">' + note + '</p>' +
+            '<button type="button" class="ready-notice-cta" data-ready-open>مشاهده سفارش' +
+                '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M15 19l-7-7 7-7"/></svg>' +
+            '</button>' +
+        '</div>' +
+        '<button type="button" class="ready-notice-close" aria-label="بستن اعلان" data-ready-close>' +
+            '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2.2" d="M6 6l12 12M18 6L6 18"/></svg>' +
+        '</button>';
+    el.querySelector('[data-ready-open]').addEventListener('click', function(){ openReadyOrder(orderId); });
+    el.querySelector('[data-ready-close]').addEventListener('click', function(){ dismissReadyNotice(orderId); });
+    box.appendChild(el);
+}
+
+function hideCourierBanners(orderId, kind){
+    document.querySelectorAll('[data-courier-banner="' + orderId + '-' + kind + '"]').forEach(function(el){ el.classList.add('hidden'); });
+}
+
+function applyStatusChange(orderId, oldStatus, newStatus){
+    // Pickup courier info only matters before the clothes reach us; delivery info only while ready.
+    if (oldStatus === 'collecting') hideCourierBanners(orderId, 'pickup');
+    if (oldStatus === 'ready') hideCourierBanners(orderId, 'delivery');
+    if (newStatus === 'ready'){
+        showReadyNotice(orderId);
+    } else if (newStatus === 'delivered' && COURIER_WATCH[orderId] && !COURIER_WATCH[orderId].reviewed && !reviewState.orderId){
+        setTimeout(function(){ openReview(orderId); }, 600);
+    } else {
+        showToast('وضعیت سفارش #' + faNumber(orderId) + ': ' + (STATUS_LABELS[newStatus] || newStatus), 5000);
+    }
+}
+
+function applyCourierDispatched(orderId, kind){
+    document.querySelectorAll('[data-courier-banner="' + orderId + '-' + kind + '"]').forEach(function(el){
+        el.classList.toggle('hidden', el.getAttribute('data-state') !== 'sent');
+    });
+    if (kind === 'delivery'){
+        document.querySelectorAll('[data-courier-card-title="' + orderId + '"]').forEach(function(el){ el.textContent = 'پیک شما ارسال شده است'; });
+        document.querySelectorAll('[data-courier-card-note="' + orderId + '"]').forEach(function(el){ el.textContent = 'پیک در مسیر رسیدن به شماست'; });
+        showToast('لباس‌های سفارش #' + faNumber(orderId) + ' به پیک تحویل داده شد و در مسیر رسیدن به شماست.', 6000);
+    } else {
+        showToast('پیک دریافت سفارش #' + faNumber(orderId) + ' برای شما ارسال شد.', 6000);
+    }
+}
+
+function pollCourierStatus(){
+    if (document.visibilityState !== 'visible' || !courierHasPending()) return;
+    var ids = Object.keys(COURIER_WATCH).join(',');
+    fetch('{% url "courier_status" %}?ids=' + encodeURIComponent(ids), { credentials: 'same-origin' })
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(data){
+            if (!data || data.status !== 'success') return;
+            Object.keys(data.orders).forEach(function(id){
+                var oldS = COURIER_WATCH[id], newS = data.orders[id];
+                if (!oldS) return;
+                if (oldS.status !== newS.status) applyStatusChange(id, oldS.status, newS.status);
+                ['pickup', 'delivery'].forEach(function(kind){
+                    var stillRelevant = kind === 'pickup' ? newS.status === 'collecting' : newS.status === 'ready';
+                    if (stillRelevant && oldS[kind][0] && !oldS[kind][1] && newS[kind][0] && newS[kind][1]) applyCourierDispatched(id, kind);
+                });
+                COURIER_WATCH[id] = newS;
+            });
+        })
+        .catch(function(){});
+}
+
+function startCourierWatch(){
+    if (courierPollTimer || !courierHasPending()) return;
+    courierPollTimer = setInterval(pollCourierStatus, 30000);
+}
+
+document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') pollCourierStatus(); });
+startCourierWatch();
+Object.keys(COURIER_WATCH).forEach(function(id, i){
+    if (COURIER_WATCH[id].status === 'ready') setTimeout(function(){ showReadyNotice(id); }, 700 + i * 180);
+});
+

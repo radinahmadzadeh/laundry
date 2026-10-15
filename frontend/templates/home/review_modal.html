@@ -1,0 +1,53 @@
+{# Home: "order ready" notice area and the rating sheet. #}
+<div id="ready-notices" class="ready-notices" aria-live="polite"></div>
+{% if customer_logged_in %}
+<div id="review-modal" class="rv-backdrop" aria-hidden="true">
+    <div class="rv-sheet" role="dialog" aria-modal="true" aria-labelledby="rv-title">
+        <button type="button" class="rv-close" onclick="closeReview(true)" aria-label="بستن">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-width="2.2" d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+        {% csrf_token %}
+
+        <div id="rv-form">
+            <div id="rv-face" class="rv-face">
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round">
+                    <circle cx="9" cy="10" r=".9" fill="#fff"/><circle cx="15" cy="10" r=".9" fill="#fff"/>
+                    <path id="rv-mouth" d="M8.5 15.5h7"/>
+                </svg>
+            </div>
+            <p class="text-[11px] font-bold text-gray-400" id="rv-order-label"></p>
+            <h3 id="rv-title" class="font-black text-lg text-gray-900 mt-1">تجربه‌تان از ما چطور بود؟</h3>
+
+            <div class="rv-stars" id="rv-stars" role="radiogroup" aria-label="امتیاز">
+                <button type="button" data-v="1" role="radio" aria-label="۱ ستاره">★</button>
+                <button type="button" data-v="2" role="radio" aria-label="۲ ستاره">★</button>
+                <button type="button" data-v="3" role="radio" aria-label="۳ ستاره">★</button>
+                <button type="button" data-v="4" role="radio" aria-label="۴ ستاره">★</button>
+                <button type="button" data-v="5" role="radio" aria-label="۵ ستاره">★</button>
+            </div>
+            <p class="rv-label" id="rv-label">روی ستاره‌ها بزنید</p>
+
+            <div class="rv-details" id="rv-details"><div>
+                <p class="text-xs font-black text-gray-700 mt-5 mb-3" id="rv-chips-title">چه چیزی را دوست داشتید؟</p>
+                <div class="flex flex-wrap justify-center gap-2 mb-4" id="rv-chips">
+                    {% for code, label in review_tags %}<button type="button" class="rv-chip" data-tag="{{ code }}">{{ label }}</button>{% endfor %}
+                </div>
+                <textarea id="rv-text" class="rv-text" maxlength="1000" placeholder=""></textarea>
+                <p class="text-[10px] text-gray-400 mt-2 mb-4 leading-5 hidden" id="rv-public-hint">نظرهای ۵ ستاره پس از تأیید فروشگاه، با نام کوچک شما در بخش «نظر مشتریان» صفحه اول نمایش داده می‌شوند.</p>
+            </div></div>
+
+            <button type="button" id="rv-submit" class="rv-submit mt-4" onclick="submitReview()" disabled>ثبت نظر</button>
+            <button type="button" class="w-full mt-2 py-2 text-[11px] font-bold text-gray-400 hover:text-gray-600" onclick="closeReview(true)">بعداً</button>
+        </div>
+
+        <div id="rv-thanks" class="hidden py-4">
+            <div class="rv-thanks-icon" id="rv-thanks-icon">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h3 class="font-black text-lg text-gray-900">ممنون که نظرتان را گفتید</h3>
+            <p class="text-xs text-gray-500 leading-6 mt-2 px-2" id="rv-thanks-text"></p>
+            <button type="button" class="rv-submit mt-6" onclick="closeReview(false)">بستن</button>
+        </div>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,218 @@
+{# Home script: saved address, reverse geocoding and the courier pin. #}
+// Postal codes may be typed with Persian digits, spaces or dashes.
+function normalizePostal(value){
+    return String(value || '').replace(/[۰-۹]/g, function(d){ return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)); })
+        .replace(/[٠-٩]/g, function(d){ return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)); })
+        .replace(/[\s\-‌]/g, '');
+}
+
+var SAVED_ADDRESS = {% if saved_address %}{lat: "{{ saved_address.address_latitude|escapejs }}", lng: "{{ saved_address.address_longitude|escapejs }}", postal: "{{ saved_address.address_postal_code|escapejs }}", text: "{{ saved_address.address|escapejs }}"}{% else %}null{% endif %};
+
+function useSavedAddress(orderId){
+    var map = courierMaps[orderId];
+    if (!SAVED_ADDRESS || !map) return;
+    var point = L.latLng(parseFloat(SAVED_ADDRESS.lat), parseFloat(SAVED_ADDRESS.lng));
+    map.setView(point, 17);
+    placeCourierMarker(orderId, point);
+    if (SAVED_ADDRESS.postal){
+        var savedPostal = document.getElementById('postal-' + orderId);
+        savedPostal.value = SAVED_ADDRESS.postal;
+        // The customer confirmed this code when they saved the address.
+        if (window.PostalCheck) PostalCheck.markConfirmed(savedPostal, SAVED_ADDRESS.text);
+    }
+    setAddrMode(orderId, 'saved');
+    if (SAVED_ADDRESS.text){
+        addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+        setAddrPreview(orderId, 'found', SAVED_ADDRESS.text);
+    } else {
+        lookupAddress(orderId, point);
+    }
+}
+
+// ---------- Point on map → readable address (reverse geocoding) ----------
+var addrCache = {}, addrSeq = {}, addrTimers = {};
+
+function placeCourierMarker(orderId, latlng){
+    var map = courierMaps[orderId];
+    if (courierMarkers[orderId]) map.removeLayer(courierMarkers[orderId]);
+    var marker = L.marker(latlng, { draggable: true }).addTo(map);
+    marker.on('dragend', function(){
+        var p = marker.getLatLng();
+        document.getElementById('lat-' + orderId).value = p.lat;
+        document.getElementById('lng-' + orderId).value = p.lng;
+        setAddrMode(orderId, 'new');
+        lookupAddress(orderId, p);
+        pinMoved(orderId);
+    });
+    courierMarkers[orderId] = marker;
+    document.getElementById('lat-' + orderId).value = latlng.lat;
+    document.getElementById('lng-' + orderId).value = latlng.lng;
+    pinMoved(orderId);
+}
+
+// Tell the postal-code check (static/js/postal-lookup.js) that this map's pin moved.
+function pinMoved(orderId){
+    document.dispatchEvent(new CustomEvent('postal:pin-moved', { detail: { latId: 'lat-' + orderId } }));
+}
+
+function setAddrPreview(orderId, state, text){
+    var box = document.getElementById('addr-preview-' + orderId);
+    var el = document.getElementById('addr-text-' + orderId);
+    if (!box || !el) return;
+    box.setAttribute('data-state', state);
+    el.textContent = text;
+}
+
+function joinAddressParts(parts){
+    var seen = {};
+    return parts.filter(function(p){
+        p = (p || '').trim();
+        if (!p || seen[p]) return false;
+        seen[p] = true;
+        return true;
+    }).join('، ');
+}
+
+// Persian addresses go from general to specific: city، neighbourhood، street، number
+function formatNominatim(data){
+    var a = (data && data.address) || {};
+    var city = a.city || a.town || a.village || a.county || a.state || '';
+    var area = a.neighbourhood || a.suburb || a.quarter || a.city_district || '';
+    var road = a.road || a.pedestrian || a.residential || a.footway || '';
+    var place = a.amenity || a.shop || a.building || '';
+    var num = a.house_number ? 'پلاک ' + a.house_number : '';
+    return joinAddressParts([city, area, road, num, place]);
+}
+
+function formatPhoton(data){
+    var p = (data && data.features && data.features[0] && data.features[0].properties) || {};
+    var num = p.housenumber ? 'پلاک ' + p.housenumber : '';
+    return joinAddressParts([p.city || p.county || p.state, p.locality || p.district, p.street, num, p.name]);
+}
+
+// {text, postcode}: the readable address of a point and, when OpenStreetMap knows it,
+// the postal code of the nearest registered building (a suggestion: flats each have their own).
+function fetchAddress(lat, lng){
+    var nominatim = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=fa&lat=' + lat + '&lon=' + lng;
+    var photon = 'https://photon.komoot.io/reverse?lang=default&limit=1&lat=' + lat + '&lon=' + lng;
+    return fetch(nominatim, { referrerPolicy: 'strict-origin-when-cross-origin' })
+        .then(function(r){ if (!r.ok) throw new Error('nominatim ' + r.status); return r.json(); })
+        .then(function(d){
+            var t = formatNominatim(d);
+            if (!t) throw new Error('empty');
+            return { text: t, postcode: (d.address && d.address.postcode) || '' };
+        })
+        .catch(function(){
+            return fetch(photon).then(function(r){ if (!r.ok) throw new Error('photon'); return r.json(); }).then(function(d){
+                var p = (d && d.features && d.features[0] && d.features[0].properties) || {};
+                return { text: formatPhoton(d), postcode: p.postcode || '' };
+            });
+        });
+}
+
+function suggestPostal(orderId, postcode){
+    var field = document.getElementById('postal-' + orderId);
+    if (field && window.PostalCheck) PostalCheck.suggest(field, postcode);
+}
+
+function lookupAddress(orderId, latlng){
+    var lat = Number(latlng.lat).toFixed(5), lng = Number(latlng.lng).toFixed(5);
+    var key = lat + ',' + lng;
+    var seq = addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+    clearTimeout(addrTimers[orderId]);
+    if (addrCache[key]){ setAddrPreview(orderId, 'found', addrCache[key].text); suggestPostal(orderId, addrCache[key].postcode); return; }
+    setAddrPreview(orderId, 'loading', 'در حال پیدا کردن آدرس…');
+    // Short debounce: fast repeated taps/drags send only one request (Nominatim allows ~1 req/s).
+    addrTimers[orderId] = setTimeout(function(){
+        fetchAddress(lat, lng).then(function(found){
+            if (seq !== addrSeq[orderId]) return;
+            if (found && found.text){
+                addrCache[key] = found;
+                setAddrPreview(orderId, 'found', found.text);
+                suggestPostal(orderId, found.postcode);
+            } else {
+                setAddrPreview(orderId, 'empty', 'آدرس این نقطه پیدا نشد؛ لطفاً جزئیات را در کادر زیر بنویسید.');
+            }
+        }).catch(function(){
+            if (seq !== addrSeq[orderId]) return;
+            setAddrPreview(orderId, 'empty', 'دریافت آدرس ممکن نشد؛ موقعیت روی نقشه ثبت شده است. جزئیات را در کادر زیر بنویسید.');
+        });
+    }, 450);
+}
+
+// Address text sent with the courier request: found address + the customer's extra details.
+function getCourierAddress(orderId){
+    var box = document.getElementById('addr-preview-' + orderId);
+    var auto = box && box.getAttribute('data-state') === 'found' ? document.getElementById('addr-text-' + orderId).textContent : '';
+    var detailEl = document.getElementById('addr-detail-' + orderId);
+    var detail = detailEl ? detailEl.value.trim() : '';
+    return joinAddressParts([auto, detail]).slice(0, 500);
+}
+
+function setAddrMode(orderId, mode){
+    var b1 = document.getElementById('addr-btn-saved-' + orderId);
+    var b2 = document.getElementById('addr-btn-new-' + orderId);
+    var st = document.getElementById('addr-status-' + orderId);
+    if (!b1 || !b2) return;
+    b1.classList.toggle('active', mode === 'saved');
+    b2.classList.toggle('active', mode === 'new');
+    if (st) st.textContent = mode === 'saved'
+        ? 'این سفارش به آدرس ثبت‌شده شما ارسال می‌شود' + (SAVED_ADDRESS && SAVED_ADDRESS.text ? ': ' + SAVED_ADDRESS.text : '.')
+        : 'این سفارش به لوکیشن جدیدی که روی نقشه انتخاب می‌کنید ارسال می‌شود.';
+}
+
+function useNewLocation(orderId){
+    var map = courierMaps[orderId];
+    if (!map) return;
+    if (courierMarkers[orderId]){ map.removeLayer(courierMarkers[orderId]); delete courierMarkers[orderId]; }
+    document.getElementById('lat-' + orderId).value = '';
+    document.getElementById('lng-' + orderId).value = '';
+    var postalField = document.getElementById('postal-' + orderId);
+    postalField.value = '';
+    if (window.PostalCheck) PostalCheck.reset(postalField);
+    addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+    setAddrPreview(orderId, 'empty', 'روی نقشه بزنید تا آدرس نمایش داده شود.');
+    setAddrMode(orderId, 'new');
+    showToast('نقطه جدید را روی نقشه انتخاب کنید یا از موقعیت فعلی استفاده کنید.');
+}
+
+// A confirmed postal code brings its own point: put the pin there (the customer can still drag it).
+document.addEventListener('postal:found', function(e){
+    var orderId = (e.target.id || '').replace(/^postal-/, '');
+    var map = courierMaps[orderId];
+    if (!map || !e.target.id) return;
+    var point = L.latLng(e.detail.lat, e.detail.lng);
+    map.setView(point, 17);
+    placeCourierMarker(orderId, point);
+    setAddrMode(orderId, 'new');
+    if (e.detail.address){
+        addrSeq[orderId] = (addrSeq[orderId] || 0) + 1;
+        setAddrPreview(orderId, 'found', e.detail.address);
+    } else {
+        lookupAddress(orderId, point);
+    }
+});
+
+function locateCourier(orderId){
+    var map = courierMaps[orderId];
+    if (!map){
+        showToast('لطفاً ابتدا گزینه «ارسال با پیک» را باز کنید.');
+        return;
+    }
+    if (!navigator.geolocation){
+        showToast('مرورگر شما امکان دریافت موقعیت مکانی را ندارد؛ نقطه را روی نقشه انتخاب کنید.');
+        return;
+    }
+    showToast('در حال دریافت موقعیت فعلی شما...');
+    navigator.geolocation.getCurrentPosition(function(position){
+        var point = L.latLng(position.coords.latitude, position.coords.longitude);
+        map.setView(point, 17);
+        placeCourierMarker(orderId, point);
+        setAddrMode(orderId, 'new');
+        lookupAddress(orderId, point);
+        showToast('موقعیت شما روی نقشه ثبت شد.');
+    }, function(){
+        showToast('دسترسی به موقعیت مکانی ممکن نشد؛ لطفاً روی نقشه نقطه را انتخاب کنید.');
+    }, { enableHighAccuracy:true, timeout:10000, maximumAge:30000 });
+}
+

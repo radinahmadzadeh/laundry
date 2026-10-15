@@ -54,18 +54,34 @@ pricing, customers, couriers — from a dedicated admin panel.
 
 ## 📁 Project Structure
 
+The code is split in two: **`backend/`** is the Django (Python) side, **`frontend/`** is
+everything the browser gets — templates, styles, scripts, images and the CSS build.
+
 ```
-core/              Django project settings, root URLconf, WSGI/ASGI entry points
-orders/            Customer-facing app: home, pricing, ordering, tracking,
-                   wallet, Zarinpal payments, authentication, receipts
-panel/             Staff-facing admin panel: dashboard, orders, customers,
-                   pricing management, courier dispatch, shop settings
-static/            Images, gallery assets, pricing category icons, PWA icon
-manage.py          Django management entry point
-requirements.txt   Python dependencies
+backend/                 Django code (Python only)
+  core/                  settings, root URLconf, WSGI/ASGI entry points
+  orders/                customer app: models, views, payments, postal lookup,
+                         account insights, template tags, migrations, tests
+  panel/                 staff panel: views and URLs
+frontend/                what the browser gets
+  templates/             Django templates (looked up here first)
+    home.html            home page skeleton; its parts live in home/
+    home/                header, hero, tracking, order form, services, FAQ, footer…
+      styles/            the home page's CSS, one file per area
+      scripts/           the home page's JavaScript, one file per feature
+    account.html         account page skeleton; its parts live in account/
+    account/             dashboard, settings, styles and scripts
+    components/          pieces shared by several pages (maps, courier form, icons…)
+    errors/              base layout of the 400/403/404/500 pages
+    panel/               staff panel pages
+  static/                served at /static/ — css, js, fonts, images, PWA files
+  styles/                Tailwind input (built into static/css/tailwind.css)
+  package.json           Tailwind build (kept local, see .gitignore)
+manage.py                Django management entry point (adds backend/ to the path)
+requirements.txt         Python dependencies
 ```
 
-### Core models (`orders/models.py`)
+### Core models (`backend/orders/models.py`)
 
 - **`Customer`** — name, unique phone number, optional password hash
 - **`Wallet`** / **`WalletTransaction`** — per-customer balance and its
@@ -123,23 +139,24 @@ python manage.py runserver
 
 ### Styles (Tailwind)
 
-The Tailwind classes are compiled ahead of time into `static/css/tailwind.css`
+The Tailwind classes are compiled ahead of time into `frontend/static/css/tailwind.css`
 (no CDN, so pages paint without waiting for an in-browser compiler). After
 adding or changing Tailwind classes in templates, rebuild it (needs Node.js):
 
 ```bash
+cd frontend
 npm install
 npm run build:css
 ```
 
 `npm run watch:css` rebuilds on every save while you work. Commit the rebuilt
-`static/css/tailwind.css`; the server itself needs no Node.
+`frontend/static/css/tailwind.css`; the server itself needs no Node.
 
 ## ⚙️ Configuration
 
-Project settings live in [`core/settings.py`](core/settings.py) (allowed
+Project settings live in [`backend/core/settings.py`](backend/core/settings.py) (allowed
 hosts, database, PWA app name/theme/icons) and Zarinpal gateway settings live
-in [`orders/views.py`](orders/views.py).
+in [`backend/orders/views.py`](backend/orders/views.py).
 
 Environment variables:
 
@@ -151,8 +168,18 @@ Environment variables:
 | `MAPIR_POSTAL_URL`  | empty                                     | map.ir postal-code address from their docs, with `{code}` where the postal code goes. Empty = only the 10-digit check. |
 
 With `DEBUG` off, static files are still served by WhiteNoise straight from
-the `static/` folders (`WHITENOISE_USE_FINDERS`), so no `collectstatic` step
-is needed. Customers see Persian 404/500 pages from `orders/templates/`.
+`frontend/static/` (`WHITENOISE_USE_FINDERS`), so no `collectstatic` step
+is needed. Customers see Persian 404/500 pages from `frontend/templates/`.
+
+### Deploying (PythonAnywhere)
+
+The Django packages live in `backend/`, so the server must import them from there:
+
+- In the WSGI configuration file, add the `backend` folder to the path, e.g.
+  `path = '/home/<user>/laundry/backend'` (keep
+  `DJANGO_SETTINGS_MODULE = 'core.settings'`).
+- If a static-files mapping is set up for `/static/`, point it at
+  `/home/<user>/laundry/frontend/static`.
 
 ## 🧭 Key Routes
 
@@ -175,7 +202,7 @@ is needed. Customers see Persian 404/500 pages from `orders/templates/`.
 
 ## 🗒 Notes
 
-- `orders/tests.py` contains the app's test suite (orders, payments, wallet,
-  auth, reviews, panel) — run it with `python manage.py test`.
+- `backend/orders/tests.py` contains the app's test suite (orders, payments, wallet,
+  auth, reviews, panel) — run it with `python manage.py test orders panel`.
 - `inspect_motion.py` is a standalone utility script outside the Django app;
   check its contents if you're unsure it's needed before deploying.

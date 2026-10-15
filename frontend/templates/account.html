@@ -1,0 +1,40 @@
+{% load pwa %}
+{% load static %}
+{% load fa_format %}
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>حساب کاربری | خشکشویی و سفید شویی آرین</title>
+{% progressive_web_app_meta %}
+<link rel="preload" href="{% static 'fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" />
+<script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js" defer></script>
+<style>
+{% include "account/styles/base.html" %}
+{% include "account/styles/dashboard.html" %}
+{% include "account/styles/motion.html" %}
+</style>
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
+</head>
+<body>
+<div class="page-background" aria-hidden="true"></div>
+<div class="site-bubbles" aria-hidden="true"><div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div><div class="bubble b4"></div></div>
+{% include "account/header.html" %}
+<div class="relative z-10 max-w-3xl mx-auto px-3.5 pt-6 pb-10">
+
+  {% include "account/messages.html" %}
+
+  {% include "account/dashboard.html" %}
+
+  {% include "account/settings.html" %}
+</div>
+{% include "account/scripts/address_map.html" %}
+{% include "account/scripts/dashboard_motion.html" %}
+<script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
+<script src="{% static 'js/postal-lookup.js' %}?v=3" defer></script>
+</body></html>

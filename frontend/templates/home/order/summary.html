@@ -1,0 +1,52 @@
+{# Order form: cart summary, wallet and submit. #}
+{% load fa_format %}
+<!-- خلاصه سبد -->
+<div class="mt-8 bg-gray-50 rounded-xl p-5 border border-gray-100" aria-live="polite">
+    <h4 class="text-sm font-semibold text-gray-600 mb-3">خلاصه سفارش</h4>
+    <ul id="cart-list" class="space-y-2 mb-3">
+        <li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکرده‌اید.</li>
+    </ul>
+    <div class="border-t border-gray-200 pt-3 space-y-2 text-sm">
+        <div class="flex justify-between items-center text-gray-500">
+            <span>جمع اقلام:</span>
+            <span id="cart-subtotal">۰ تومان</span>
+        </div>
+        <div class="flex justify-between items-center text-gray-500">
+            <span>مالیات (۱۰٪):</span>
+            <span id="cart-tax">۰ تومان</span>
+        </div>
+        <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+            <span class="text-gray-700 font-bold">مبلغ قابل پرداخت:</span>
+            <span id="cart-total" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">۰ تومان</span>
+        </div>
+    </div>
+    <p id="cart-note" class="hidden text-[11px] text-amber-600 mt-2 leading-6">قیمت برخی اقلام انتخابی پس از بررسی لباس مشخص می‌شود؛ مبلغ این اقلام بعداً به فاکتور اضافه و پیش از پرداخت به شما اطلاع داده می‌شود.</p>
+</div>
+
+<label class="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 cursor-pointer select-none">
+    <input type="checkbox" id="use-wallet" class="w-4 h-4 accent-emerald-600" onchange="updateCartUI()">
+    <span class="min-w-0 flex-1">
+        <span class="block text-xs font-black text-emerald-800">پرداخت از کیف پول</span>
+        <span class="block text-[10px] text-emerald-700/70 mt-0.5">موجودی فعلی: {{ wallet.balance|default:0|toman }} تومان</span>
+        <span id="wallet-hint" class="hidden block text-[10px] text-amber-700 mt-1"></span>
+    </span>
+    <a href="{% url 'wallet' %}" onclick="event.stopPropagation()" class="text-[10px] font-black text-emerald-700 whitespace-nowrap py-2">شارژ کیف پول</a>
+</label>
+<button type="button" id="submit-order-btn" onclick="submitOrder()"
+        class="btn-motion mt-6 w-full bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold py-4 rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    ثبت نهایی سفارش
+</button>
+
+<div id="order-success" class="hidden mt-6 rounded-2xl p-6 text-center flex flex-col items-center gap-3 bg-green-50 border border-green-200" role="status">
+    <div class="success-check w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center shadow-lg shadow-green-500/30">
+        <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24"><path class="checkmark-path" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <h4 class="font-black text-green-700 text-sm sm:text-base">سفارش شما با موفقیت ثبت شد</h4>
+    <p id="order-success-invoice" class="font-black text-gray-900 text-lg"></p>
+    <p id="order-success-msg" class="text-green-700 text-xs sm:text-sm leading-7"></p>
+    <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        <a id="order-success-track" href="#track-section" class="btn-motion inline-flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold px-5 py-3 rounded-xl text-xs sm:text-sm">مشاهده و پرداخت سفارش</a>
+        <button type="button" onclick="startNewOrder()" class="btn-motion inline-flex items-center justify-center gap-2 bg-white border border-green-200 text-green-700 font-bold px-5 py-3 rounded-xl text-xs sm:text-sm">ثبت سفارش جدید</button>
+    </div>
+</div>

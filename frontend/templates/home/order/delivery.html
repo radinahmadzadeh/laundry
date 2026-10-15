@@ -1,0 +1,69 @@
+{# Order form, step 2: how the clothes reach the shop. #}
+{% load fa_format %}
+<!-- قدم ۲: روش دریافت -->
+<div class="flex items-center gap-2 mt-8 mb-5">
+    <span class="step-num">۲</span>
+    <h3 class="font-bold text-sm sm:text-base">روش تحویل لباس به ما</h3>
+</div>
+<div class="delivery-tabs flex rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-5 text-xs sm:text-sm font-bold p-1" id="delivery-track-neworder">
+    <div class="delivery-indicator" id="delivery-indicator-neworder"></div>
+    <button type="button" onclick="setDelivery('neworder', 'pickup', this)" id="btn-pickup-neworder" class="delivery-tab active btn-motion flex-1 py-2.5 sm:py-3 text-center rounded-xl">مراجعه حضوری</button>
+    <button type="button" onclick="setDelivery('neworder', 'courier', this)" id="btn-courier-neworder" class="delivery-tab btn-motion flex-1 py-2.5 sm:py-3 text-center rounded-xl">ارسال با پیک</button>
+</div>
+
+<div id="section-pickup-neworder" class="method-panel">
+    {% include "components/shop_map.html" %}
+</div>
+
+<div id="section-courier-neworder" class="hidden">
+    <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-xs font-medium leading-6 mb-4">
+        پیک لباس‌ها را از آدرس شما تحویل می‌گیرد. ارسال برای سفارش‌های بالای ۱ میلیون تومان رایگان است؛ برای سفارش‌های کمتر، هزینه پیک هنگام تحویل از شما گرفته می‌شود.
+    </div>
+    <p class="text-xs sm:text-sm text-gray-500 mb-3 font-medium">لطفاً لوکیشن دقیق خود را روی نقشه مشخص کنید:</p>
+    <div id="interactive-map-neworder" class="interactive-map map-frame w-full h-56 sm:h-64 rounded-xl mb-2"></div>
+    <div id="addr-preview-neworder" class="addr-preview" data-state="empty">
+        <span class="addr-preview-icon" aria-hidden="true"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5" stroke-width="2"/></svg></span>
+        <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-bold text-gray-400">آدرس نقطه انتخاب‌شده</p>
+            <p id="addr-text-neworder" class="addr-preview-text">روی نقشه بزنید تا آدرس نمایش داده شود.</p>
+        </div>
+    </div>
+    <input type="text" id="addr-detail-neworder" maxlength="150" placeholder="پلاک، واحد، زنگ (اختیاری)" aria-label="پلاک، واحد، زنگ"
+           class="fab-input w-full bg-white px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-xs mb-3 focus:outline-none">
+    {% if saved_address %}
+    <div class="addr-picker mt-3 mb-3 text-right">
+        <div class="flex items-center justify-between gap-2 mb-2">
+            <span class="text-xs font-black text-gray-700">آدرس دریافت</span>
+            <a href="{% url 'account' %}" class="text-[10px] font-bold text-cyan-700 hover:underline">ویرایش آدرس</a>
+        </div>
+        <div class="grid gap-2">
+            <button type="button" id="addr-btn-saved-neworder" onclick="useSavedAddress('neworder')" class="addr-option">
+                <span class="addr-radio"></span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-xs font-black text-gray-800">آدرس ثبت‌شده من</span>
+                    <span class="block text-[11px] text-gray-500 leading-5 mt-1">{{ saved_address.address|default:"آدرس متنی ثبت نشده است (فقط موقعیت روی نقشه)." }}</span>
+                    <span class="block text-[10px] text-gray-400 mt-1">کد پستی: <span class="font-bold text-gray-600">{{ saved_address.address_postal_code|default:"-"|fa_digits }}</span></span>
+                </span>
+            </button>
+            <button type="button" id="addr-btn-new-neworder" onclick="useNewLocation('neworder')" class="addr-option">
+                <span class="addr-radio"></span>
+                <span class="min-w-0 flex-1">
+                    <span class="block text-xs font-black text-gray-800">لوکیشن جدید</span>
+                    <span class="block text-[11px] text-gray-500 leading-5 mt-1">نقطه را روی نقشه انتخاب کنید یا از موقعیت فعلی استفاده کنید.</span>
+                </span>
+            </button>
+        </div>
+        <p id="addr-status-neworder" class="hidden"></p>
+    </div>
+    {% endif %}
+    <button type="button" onclick="locateCourier('neworder')" class="w-full mb-4 bg-white border border-gray-200 text-gray-600 font-bold text-xs py-3 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">استفاده از موقعیت فعلی من</button>
+    <input type="hidden" id="lat-neworder">
+    <input type="hidden" id="lng-neworder">
+    <input type="text" inputmode="numeric" maxlength="14" autocomplete="postal-code" id="postal-neworder" data-postal-lookup="{% url 'postal_lookup' %}" data-lat="lat-neworder" data-lng="lng-neworder" data-addr="addr-text-neworder" placeholder="کد پستی (۱۰ رقمی)" aria-label="کد پستی"
+           class="fab-input w-full bg-white px-4 py-3.5 rounded-xl border border-gray-200 text-gray-900 text-sm mb-3 focus:outline-none text-center tracking-widest">
+    <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer select-none">
+        <input type="checkbox" id="save-address-neworder" class="w-4 h-4 accent-[var(--cyan)]" {% if not saved_address %}checked{% endif %}>
+        این آدرس برای سفارش‌های بعدی ذخیره شود
+    </label>
+</div>
+

@@ -1,0 +1,90 @@
+{# Home script: placing the order. #}
+function getOrderCsrfToken(){
+    var el = document.querySelector('#order-form input[name="csrfmiddlewaretoken"]');
+    return el ? el.value : '';
+}
+
+function setSubmitIdle(btn, html){
+    btn.innerHTML = html;
+    btn.disabled = false;
+    btn.classList.remove('opacity-75', 'cursor-not-allowed');
+    orderSubmitting = false;
+}
+
+function startNewOrder(){
+    window.location.href = '{% url "home" %}#order-section';
+    window.location.reload();
+}
+
+function submitOrder(){
+    var btn = document.getElementById('submit-order-btn');
+    if (!btn || orderSubmitting) return;
+
+    var items = Object.keys(cart).map(function(id){
+        return {
+            line_id: id,
+            iron_only: !!itemIronOnly[id],
+            price_numeric: cart[id].price,
+            quantity: cart[id].qty,
+            description: cart[id].description || ''
+        };
+    });
+    if (items.length === 0){ flashInvalid(document.getElementById('item-grid'), 'لطفاً حداقل یک قلم لباس انتخاب کنید.'); return; }
+
+    var courierActive = document.getElementById('btn-courier-neworder').classList.contains('active');
+    var useWalletEl = document.getElementById('use-wallet');
+    var payload = { items: items, delivery_method: courierActive ? 'courier' : 'pickup', use_wallet: !!(useWalletEl && useWalletEl.checked) };
+
+    if (courierActive){
+        var lat = document.getElementById('lat-neworder').value;
+        var lng = document.getElementById('lng-neworder').value;
+        var postalEl = document.getElementById('postal-neworder');
+        var postal = normalizePostal(postalEl.value);
+        if (!lat){ flashInvalid(document.getElementById('interactive-map-neworder'), 'لطفاً موقعیت خود را روی نقشه انتخاب کنید.'); return; }
+        if (!/^\d{10}$/.test(postal)){ flashInvalid(postalEl, 'کد پستی باید ۱۰ رقم باشد.'); return; }
+        if (!postalEl.checkValidity()) return;
+        var saveEl = document.getElementById('save-address-neworder');
+        payload.lat = lat; payload.lng = lng; payload.postal = postal; payload.address = getCourierAddress('neworder');
+        payload.save_address = !!(saveEl && saveEl.checked);
+    }
+
+    orderSubmitting = true;
+    var originalText = btn.innerHTML;
+    btn.innerHTML = '<svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> در حال ثبت سفارش...';
+    btn.disabled = true;
+    btn.classList.add('opacity-75', 'cursor-not-allowed');
+
+    fetch('{% url "place_order" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getOrderCsrfToken() },
+        body: JSON.stringify(payload)
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+        if (data.status !== 'success'){
+            setSubmitIdle(btn, originalText);
+            showToast(data.message || 'ثبت سفارش انجام نشد؛ لطفاً دوباره تلاش کنید.', 5000);
+            return;
+        }
+        var paymentText = data.paid_by_wallet
+            ? 'مبلغ سفارش از کیف پول شما پرداخت شد.'
+            : (data.wallet_insufficient
+                ? 'موجودی کیف پول کافی نبود؛ می‌توانید از صفحه سفارش، آنلاین یا بعد از شارژ کیف پول پرداخت کنید.'
+                : (data.total > 0 ? 'برای پرداخت، روی «مشاهده و پرداخت سفارش» بزنید.' : 'مبلغ نهایی پس از بررسی لباس‌ها اعلام می‌شود.'));
+        document.getElementById('order-success-invoice').textContent = 'شماره فاکتور: ' + faNumber(data.invoice_number || data.order_id);
+        document.getElementById('order-success-msg').textContent =
+            'مبلغ فاکتور: ' + faNumber(data.total) + ' تومان. ' + paymentText + ' وضعیت سفارش را همیشه در بخش «سفارش‌های من» می‌بینید.';
+        document.getElementById('order-success-track').href = data.track_url;
+        document.getElementById('order-form').querySelectorAll('input, textarea, .qty-btn, .item-note-toggle, .cat-tag, .delivery-tab, #submit-order-btn').forEach(function(el){ el.disabled = true; });
+        btn.innerHTML = '✓ سفارش ثبت شد';
+        btn.classList.remove('opacity-75');
+        document.getElementById('order-success').classList.remove('hidden');
+        document.getElementById('order-success').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })
+    .catch(function(){
+        setSubmitIdle(btn, originalText);
+        showToast('ارتباط با سرور برقرار نشد؛ اینترنت خود را بررسی و دوباره تلاش کنید.', 5000);
+    });
+}
+
+

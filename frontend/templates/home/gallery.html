@@ -1,0 +1,25 @@
+{# Home: photo gallery (guests). #}
+{% load static %}
+{% if not customer_logged_in %}
+<section id="home-gallery" class="max-w-6xl mx-auto px-3 sm:px-5 mb-12 sm:mb-16 relative z-10" aria-label="گالری تصاویر خشکشویی">
+    <div class="home-gallery">
+        <div class="gallery-track">
+            <div class="gallery-set">
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-1-sm.jpg' %}" alt="تصویر خدمات خشکشویی آرین" loading="eager"></div>
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-2-sm.jpg' %}" alt="تصویر خدمات خشکشویی آرین" loading="eager"></div>
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-3-sm.jpg' %}" alt="تصویر خدمات خشکشویی آرین" loading="eager"></div>
+            </div>
+            <div class="gallery-set" aria-hidden="true">
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-1-sm.jpg' %}" alt=""></div>
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-2-sm.jpg' %}" alt=""></div>
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-3-sm.jpg' %}" alt=""></div>
+            </div>
+            <div class="gallery-set" aria-hidden="true">
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-1-sm.jpg' %}" alt=""></div>
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-2-sm.jpg' %}" alt=""></div>
+                <div class="gallery-item"><img src="{% static 'home-gallery/gallery-3-sm.jpg' %}" alt=""></div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}

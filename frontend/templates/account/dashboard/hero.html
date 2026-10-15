@@ -1,0 +1,20 @@
+{# Account dashboard: greeting, wallet and quick chips. #}
+{% load fa_format %}
+<section class="ac-hero enter">
+  <div class="ac-hero-in">
+    <div class="ac-avatar" aria-hidden="true">{{ customer.name|slice:":1" }}</div>
+    <div class="min-w-0 flex-1">
+      <p class="ac-hello">سلام،</p>
+      <h1 class="ac-name">{{ customer.name }}</h1>
+      <p class="ac-phone" dir="ltr">{{ customer.phone|fa_digits }}</p>
+    </div>
+    <a href="{% url 'wallet' %}" class="ac-wallet btn-motion">
+      <span class="ac-wallet-ico">{% include "components/account_icon.html" with key="wallet" %}</span>
+      <span><small>کیف پول</small><b data-count="{{ wallet.balance|floatformat:0 }}" data-money>{{ wallet.balance|toman }}</b> <em>تومان</em></span>
+    </a>
+  </div>
+  <div class="ac-chips">
+    {% if s.first_order %}<span class="ac-chip">اولین سفارش: {{ s.first_order.shamsi_date|fa_digits }}</span>{% endif %}
+    {% if s.active %}<a href="{% url 'home' %}#my-orders" class="ac-chip live"><i></i>{{ s.active|fa_digits }} سفارش در جریان</a>{% endif %}
+  </div>
+</section>

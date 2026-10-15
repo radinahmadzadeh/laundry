@@ -1,0 +1,35 @@
+{# Home script: page load, anchors and resize. #}
+window.addEventListener('load', function(){
+    var indicators = document.querySelectorAll('.delivery-indicator');
+    indicators.forEach(function(indicator){
+        var orderId = indicator.id.replace('delivery-indicator-', '');
+        var activeBtn = document.getElementById('btn-pickup-' + orderId);
+        if (activeBtn) positionDeliveryIndicator(orderId, activeBtn);
+    });
+    // Images may have shifted the layout: land on the anchor again unless the customer already scrolled.
+    if (!userScrolled) scrollToHashTarget();
+});
+
+// Links such as «مشاهده سفارش» or the return from a payment point at #track-section.
+var userScrolled = false;
+['wheel', 'touchmove', 'keydown'].forEach(function(type){
+    window.addEventListener(type, function(){ userScrolled = true; }, { passive: true, once: true });
+});
+function scrollToHashTarget(){
+    var target = null;
+    try { target = location.hash ? document.querySelector(location.hash) : null; } catch (e) {}
+    if (target) target.scrollIntoView({ block: 'start' });
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scrollToHashTarget);
+else scrollToHashTarget();
+
+window.addEventListener('resize', function(){
+    var actives = document.querySelectorAll('.delivery-tab.active');
+    actives.forEach(function(btn){
+        var track = btn.closest('.delivery-tabs');
+        if (track){
+            var orderId = track.id.replace('delivery-track-', '');
+            positionDeliveryIndicator(orderId, btn);
+        }
+    });
+});

@@ -1,0 +1,17 @@
+{# Home: "order now" call to action (customers). #}
+{% if customer_logged_in %}
+<section class="max-w-4xl mx-auto px-5 mb-20">
+    <div class="rounded-3xl bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] p-8 sm:p-12 text-center relative overflow-hidden">
+        <h2 class="text-2xl sm:text-3xl font-black text-gray-950 mb-3">همین حالا لباس‌های خود را به ما بسپارید</h2>
+        <p class="text-gray-900/70 text-sm mb-6">ثبت سفارش تنها چند ثانیه زمان می‌برد</p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="#order-section" class="btn-motion inline-flex items-center gap-2 bg-gray-950 text-white font-bold px-7 py-3.5 rounded-xl">
+                ثبت سفارش آنلاین
+            </a>
+            <a href="#track-section" class="btn-motion inline-flex items-center gap-2 bg-white/70 border border-gray-950/10 text-gray-900 font-bold px-7 py-3.5 rounded-xl">
+                پیگیری سفارش من
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}

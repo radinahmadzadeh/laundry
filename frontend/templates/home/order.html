@@ -1,0 +1,24 @@
+{# Home: online order form (customers). #}
+{% if customer_logged_in %}
+<section id="order-section" class="max-w-5xl mx-auto px-5 mb-20 relative z-10">
+    <div class="text-center mb-8">
+        <span class="enter inline-block bg-violet-50 text-violet-700 border border-violet-200 text-xs font-bold px-4 py-1.5 rounded-full mb-4">
+            ثبت سفارش
+        </span>
+        <h2 class="enter text-2xl sm:text-3xl font-black mb-2">اقلام خود را انتخاب و سفارش ثبت کنید</h2>
+        <p class="enter text-gray-500 text-sm">لباس، تعداد و روش دریافت را مشخص کنید؛ بقیه‌ی کار با ماست.</p>
+        <div class="mt-4 inline-flex items-center gap-2 bg-white border border-gray-200 rounded-full px-3.5 py-2 text-[11px] text-gray-500 font-bold shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            قیمت‌ها طبق آخرین تعرفه ثبت شده‌اند
+        </div>
+    </div>
+
+    <form id="order-form" class="panel enter rounded-3xl p-5 sm:p-8" onsubmit="return false;">
+        {% csrf_token %}
+
+        {% include "home/order/items.html" %}
+        {% include "home/order/delivery.html" %}
+        {% include "home/order/summary.html" %}
+    </form>
+</section>
+{% endif %}

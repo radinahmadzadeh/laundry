@@ -1,0 +1,11 @@
+{# Account: settings, profile, address and logout. #}
+<h2 class="ac-section-head rv-a">تنظیمات حساب</h2>
+
+{% include "account/settings/profile.html" %}
+
+{% include "account/settings/address.html" %}
+
+<form method="post" action="{% url 'customer_logout' %}" class="mt-5">
+  {% csrf_token %}
+  <button class="w-full text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl py-3 hover:border-red-200 hover:text-red-600 transition-colors">خروج از حساب</button>
+</form>

@@ -1,0 +1,31 @@
+{# Home: quick order tracking (customers). #}
+    {% if customer_logged_in %}
+    <section id="track-section" class="max-w-2xl mx-auto px-5 mb-20 relative z-10">
+        {% include "home/track/search.html" %}
+
+        <div class="mt-8">
+            {% if orders %}
+                <div class="w-full space-y-8 relative z-10">
+                    <h3 class="text-gray-500 font-medium text-center">
+                        نتایج برای:
+                        <span class="text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] font-black text-2xl px-1">{{ orders.0.customer.name }}</span>
+                    </h3>
+
+                    {% for order in orders %}
+{% include "home/track/order_card.html" %}
+                    {% endfor %}
+                </div>
+
+            {% elif tracking_error %}
+                <div class="panel enter border-red-200 text-red-700 px-6 py-8 rounded-2xl w-full text-center flex flex-col items-center gap-3 relative z-10">
+                    <svg class="w-12 h-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 3.9l-7.2 12.5A1.5 1.5 0 004.4 18.7h15.2a1.5 1.5 0 001.3-2.3L13.7 3.9a2 2 0 00-3.4 0z"/>
+                    </svg>
+                    <p class="font-medium">{{ tracking_error }}</p>
+                    <p class="text-red-400 text-xs font-light">لطفاً شماره فاکتور را بررسی و دوباره امتحان کنید.</p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% endif %}

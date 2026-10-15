@@ -1,0 +1,69 @@
+{# Home styles: category showcase and "my orders" history. #}
+.category-showcase{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(255,255,255,.96),rgba(248,250,252,.90));border:1px solid rgba(15,23,42,.06);box-shadow:0 28px 70px -42px rgba(15,23,42,.28)}
+.category-showcase:before,.category-showcase:after{content:"";position:absolute;border-radius:999px;pointer-events:none;filter:blur(2px)}
+.category-showcase:before{width:220px;height:220px;left:-110px;top:-130px;background:radial-gradient(circle,rgba(34,211,238,.18),transparent 68%)}
+.category-showcase:after{width:240px;height:240px;right:-120px;bottom:-150px;background:radial-gradient(circle,rgba(167,139,250,.16),transparent 68%)}
+.category-showcase-card{position:relative;display:block;box-shadow:0 20px 48px -34px rgba(15,23,42,.32);transition:transform .45s cubic-bezier(.2,.8,.2,1),box-shadow .45s ease,border-color .45s ease}
+.category-showcase-card:hover{transform:translateY(-7px);box-shadow:0 30px 62px -36px rgba(15,23,42,.38);border-color:rgba(34,211,238,.35)}
+.category-showcase-image{position:relative;height:190px;overflow:hidden;background:#e2e8f0}
+.category-showcase-image:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,23,.03) 20%,rgba(2,6,23,.66) 100%)}
+.category-showcase-image img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .7s cubic-bezier(.2,.8,.2,1),filter .5s ease}
+.category-showcase-card:hover .category-showcase-image img{transform:scale(1.055);filter:saturate(1.08) contrast(1.02)}
+.category-showcase-count{position:absolute;z-index:2;left:13px;top:13px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.90);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.75);font-size:10px;font-weight:900;color:#0f172a}
+.category-showcase-body{position:relative;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 16px;background:linear-gradient(135deg,#fff,rgba(248,250,252,.92))}
+.category-showcase-arrow{width:38px;height:38px;flex:0 0 38px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#ecfeff,#eff6ff);color:#0284c7;font-size:18px;font-weight:900;transition:transform .4s ease,background .4s ease}
+.category-showcase-card:hover .category-showcase-arrow{transform:translateX(-3px) scale(1.06);background:linear-gradient(135deg,#cffafe,#e0e7ff)}
+@media (max-width:640px){
+    .site-header-inner{ min-height:62px; }
+    .header-actions{ gap:5px; }
+    .header-actions > a, .header-actions > button, .header-actions > form > button{ min-height:38px; padding:8px 10px; }
+    .category-showcase{border-radius:24px!important}
+    .category-showcase-image{height:165px}
+    .category-showcase-body{padding:13px 14px}
+}
+@media (max-width:380px){
+    .category-showcase-image{height:145px}
+    .category-showcase-body{padding:12px}
+    .category-showcase-arrow{width:34px;height:34px;flex-basis:34px}
+}
+.orders-history-panel{background:linear-gradient(135deg,rgba(255,255,255,.97),rgba(248,250,252,.94));border:1px solid rgba(15,23,42,.06);box-shadow:0 28px 70px -42px rgba(15,23,42,.28)}
+.orders-history-count{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:15px;background:#fff;border:1px solid #eef2f7;box-shadow:0 12px 30px -24px rgba(15,23,42,.35)}
+.order-history-card{box-shadow:0 14px 35px -30px rgba(15,23,42,.3);transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease}
+.order-history-card:hover{transform:translateY(-2px);box-shadow:0 22px 45px -30px rgba(15,23,42,.35);border-color:rgba(34,211,238,.24)}
+.order-history-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 15px;outline:none}
+.order-history-summary::-webkit-details-marker{display:none}
+.order-history-icon{width:42px;height:42px;flex:0 0 42px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.order-history-icon.active{background:linear-gradient(135deg,#ecfeff,#ede9fe);color:#0891b2}
+.order-history-icon.delivered{background:#ecfdf5;color:#059669}
+.order-status-badge{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:9px;font-weight:900;white-space:nowrap}
+.order-status-badge.active{background:#ecfeff;color:#0e7490;border:1px solid #cffafe}
+.order-status-badge.delivered{background:#ecfdf5;color:#047857;border:1px solid #d1fae5}
+.order-history-chevron{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#f8fafc;color:#94a3b8;font-size:16px;transition:transform .3s ease,background .3s ease}
+.order-history-card[open] .order-history-chevron{transform:rotate(180deg);background:#ecfeff;color:#0891b2}
+.order-history-body{padding:0 15px 15px;border-top:1px solid #f1f5f9}
+.order-mini-stat{min-width:0;padding:10px 11px;border-radius:13px;background:#f8fafc;border:1px solid #f1f5f9}
+.order-mini-stat span{display:block;color:#94a3b8;font-size:9px;margin-bottom:4px}
+.order-mini-stat strong{display:block;color:#374151;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.order-mini-stat strong.paid{color:#059669}
+.order-mini-stat strong.unpaid{color:#d97706}
+.order-history-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #eef2f7}
+.order-history-item:last-child{border-bottom:0;padding-bottom:0}
+@media (max-width:640px){
+    .orders-history-panel{border-radius:24px!important;padding:16px!important}
+    .orders-history-count{align-self:flex-start}
+    .order-history-summary{padding:12px 11px;gap:9px}
+    .order-history-icon{width:38px;height:38px;flex-basis:38px;border-radius:12px}
+    .order-history-body{padding:0 11px 12px}
+    .order-status-badge{font-size:8px;padding:3px 7px}
+    .order-history-item{gap:8px}
+    .order-history-item > div:last-child{flex-direction:column;align-items:flex-end;gap:3px}
+}
+@media (max-width:380px){
+    .order-history-summary{padding:11px 9px}
+    .order-history-icon{width:35px;height:35px;flex-basis:35px}
+    .order-history-summary .text-sm{font-size:12px}
+    .order-mini-stat{padding:9px 8px}
+}
+@media (prefers-reduced-motion:reduce){
+    .category-showcase-card,.category-showcase-image img,.category-showcase-arrow,.order-history-card,.order-history-chevron{transition:none}
+}

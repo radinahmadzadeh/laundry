@@ -1,0 +1,24 @@
+{# Home script: toasts and invalid-field feedback. #}
+function showToast(message, duration){
+    var toast = document.getElementById('global-toast');
+    if (!toast){
+        toast = document.createElement('div');
+        toast.id = 'global-toast';
+        toast.className = 'toast-msg';
+        document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    requestAnimationFrame(function(){ toast.classList.add('show'); });
+    clearTimeout(toast._hideTimer);
+    toast._hideTimer = setTimeout(function(){ toast.classList.remove('show'); }, duration || 2800);
+}
+
+function flashInvalid(el, message){
+    if (el){
+        el.classList.remove('input-shake');
+        void el.offsetWidth;
+        el.classList.add('input-shake');
+    }
+    showToast(message);
+}
+

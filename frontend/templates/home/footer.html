@@ -1,0 +1,35 @@
+{# Home: site footer. #}
+{% load fa_format maps %}
+<footer class="border-t border-gray-100 bg-white/70 backdrop-blur-sm">
+    <div class="max-w-6xl mx-auto px-5 py-10 grid sm:grid-cols-3 gap-8 text-sm">
+        <div>
+            <div class="flex items-center gap-2.5 mb-3">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center">
+                    <svg viewBox="0 0 24 24" class="w-4 h-4 text-white"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+                </div>
+                <span class="font-black">{{ shop_name|default:"خشکشویی" }}</span>
+            </div>
+            <p class="text-gray-500 leading-7">{% if shop_tagline and shop_tagline != shop_name %}{{ shop_tagline }}{% else %}خشکشویی، اتوکشی و لکه‌بری حرفه‌ای با ثبت سفارش و پیگیری آنلاین.{% endif %}</p>
+        </div>
+        <div>
+            <h4 class="font-bold mb-3">لینک‌های سریع</h4>
+            <ul class="space-y-2 text-gray-500">
+                {% if customer_logged_in %}
+                <li><a href="#track-section" class="hover:text-gray-900">پیگیری سفارش</a></li>
+                {% endif %}
+                <li><a href="{% url 'pricing' %}" class="inline-block py-1 hover:text-gray-900">لیست قیمت</a></li>
+                <li><a href="#faq" class="inline-block py-1 hover:text-gray-900">سوالات متداول</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-bold mb-3">تماس با ما</h4>
+            <ul class="space-y-2 text-gray-500">
+                {% if shop_phone %}<li><a href="tel:{{ shop_phone|tel_digits }}" class="inline-block py-1 hover:text-gray-900" dir="ltr">{{ shop_phone }}</a></li>{% endif %}
+                {% if shop_address %}<li>{% if shop_map_point %}<a href="{{ shop_map_point|neshan_url }}" data-neshan="{{ shop_map_point }}" target="_blank" rel="noopener" class="inline-block py-1 leading-7 hover:text-gray-900">{{ shop_address }}</a>{% else %}<span class="inline-block py-1 leading-7">{{ shop_address }}</span>{% endif %}</li>{% endif %}
+            </ul>
+        </div>
+    </div>
+    <div class="border-t border-gray-100 py-5 text-center text-xs text-gray-400">
+        © {{ shop_name|default:"خشکشویی" }} — تمامی حقوق محفوظ است.
+    </div>
+</footer>

@@ -1,0 +1,151 @@
+{# Home: "my orders" history (customers). #}
+{% load fa_format %}
+    {% if customer_logged_in %}
+    <section id="my-orders" class="max-w-6xl mx-auto px-5 mb-20">
+        <div class="orders-history-panel panel rounded-[30px] p-5 sm:p-7">
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-7">
+                <div>
+                    <span class="inline-flex items-center gap-2 bg-violet-50 text-violet-700 border border-violet-100 text-[10px] font-black px-3 py-1.5 rounded-full mb-3">
+                        حساب من
+                    </span>
+                    <h2 class="text-xl sm:text-2xl font-black mb-2">سفارش‌های من</h2>
+                    <p class="text-gray-500 text-sm leading-6">فاکتورهای قبلی و سفارش‌هایی که هنوز در جریان هستند را یکجا ببینید.</p>
+                </div>
+                <div class="orders-history-count">
+                    <span class="text-2xl font-black text-gray-900">{{ customer_orders|length|fa_digits }}</span>
+                    <span class="text-[10px] text-gray-500 font-bold">سفارش ثبت‌شده</span>
+                </div>
+            </div>
+
+            {% if customer_orders %}
+                <div class="grid gap-3">
+                    {% for order in customer_orders %}
+                    <details class="order-history-card group rounded-2xl border border-gray-100 bg-white overflow-hidden" {% if forloop.first and order.status != 'delivered' %}open{% endif %}>
+                        <summary class="order-history-summary list-none cursor-pointer">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="order-history-icon {% if order.status == 'delivered' %}delivered{% else %}active{% endif %}">
+                                    {% if order.status == 'delivered' %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M5 12l4 4L19 6"/></svg>
+                                    {% else %}
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    {% endif %}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <span class="font-black text-sm text-gray-900">فاکتور #{{ order.id|fa_digits }}</span>
+                                        {% if order.status == 'delivered' %}
+                                        <span class="order-status-badge delivered">تحویل شده</span>
+                                        {% else %}
+                                        <span class="order-status-badge active">در جریان · {{ order.get_status_display }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-[11px] text-gray-400 mt-1">{{ order.shamsi_date|fa_digits }} · {{ order.orderitem_set.all|length|fa_digits }} قلم</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 shrink-0">
+                                <div class="hidden sm:block text-left" dir="rtl">
+                                    <div class="text-[10px] text-gray-400 mb-0.5">مبلغ فاکتور</div>
+                                    <div class="font-black text-sm text-gray-900">{{ order.total_price|toman }} تومان</div>
+                                </div>
+                                <span class="order-history-chevron">⌄</span>
+                            </div>
+                        </summary>
+
+                        <div class="order-history-body">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                                <div class="order-mini-stat">
+                                    <span>وضعیت</span>
+                                    <strong>{{ order.get_status_display }}</strong>
+                                </div>
+                                <div class="order-mini-stat">
+                                    <span>پرداخت</span>
+                                    <strong class="{% if order.is_paid %}paid{% else %}unpaid{% endif %}">{% if order.is_paid %}پرداخت شده{% else %}پرداخت نشده{% endif %}</strong>
+                                </div>
+                                <div class="order-mini-stat">
+                                    <span>اقلام</span>
+                                    <strong>{{ order.orderitem_set.all|length|fa_digits }} قلم</strong>
+                                </div>
+                                <div class="order-mini-stat">
+                                    <span>مبلغ</span>
+                                    <strong>{{ order.total_price|toman }} تومان</strong>
+                                </div>
+                            </div>
+
+                            {% if order.courier_requested and order.status == 'collecting' %}
+<div data-courier-banner="{{ order.id }}-pickup" data-state="sent" class="{% if not order.courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mb-3 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک دریافت برای شما ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">پیک در حال حرکت به سمت آدرس شماست تا لباس‌هایتان را تحویل بگیرد. لطفاً لباس‌ها را آماده و در دسترس نگه دارید.</p>
+    </div>
+</div>
+<div data-courier-banner="{{ order.id }}-pickup" data-state="pending" class="{% if order.courier_dispatched %}hidden {% endif %}courier-status-banner rounded-2xl p-4 mb-3 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک دریافت ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">به‌محض ارسال پیک، وضعیت آن را همین‌جا می‌بینید.</p>
+    </div>
+</div>
+{% endif %}
+{% if order.delivery_courier_requested and order.status == 'ready' %}
+<div data-courier-banner="{{ order.id }}-delivery" data-state="sent" class="{% if not order.delivery_courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mb-3 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک تحویل ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">لباس‌های تمیز و اتوشده شما به پیک سپرده شد و پیک در مسیر رساندن آن‌ها به آدرس شماست. لطفاً در دسترس باشید.</p>
+    </div>
+</div>
+<div data-courier-banner="{{ order.id }}-delivery" data-state="pending" class="{% if order.delivery_courier_dispatched %}hidden {% endif %}courier-status-banner rounded-2xl p-4 mb-3 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک تحویل ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">در صورت تحویل لباس‌ها به پیک، به شما اطلاع‌رسانی خواهد شد.</p>
+    </div>
+</div>
+{% endif %}
+
+                            {% include "components/review_cta.html" %}
+
+                            <div class="rounded-2xl bg-gray-50 border border-gray-100 p-4">
+                                <div class="flex items-center justify-between gap-3 mb-3">
+                                    <h4 class="font-black text-sm text-gray-700">اقلام فاکتور</h4>
+                                    {% if order.status == 'delivered' %}
+                                    <span class="text-[10px] text-gray-400">سفارش تکمیل شده</span>
+                                    {% else %}
+                                    <span class="text-[10px] text-cyan-600 font-bold">سفارش در حال انجام</span>
+                                    {% endif %}
+                                </div>
+                                <div class="space-y-2.5">
+                                    {% for item in order.orderitem_set.all %}
+                                    <div class="order-history-item">
+                                        <div class="min-w-0">
+                                            <div class="font-bold text-xs text-gray-800">{{ item.item_name }}</div>
+                                            {% if item.description %}
+                                            <div class="text-[10px] text-gray-400 mt-1 leading-5">{{ item.description|linebreaksbr }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex items-center gap-2 shrink-0">
+                                            <span class="text-[10px] text-gray-400">{{ item.quantity|fa_digits }} عدد</span>
+                                            <span class="font-bold text-xs text-gray-700">{{ item.price|toman }}</span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 text-center px-5 py-10">
+                    <div class="w-12 h-12 mx-auto mb-3 rounded-2xl bg-white border border-gray-100 flex items-center justify-center text-gray-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"/></svg>
+                    </div>
+                    <h3 class="font-black text-sm text-gray-700 mb-1">هنوز سفارشی ثبت نکرده‌اید</h3>
+                    <p class="text-xs text-gray-400 mb-4">اولین سفارش خود را ثبت کنید تا اینجا نمایش داده شود.</p>
+                    <a href="#order-section" class="btn-motion inline-flex items-center justify-center bg-gray-950 text-white font-bold text-xs px-5 py-3 rounded-xl">ثبت سفارش جدید</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+    {% endif %}

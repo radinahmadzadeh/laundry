@@ -1,0 +1,124 @@
+{# Home: services and the category showcase. #}
+{% load static fa_format %}
+<section id="services" class="max-w-6xl mx-auto px-5 mb-20">
+    <div class="svc-head text-center mb-10">
+        <span class="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 border border-cyan-200 text-xs font-bold px-4 py-1.5 rounded-full mb-4">خدمات تخصصی خشکشویی</span>
+        <h2 class="text-2xl sm:text-3xl font-black mb-3">خدمات ما، <span class="svc-mark">فقط شست‌وشو نیست<svg viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M3 10c30-7 50-7 75 0s45 7 72 0 47-7 72 0 48 7 75-2"/></svg></span></h2>
+        <p class="text-gray-500 text-sm sm:text-base max-w-2xl mx-auto leading-7">هر لباس با توجه به جنس پارچه، رنگ، میزان آلودگی و نوع استفاده بررسی می‌شود و مناسب‌ترین روش شست‌وشو، لکه‌بری و اتوکشی برای آن انتخاب می‌شود.</p>
+    </div>
+
+    <div class="svc-board mb-8" id="svc-board">
+        <article class="svc-tag" data-tone="cyan" style="--i:0">
+            <span class="svc-hole" aria-hidden="true"></span>
+            <div class="svc-inner">
+                <div class="svc-top">
+                    <span class="svc-art" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle class="d" pathLength="1" cx="32" cy="32" r="20"/><g class="a-swirl"><path class="d" pathLength="1" d="M22 33c4-7 12-7 16-1"/><path class="d" pathLength="1" d="M42 31c-4 7-12 7-16 1"/></g><circle class="a-drop a1" cx="32" cy="8" r="2.2" fill="currentColor" stroke="none"/></svg></span>
+                    <span class="svc-no">۰۱</span>
+                </div>
+                <h3>خشکشویی تخصصی لباس</h3>
+                <p>برای لباس‌های حساس؛ روش کار با توجه به جنس و برچسب مراقبت هر لباس انتخاب می‌شود.</p>
+                <div class="svc-chips"><span>کت‌وشلوار</span><span>پالتو</span><span>لباس مجلسی</span></div>
+            </div>
+        </article>
+        <article class="svc-tag" data-tone="sky" style="--i:1">
+            <span class="svc-hole" aria-hidden="true"></span>
+            <div class="svc-inner">
+                <div class="svc-top">
+                    <span class="svc-art" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="d" pathLength="1" d="M10 22l5 26h34l5-26"/><g class="a-wave"><path d="M2 26c4-4 8-4 12 0s8 4 12 0 8-4 12 0 8 4 12 0 8-4 12 0"/></g><circle class="a-bub b1" cx="24" cy="40" r="2"/><circle class="a-bub b2" cx="36" cy="42" r="1.6"/><circle class="a-bub b3" cx="44" cy="38" r="1.3"/></svg></span>
+                    <span class="svc-no">۰۲</span>
+                </div>
+                <h3>شست‌وشوی لباس روزمره</h3>
+                <p>پیراهن، تی‌شرت، شلوار و لباس‌های خانگی، جدا بر اساس رنگ و جنس پارچه شسته می‌شوند.</p>
+                <div class="svc-chips"><span>پیراهن</span><span>تی‌شرت</span><span>شلوار</span></div>
+            </div>
+        </article>
+        <article class="svc-tag" data-tone="violet" style="--i:2">
+            <span class="svc-hole" aria-hidden="true"></span>
+            <div class="svc-inner">
+                <div class="svc-top">
+                    <span class="svc-art" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><g class="a-iron"><path class="d" pathLength="1" d="M8 46h44a10 10 0 0 0-10-17H20c-6 0-10 6-12 17z"/><path class="d" pathLength="1" d="M24 29c0-6 3-9 10-9h8"/><circle class="a-dot t1" cx="26" cy="39" r="2.2" fill="currentColor" stroke="none"/><circle class="a-dot t2" cx="33" cy="39" r="2.2" fill="currentColor" stroke="none"/><circle class="a-dot t3" cx="40" cy="39" r="2.2" fill="currentColor" stroke="none"/></g><path class="a-steam" d="M18 16c-2-3 2-5 0-8M26 16c-2-3 2-5 0-8"/></svg></span>
+                    <span class="svc-no">۰۳</span>
+                </div>
+                <h3>اتوکشی حرفه‌ای</h3>
+                <p>فرم‌دهی تمیز و اصولی؛ دمای اتو به اندازه‌ی جنس هر لباس تنظیم می‌شود.</p>
+                <div class="svc-chips"><span>پیراهن</span><span>کت</span><span>مانتو</span></div>
+            </div>
+        </article>
+        <article class="svc-tag" data-tone="rose" style="--i:3">
+            <span class="svc-hole" aria-hidden="true"></span>
+            <div class="svc-inner">
+                <div class="svc-top">
+                    <span class="svc-art" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path class="d" pathLength="1" d="M32 8L56 52H8z"/><path class="a-stain" d="M27 36c-2-4 3-7 6-5 3-3 8 0 6 4 3 2 1 7-3 6-2 3-7 2-7-1-3 0-4-3-2-4z" fill="currentColor" stroke="none"/><path class="a-spark" d="M47 14v6M44 17h6"/></svg></span>
+                    <span class="svc-no">۰۴</span>
+                </div>
+                <h3>لکه‌بری تخصصی</h3>
+                <p>لکه‌ها پیش از شست‌وشو بررسی می‌شوند و تا جای ممکن، بی‌آسیب به بافت پارچه برداشته می‌شوند.</p>
+                <div class="svc-chips"><span>بررسی لکه</span><span>روش مناسب</span><span>حفظ بافت</span></div>
+            </div>
+        </article>
+        <article class="svc-tag" data-tone="emerald" style="--i:4">
+            <span class="svc-hole" aria-hidden="true"></span>
+            <div class="svc-inner">
+                <div class="svc-top">
+                    <span class="svc-art" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect class="d" pathLength="1" x="10" y="10" width="44" height="44" rx="6"/><g class="a-stack"><rect class="s1" x="18" y="38" width="28" height="7" rx="2"/><rect class="s2" x="20" y="29" width="24" height="7" rx="2"/><rect class="s3" x="22" y="20" width="20" height="7" rx="2"/></g></svg></span>
+                    <span class="svc-no">۰۵</span>
+                </div>
+                <h3>ملحفه و حوله</h3>
+                <p>ملحفه، روبالشی، حوله و پتو کامل شسته و تاشده، آماده‌ی استفاده تحویل می‌شوند.</p>
+                <div class="svc-chips"><span>ملحفه</span><span>حوله</span><span>پتو</span></div>
+            </div>
+        </article>
+        <article class="svc-tag" data-tone="amber" style="--i:5">
+            <span class="svc-hole" aria-hidden="true"></span>
+            <div class="svc-inner">
+                <div class="svc-top">
+                    <span class="svc-art" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><g class="a-hang"><path class="d" pathLength="1" d="M29 12a3.5 3.5 0 1 1 5 3c-1.2.6-2 1.6-2 3v2"/><path class="d" pathLength="1" d="M32 20L12 32h40z"/><path class="d" pathLength="1" d="M16 32v22h32V32"/><path class="a-zip" pathLength="1" d="M32 33v20"/></g></svg></span>
+                    <span class="svc-no">۰۶</span>
+                </div>
+                <h3>بسته‌بندی و تحویل</h3>
+                <p>لباس‌ها پس از کنترل نهایی مرتب بسته‌بندی و برای تحویل حضوری یا پیک آماده می‌شوند.</p>
+                <div class="svc-chips"><span>تحویل حضوری</span><span>ارسال با پیک</span></div>
+            </div>
+        </article>
+    </div>
+    <div class="svc-dots" id="svc-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+    {% if categories and customer_logged_in %}
+    <div class="panel category-showcase rounded-[30px] p-5 sm:p-7">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 mb-7">
+            <div>
+                <div class="inline-flex items-center gap-2 bg-cyan-50 text-cyan-700 border border-cyan-100 rounded-full px-3 py-1.5 text-[10px] font-black mb-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> خدمات آرین
+                </div>
+                <h3 class="text-xl sm:text-2xl font-black mb-2">دسته‌بندی خدمات و قیمت‌ها</h3>
+                <p class="text-gray-500 text-sm leading-7">برای دیدن اقلام هر دسته و قیمت دقیق، دسته موردنظر را انتخاب کنید.</p>
+            </div>
+            <a href="{% url 'pricing' %}" class="btn-motion shrink-0 inline-flex items-center justify-center gap-2 bg-gray-950 text-white font-bold text-xs px-5 py-3.5 rounded-xl">مشاهده لیست کامل قیمت‌ها ←</a>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for category in categories %}
+            <a href="{% url 'pricing' %}#cat-{{ category.id }}" class="category-showcase-card group rounded-3xl overflow-hidden border border-gray-100 bg-white">
+                <div class="category-showcase-image">
+                    {% if 'مرد' in category.name %}
+                    <img src="{% static 'pricing-categories/men.jpg' %}" alt="پوشاک مردانه" loading="lazy" decoding="async" width="1000" height="343">
+                    {% elif 'زن' in category.name %}
+                    <img src="{% static 'pricing-categories/women.jpg' %}" alt="پوشاک زنانه" loading="lazy" decoding="async" width="1000" height="343">
+                    {% else %}
+                    <img src="{% static 'pricing-categories/home.jpg' %}" alt="{{ category.name }}" loading="lazy" decoding="async" width="1000" height="343">
+                    {% endif %}
+                    <span class="category-showcase-count">{{ category.items.count|fa_digits }} خدمت</span>
+                </div>
+                <div class="category-showcase-body">
+                    <div>
+                        <h4 class="font-black text-base mb-1">{{ category.name }}</h4>
+                        <p class="text-gray-500 text-xs">مشاهده اقلام و قیمت‌های این دسته</p>
+                    </div>
+                    <span class="category-showcase-arrow">←</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</section>

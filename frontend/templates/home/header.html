@@ -1,0 +1,36 @@
+{# Home: site header with navigation and account buttons. #}
+{% load fa_format %}
+<header class="site-header sticky top-0 z-50 backdrop-blur-xl">
+    <div class="site-header-inner max-w-6xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--cyan-soft)] to-[var(--violet-soft)] flex items-center justify-center">
+                <svg viewBox="0 0 24 24" class="w-5 h-5 text-white"><circle cx="12" cy="12" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 9c0 2 1.2 4 3 5.5M15 15c0-2-1.2-4-3-5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+            </div>
+            <span class="site-title font-black text-sm sm:text-base">{{ shop_name|default:"خشکشویی" }}</span>
+        </div>
+        <nav class="site-nav hidden sm:flex items-center text-sm font-bold text-gray-600">
+            <a href="{% url 'pricing' %}" class="nav-link">لیست قیمت</a>
+            <a href="#services" class="nav-link">خدمات</a>
+            <a href="#faq" class="nav-link">سوالات متداول</a>
+        </nav>
+        <div class="header-actions flex items-center shrink-0">
+            {% if customer_logged_in %}
+            <a href="{% url 'wallet' %}" class="wallet-nav btn-motion inline-flex items-center gap-1.5 whitespace-nowrap bg-emerald-50 border border-emerald-200 text-emerald-700 font-black text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5A2.5 2.5 0 015.5 5H20v14H5.5A2.5 2.5 0 013 16.5v-9Z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 9h-4.25a2.25 2.25 0 1 0 0 4.5H20"/><circle cx="15.75" cy="11.25" r=".7" fill="currentColor" stroke="none"/></svg>
+                کیف پول
+                <span class="hidden lg:inline text-[10px] opacity-70">{{ wallet.balance|default:0|toman }} تومان</span>
+            </a>
+            <a href="{% url 'account' %}" class="btn-motion inline-flex items-center whitespace-nowrap bg-gradient-to-l from-[var(--cyan-soft)] to-[var(--violet-soft)] text-gray-950 font-extrabold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-2 rounded-lg shadow-sm">حساب کاربری</a>
+            <form method="post" action="{% url 'customer_logout' %}" class="inline-flex">
+                {% csrf_token %}
+                <button type="submit" class="btn-motion inline-flex items-center whitespace-nowrap bg-white border border-gray-200 text-gray-500 font-bold text-[11px] px-2.5 sm:px-3 py-2 rounded-lg">خروج</button>
+            </form>
+            {% else %}
+            <a href="{% url 'customer_login' %}" class="login-entry btn-motion inline-flex items-center gap-2 bg-white border font-black text-xs px-3.5 sm:px-4 py-2 rounded-lg">
+                <span class="login-dot"></span>
+                <span>ورود / ثبت‌نام</span>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</header>

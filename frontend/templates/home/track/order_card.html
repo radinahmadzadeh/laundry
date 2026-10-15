@@ -1,0 +1,261 @@
+{# Quick tracking: one order's card (status, items, payment, delivery). #}
+{% load fa_format %}
+                        <div class="panel card-hover enter rounded-2xl overflow-hidden" style="animation-delay: {{ forloop.counter0 }}00ms">
+
+                            <div class="perf"></div>
+
+                            <div class="p-7">
+                                {% with now=order.tracking_current %}
+                                <div class="trk-head">
+                                    <span class="text-gray-500 text-sm">فاکتور <strong class="text-gray-900 text-lg font-black">#{{ order.id|fa_digits }}</strong></span>
+                                    <span class="trk-date">{{ order.shamsi_date|fa_digits }}</span>
+                                </div>
+
+                                <div class="trk-hero" data-tone="{{ now.tone }}" data-status="{{ now.key }}">
+                                    <div class="trk-art">{% include "components/track_art.html" with key=now.key %}</div>
+                                    <div class="min-w-0">
+                                        <span class="trk-step-chip">مرحله {{ now.number|fa_digits }} از {{ now.count|fa_digits }}</span>
+                                        <h4 class="trk-title">{{ now.title }}</h4>
+                                        <p class="trk-text">{{ now.text }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="trk-line" style="--n:{{ now.count }}">
+                                    <svg class="trk-rope" viewBox="0 0 {{ order.tracking_rope_width }} 40" preserveAspectRatio="none" aria-hidden="true">
+                                        <defs><linearGradient id="trk-grad-{{ order.id }}" gradientUnits="userSpaceOnUse" x1="{{ order.tracking_rope_width }}" y1="0" x2="0" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs>
+                                        <path class="trk-rope-base" d="{{ order.tracking_rope_path }}"/>
+                                        <path class="trk-rope-fill" d="{{ order.tracking_rope_done_path }}" stroke="url(#trk-grad-{{ order.id }})"/>
+                                    </svg>
+                                    <ol class="trk-steps">
+                                        {% for step in order.tracking_steps %}
+                                        <li class="trk-step is-{{ step.state }}" data-tone="{{ step.tone }}" style="--i:{{ forloop.counter0 }}"{% if step.state == 'current' %} aria-current="step"{% endif %}>
+                                            <span class="trk-pin" aria-hidden="true"></span>
+                                            <span class="trk-dot">{% if step.state == 'done' %}{% include "components/track_icon.html" with key="done" %}{% else %}{% include "components/track_icon.html" with key=step.key %}{% endif %}</span>
+                                            <span class="trk-name">{{ step.label }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ol>
+                                </div>
+                                {% endwith %}
+
+                                <div class="bg-gray-50 rounded-xl p-5 border border-gray-100">
+                                    <h4 class="text-sm font-semibold text-gray-600 mb-4 flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-[var(--cyan)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                        لیست اقلام
+                                    </h4>
+
+                                    <ul class="space-y-3 mb-5">
+                                        {% for item in order.orderitem_set.all %}
+                                            <li class="border-b border-gray-100 pb-3 last:border-0 last:pb-0 transition-colors duration-200 hover:text-gray-900">
+                                                <div class="flex justify-between items-center text-gray-600 text-sm">
+                                                    <div class="flex items-center gap-3">
+                                                        <span class="text-gray-900">{{ item.item_name }}</span>
+                                                        <span class="text-xs text-gray-400 font-light hidden sm:inline-block">({{ item.price|toman }} تومان)</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-4">
+                                                        <span class="text-xs text-[var(--cyan)] sm:hidden">{{ item.price|toman }} تومان</span>
+                                                        <span class="font-bold text-gray-900 bg-white border border-gray-200 px-3 py-1 rounded-lg transition-transform duration-200 hover:scale-110">{{ item.quantity|fa_digits }} عدد</span>
+                                                    </div>
+                                                </div>
+                                                {% if item.description %}
+                                                    <div class="mt-2 mr-1 rounded-xl bg-white border border-cyan-100 px-3 py-2 text-[11px] leading-6 text-gray-500">
+                                                        <span class="font-bold text-gray-700">توضیحات این لباس:</span>
+                                                        {{ item.description|linebreaksbr }}
+                                                    </div>
+                                                {% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+
+                                    <div class="border-t border-gray-200 pt-4 mt-2 space-y-3">
+                                        <div class="flex justify-between items-center text-gray-500 text-sm">
+                                            <span>جمع اقلام:</span>
+                                            <span>{{ order.subtotal_amount|toman }} تومان</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-gray-500 text-sm">
+                                            <span>مالیات (۱۰٪):</span>
+                                            <span>{{ order.tax_amount|toman }} تومان</span>
+                                        </div>
+                                        <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 group">
+                                            <span class="text-gray-700 font-medium">مبلغ نهایی پرداخت:</span>
+                                            <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block">{{ order.total_price|toman }} <span class="text-sm font-light text-gray-400">تومان</span></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+{% if order.courier_requested and order.status == 'collecting' %}
+<div data-courier-banner="{{ order.id }}-pickup" data-state="sent" class="{% if not order.courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mt-4 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک دریافت برای شما ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">پیک در حال حرکت به سمت آدرس شماست تا لباس‌هایتان را تحویل بگیرد. لطفاً لباس‌ها را آماده و در دسترس نگه دارید.</p>
+    </div>
+</div>
+<div data-courier-banner="{{ order.id }}-pickup" data-state="pending" class="{% if order.courier_dispatched %}hidden {% endif %}courier-status-banner rounded-2xl p-4 mt-4 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک دریافت ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">به‌محض ارسال پیک، وضعیت آن را همین‌جا می‌بینید.</p>
+    </div>
+</div>
+{% endif %}
+{% if order.delivery_courier_requested and order.status == 'ready' %}
+<div data-courier-banner="{{ order.id }}-delivery" data-state="sent" class="{% if not order.delivery_courier_dispatched %}hidden {% endif %}courier-status-banner sent rounded-2xl p-4 mt-4 flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25"><svg class="w-5 h-5 truck-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-emerald-800">پیک تحویل ارسال شد</p>
+        <p class="text-xs text-emerald-700/90 leading-6 mt-1">لباس‌های تمیز و اتوشده شما به پیک سپرده شد و پیک در مسیر رساندن آن‌ها به آدرس شماست. لطفاً در دسترس باشید.</p>
+    </div>
+</div>
+<div data-courier-banner="{{ order.id }}-delivery" data-state="pending" class="{% if order.delivery_courier_dispatched %}hidden {% endif %}courier-status-banner rounded-2xl p-4 mt-4 flex items-start gap-3 bg-blue-50 border border-blue-200 text-right">
+    <div class="shrink-0 w-10 h-10 rounded-xl bg-white border border-blue-200 text-blue-600 flex items-center justify-center"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg></div>
+    <div class="min-w-0">
+        <p class="font-black text-sm text-blue-800">درخواست پیک تحویل ثبت شد</p>
+        <p class="text-xs text-blue-700/90 leading-6 mt-1">در صورت تحویل لباس‌ها به پیک، به شما اطلاع‌رسانی خواهد شد.</p>
+    </div>
+</div>
+{% endif %}
+                                {% if order.status == 'ready' %}
+                                    <div class="method-panel mt-4 bg-gray-50 border border-gray-100 rounded-2xl p-4 sm:p-5 relative overflow-hidden">
+                                        {% if order.delivery_courier_requested %}
+                                        <div class="flex items-center gap-2 mb-3 text-gray-700">
+                                            <svg class="w-5 h-5 text-[var(--cyan)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h11v8H3V7zm11 3h4l3 3v2h-7v-5zM6.5 19a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm11 0a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
+                                            <h4 class="font-bold text-sm sm:text-base">ارسال با پیک</h4>
+                                        </div>
+                                        <div class="rounded-xl bg-white border border-gray-200 px-4 py-3 text-xs leading-6 text-gray-600">
+                                            <p><span class="font-bold text-gray-800">آدرس ارسال:</span> {{ order.delivery_address|default:"موقعیت انتخاب‌شده روی نقشه" }}</p>
+                                            <p><span class="font-bold text-gray-800">کد پستی:</span> <span class="dir-ltr inline-block">{{ order.delivery_postal_code|fa_digits }}</span></p>
+                                        </div>
+                                        {% if not order.delivery_courier_dispatched %}
+                                        <button type="button" id="courier-edit-btn-{{ order.id }}" onclick="editCourierAddress('{{ order.id }}')" class="mt-3 w-full bg-white border border-gray-200 text-gray-700 font-bold text-xs py-3 rounded-xl hover:border-cyan-300 hover:text-cyan-700 transition-colors">ویرایش آدرس ارسال</button>
+                                        <div id="courier-edit-{{ order.id }}" class="hidden mt-4">
+                                            {% include "components/courier_form.html" with submit_label="ذخیره آدرس جدید" %}
+                                        </div>
+                                        {% endif %}
+                                        {% else %}
+                                        <div class="flex items-center gap-2 mb-4 text-gray-700">
+                                            <svg class="w-5 h-5 text-[var(--cyan)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+                                            <h4 class="font-bold text-sm sm:text-base">نحوه دریافت لباس را انتخاب کنید</h4>
+                                        </div>
+
+                                        <div class="delivery-tabs flex rounded-xl overflow-hidden bg-gray-100 border border-gray-200 mb-5 text-xs sm:text-sm font-bold p-1" id="delivery-track-{{ order.id }}">
+                                            <div class="delivery-indicator" id="delivery-indicator-{{ order.id }}"></div>
+                                            <button type="button" onclick="setDelivery('{{ order.id }}', 'pickup', this)" id="btn-pickup-{{ order.id }}" class="delivery-tab active btn-motion flex-1 py-2.5 sm:py-3 text-center rounded-xl">مراجعه حضوری</button>
+                                            <button type="button" onclick="setDelivery('{{ order.id }}', 'courier', this)" id="btn-courier-{{ order.id }}" class="delivery-tab btn-motion flex-1 py-2.5 sm:py-3 text-center rounded-xl">ارسال با پیک</button>
+                                        </div>
+
+                                        <div id="section-pickup-{{ order.id }}" class="method-panel">
+                                            {% include "components/shop_map.html" %}
+                                        </div>
+
+                                        <div id="section-courier-{{ order.id }}" class="hidden">
+                                            {% if order.total_price >= 1000000 %}
+                                                <div class="free-pulse bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 mb-4">
+                                                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                    مژده: به دلیل سفارش بالای ۱ میلیون تومان، ارسال با پیک رایگان است!
+                                                </div>
+                                            {% else %}
+                                                <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-xl text-xs sm:text-sm font-medium mb-4">
+                                                    هزینه ارسال با پیک بر عهده مشتری می‌باشد. (سفارشات بالای ۱ میلیون تومان رایگان است)
+                                                </div>
+                                            {% endif %}
+                                            {% include "components/courier_form.html" %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                                {% if order.days_remaining == None and order.status != 'delivered' %}
+                                    <div class="mt-4 rounded-2xl bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold leading-6 px-4 py-3">
+                                        زمان تحویل پس از دریافت و بررسی لباس‌ها توسط فروشگاه مشخص و همین‌جا نمایش داده می‌شود.
+                                    </div>
+                                {% endif %}
+                                {% if order.days_remaining != None %}
+                                    <div class="mt-4 card-hover btn-motion relative overflow-hidden rounded-2xl p-4 sm:p-5 flex items-center gap-2 sm:gap-4 border
+                                        {% if order.status == 'delivered' %}bg-green-50 border-green-200
+                                        {% elif order.days_remaining > 0 %}bg-blue-50 border-blue-200
+                                        {% elif order.days_remaining == 0 %}bg-amber-50 border-amber-200
+                                        {% else %}bg-red-50 border-red-200{% endif %}">
+
+                                        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center shrink-0
+                                            {% if order.status == 'delivered' %}bg-gradient-to-br from-green-500 to-emerald-400 shadow-lg shadow-green-500/30
+                                            {% elif order.days_remaining > 0 %}bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30
+                                            {% elif order.days_remaining == 0 %}bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/30 breathe
+                                            {% else %}bg-gradient-to-br from-red-600 to-rose-500 shadow-lg shadow-red-500/30 node-active{% endif %}">
+                                            {% if order.status == 'delivered' %}
+                                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            {% elif order.days_remaining > 0 %}
+                                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            {% elif order.days_remaining == 0 %}
+                                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            {% else %}
+                                                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M10.29 3.86l-8.14 14.1A1.5 1.5 0 003.5 20h17a1.5 1.5 0 001.35-2.04l-8.14-14.1a1.5 1.5 0 00-2.6 0z"/></svg>
+                                            {% endif %}
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-[10px] sm:text-xs text-gray-500 mb-1">زمان تحویل</p>
+                                            <p class="text-gray-900 font-black text-sm sm:text-lg tracking-wide">{{ order.shamsi_delivery_date|fa_digits }}</p>
+                                        </div>
+
+                                        {% if order.status == 'delivered' %}
+                                            <span class="text-[10px] sm:text-xs font-bold bg-green-100 text-green-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-green-200 whitespace-nowrap">تحویل داده شده</span>
+                                        {% elif order.days_remaining > 0 %}
+                                            <span class="text-[10px] sm:text-xs font-bold bg-blue-100 text-blue-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-blue-200 whitespace-nowrap">{{ order.days_remaining|fa_digits }} روز مانده</span>
+                                        {% elif order.days_remaining == 0 %}
+                                            <span class="text-[10px] sm:text-xs font-bold bg-amber-100 text-amber-800 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-amber-200 whitespace-nowrap node-active">آماده تحویل</span>
+                                        {% else %}
+                                            <span class="text-[10px] sm:text-xs font-bold bg-red-100 text-red-700 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border border-red-200 whitespace-nowrap">تاخیر در تحویل</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+
+                                {% include "components/review_cta.html" %}
+
+                                {% if order.is_paid %}
+                                <div class="mt-4 paid-glow flex items-center justify-center gap-2 w-full bg-green-50 border border-green-200 text-green-700 font-bold py-3.5 rounded-xl">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                    پرداخت شده
+                                </div>
+                                {% elif order.total_price <= 0 %}
+                                <div class="mt-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold leading-6 px-4 py-3 text-center">
+                                    مبلغ این فاکتور پس از بررسی لباس‌ها توسط فروشگاه مشخص می‌شود؛ بعد از اعلام مبلغ می‌توانید آن را پرداخت کنید.
+                                </div>
+                                {% else %}
+                                <div class="grid grid-cols-2 gap-3 mt-4">
+                                    <a href="{% url 'request_payment' order.id %}" class="btn-motion pay-glow flex items-center justify-center gap-2 bg-gradient-to-l from-emerald-500 to-green-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-green-500/30 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
+                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                        پرداخت آنلاین
+                                    </a>
+                                    {% if wallet and wallet.balance >= order.total_price %}
+                                    <form method="post" action="{% url 'wallet_pay_order' order.id %}" class="contents"
+                                          onsubmit="if (this.dataset.sent || !confirm('مبلغ {{ order.total_price|toman }} تومان از کیف پول شما برای فاکتور #{{ order.id|fa_digits }} کم شود؟')) return false; this.dataset.sent = '1';">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-motion flex items-center justify-center gap-2 bg-gradient-to-l from-teal-500 to-emerald-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-500/20 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.97] transition-all cursor-pointer group">
+                                            <svg class="w-5 h-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 7.5A2.5 2.5 0 0 1 5.5 5H20v14H5.5A2.5 2.5 0 0 1 3 16.5v-9Z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 9h-4.25a2.25 2.25 0 1 0 0 4.5H20"/>
+                                                <circle cx="15.75" cy="11.25" r=".7" fill="currentColor" stroke="none"/>
+                                            </svg>
+                                            پرداخت با کیف پول
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <a href="{% url 'wallet' %}" class="btn-motion flex flex-col items-center justify-center bg-white border border-emerald-200 text-emerald-700 font-bold py-2.5 rounded-xl text-center leading-5">
+                                        <span class="text-sm">شارژ کیف پول</span>
+                                        <span class="text-[10px] font-medium text-emerald-700/80">موجودی: {{ wallet.balance|default:0|toman }} تومان</span>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+
+                                <div class="mt-3">
+                                    <a href="{% url 'print_receipt' order.id %}" target="_blank" rel="noopener" class="btn-motion flex items-center justify-center gap-2 w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 py-3 rounded-xl transition-all cursor-pointer hover:text-gray-900 group">
+                                        <svg class="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                        مشاهده فاکتور
+                                    </a>
+                                </div>
+
+                            </div>
+
+                            <div class="barcode opacity-30 mx-7 mb-6 rounded-sm"></div>
+                        </div>

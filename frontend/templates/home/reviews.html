@@ -1,0 +1,35 @@
+{# Home: featured customer reviews. #}
+{% load fa_format %}
+{% if featured_reviews %}
+<section id="reviews" class="max-w-6xl mx-auto px-5 mb-20">
+    <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-black mb-3">نظر مشتریان</h2>
+        <div class="inline-flex items-center gap-2 rounded-full bg-white border border-amber-100 px-4 py-2 shadow-sm">
+            <span class="text-amber-400 text-base leading-none">★</span>
+            <span class="font-black text-sm text-gray-900">{{ review_avg|fa_digits }}</span>
+            <span class="text-[11px] text-gray-400">از ۵ · بر اساس {{ review_count|fa_digits }} نظر ثبت‌شده</span>
+        </div>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {% for review in featured_reviews %}
+        <figure class="review-card panel enter rounded-2xl p-6" style="animation-delay:{{ forloop.counter0 }}60ms">
+            <span class="review-quote" aria-hidden="true">”</span>
+            <div class="review-stars mb-3" aria-label="{{ review.rating }} ستاره">{% for i in "12345" %}<span>★</span>{% endfor %}</div>
+            <blockquote class="text-gray-600 text-sm leading-7 mb-4">{{ review.comment }}</blockquote>
+            {% if review.tag_labels %}
+            <div class="flex flex-wrap gap-1.5 mb-4">
+                {% for label in review.tag_labels %}<span class="review-tag">{{ label }}</span>{% endfor %}
+            </div>
+            {% endif %}
+            <figcaption class="flex items-center gap-3 pt-4 border-t border-gray-100">
+                <span class="review-avatar">{{ review.display_name|slice:":1" }}</span>
+                <span class="min-w-0">
+                    <span class="block font-bold text-sm text-gray-900">{{ review.display_name }}</span>
+                    <span class="block text-[10px] text-gray-400 mt-0.5">مشتری تأییدشده · {{ review.shamsi_date|fa_digits }}</span>
+                </span>
+            </figcaption>
+        </figure>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
