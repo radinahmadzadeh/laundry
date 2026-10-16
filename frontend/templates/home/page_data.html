@@ -10,4 +10,6 @@
     };
     var SAVED_ADDRESS = {% if saved_address %}{lat: "{{ saved_address.address_latitude|escapejs }}", lng: "{{ saved_address.address_longitude|escapejs }}", postal: "{{ saved_address.address_postal_code|escapejs }}", text: "{{ saved_address.address|escapejs }}"}{% else %}null{% endif %};
     var WALLET_BALANCE = Number('{{ wallet.balance|default:0|stringformat:"d" }}') || 0;
+    // Shown only to make the summary match; the server checks the discount again on every order.
+    var LOYALTY_DISCOUNT = {% if loyalty.available %}{{ loyalty.discount }}{% else %}0{% endif %};
 </script>

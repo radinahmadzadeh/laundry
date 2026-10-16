@@ -7,6 +7,12 @@
         <li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکرده‌اید.</li>
     </ul>
     <div class="border-t border-gray-200 pt-3 text-sm">
+        <div id="cart-discount-row" class="hidden mb-2">
+            <div class="flex justify-between items-center gap-3 text-xs font-bold text-emerald-700">
+                <span>تخفیف باشگاه مشتریان:</span>
+                <span id="cart-discount" class="whitespace-nowrap"></span>
+            </div>
+        </div>
         <div class="flex justify-between items-center gap-3">
             <span id="cart-total-label" class="text-gray-700 font-bold whitespace-nowrap">مبلغ قابل پرداخت:</span>
             <span id="cart-total" class="text-left text-lg sm:text-xl whitespace-nowrap font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">۰ تومان</span>
@@ -15,6 +21,16 @@
     <p id="cart-note" class="hidden text-[11px] text-amber-700 mt-3 leading-6 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5">قیمت برخی اقلام انتخابی بعد از بررسی جنس لباس مشخص می‌شود؛ برای همین الان پرداختی لازم نیست. وقتی سفارش «آماده تحویل» شد، مبلغ نهایی در «سفارش‌های من» اعلام می‌شود و همان‌جا می‌توانید آنلاین یا با کیف پول پرداخت کنید.</p>
 </div>
 
+{% if loyalty.available %}
+<label id="discount-option" class="mt-5 flex items-center gap-3 rounded-2xl border border-violet-200 bg-violet-50/70 px-4 py-3.5 cursor-pointer select-none">
+    <input type="checkbox" id="use-discount" class="w-4 h-4 accent-violet-600" onchange="updateCartUI()">
+    <span class="min-w-0 flex-1">
+        <span class="block text-xs font-black text-violet-800">اعمال {{ loyalty.discount|toman }} تومان تخفیف باشگاه مشتریان</span>
+        <span class="block text-[10px] text-violet-700/70 mt-0.5">فقط روی یک سفارش · تا {{ loyalty.ends_on|fa_digits }}</span>
+        <span id="discount-hint" class="hidden block text-[10px] leading-5 text-amber-700 mt-1"></span>
+    </span>
+</label>
+{% endif %}
 <label id="wallet-option" class="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 cursor-pointer select-none">
     <input type="checkbox" id="use-wallet" class="w-4 h-4 accent-emerald-600" onchange="updateCartUI()">
     <span class="min-w-0 flex-1">

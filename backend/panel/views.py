@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
+from orders.loyalty import loyalty_status
 from orders.views import FA_TO_EN_DIGITS, MAX_ORDER_TOTAL, normalize_phone, valid_password, valid_phone
 from orders.models import (
     Customer,
@@ -371,6 +372,7 @@ def customer_detail(request, customer_id):
         'total_spent': totals['total_spent'] or 0,
         'total_orders': totals['total_orders'],
         'paid_orders': totals['paid_orders'],
+        'loyalty': loyalty_status(customer),
     }
     return render(request, 'panel/customer_detail.html', context)
 
@@ -448,7 +450,13 @@ def order_update(request, order_id):
         customer_id = request.POST.get('customer_id')
         delivery_date = request.POST.get('delivery_date', '').strip()
         if customer_id:
-            order.customer = get_object_or_404(Customer, id=customer_id)
+            new_customer = get_object_or_404(Customer, id=customer_id)
+            if new_customer.pk != order.customer_id and order.discount_amount:
+                # The loyalty discount belongs to the customer who earned it; it does not move with the order.
+                order.discount_amount, order.discount_period = 0, None
+                order.recalculate_total()
+                messages.warning(request, 'تخفیف باشگاه مشتریان مخصوص مشتری قبلی بود و از این سفارش برداشته شد.')
+            order.customer = new_customer
         if delivery_date:
             try:
                 from datetime import datetime

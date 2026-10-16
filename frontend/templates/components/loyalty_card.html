@@ -1,0 +1,40 @@
+{# Loyalty club: progress this period and the discount the customer can use now. Needs `loyalty`. #}
+{% load fa_format %}
+{% if loyalty %}
+<div class="loyalty-card{% if loyalty.available %} is-ready{% endif %} rounded-2xl border p-4 sm:p-5 text-right">
+    <div class="flex items-start gap-3">
+        <div class="loyalty-ico shrink-0 w-10 h-10 rounded-xl flex items-center justify-center" aria-hidden="true">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 12v8a1 1 0 01-1 1H5a1 1 0 01-1-1v-8m16 0H4m16 0a1 1 0 001-1V9a1 1 0 00-1-1H4a1 1 0 00-1 1v2a1 1 0 001 1m8-4v13m0-13s-1.5-4-4.5-4a2 2 0 000 4H12zm0 0s1.5-4 4.5-4a2 2 0 010 4H12z"/></svg>
+        </div>
+        <div class="min-w-0 flex-1">
+            <p class="text-[10px] font-black text-violet-600">باشگاه مشتریان</p>
+            {% if loyalty.available %}
+            <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">{{ loyalty.discount|toman }} تومان تخفیف دارید</h3>
+            <p class="text-xs text-gray-600 leading-6 mt-1">چون در دوره قبل بیش از {{ loyalty.goal|toman }} تومان سفارش تحویل‌گرفته داشتید، تا <b class="text-gray-800">{{ loyalty.ends_on|fa_digits }}</b> می‌توانید آن را روی یک سفارش آنلاین اعمال کنید.</p>
+            {% elif loyalty.used_order_id %}
+            <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">تخفیف این دوره استفاده شد</h3>
+            <p class="text-xs text-gray-600 leading-6 mt-1">تخفیف {{ loyalty.discount|toman }} تومانی روی فاکتور #{{ loyalty.used_order_id|fa_digits }} اعمال شد.</p>
+            {% elif not loyalty.started %}
+            <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">هر ماه {{ loyalty.goal|toman }}، ماه بعد {{ loyalty.discount|toman }} تومان تخفیف</h3>
+            <p class="text-xs text-gray-600 leading-6 mt-1">از اولین تحویل سفارش‌تان، هر {{ loyalty.period_days|fa_digits }} روز که جمع سفارش‌های تحویل‌گرفته و پرداخت‌شده‌تان به {{ loyalty.goal|toman }} تومان برسد، در {{ loyalty.period_days|fa_digits }} روز بعد {{ loyalty.discount|toman }} تومان تخفیف برای یک سفارش می‌گیرید.</p>
+            {% elif loyalty.reached %}
+            <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">تخفیف ماه بعد را گرفتید!</h3>
+            <p class="text-xs text-gray-600 leading-6 mt-1">از <b class="text-gray-800">{{ loyalty.next_starts_on|fa_digits }}</b> به مدت {{ loyalty.period_days|fa_digits }} روز، {{ loyalty.discount|toman }} تومان تخفیف برای یک سفارش دارید.</p>
+            {% else %}
+            <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">{{ loyalty.remaining|toman }} تومان تا تخفیف ماه بعد</h3>
+            <p class="text-xs text-gray-600 leading-6 mt-1">اگر تا <b class="text-gray-800">{{ loyalty.ends_on|fa_digits }}</b> جمع سفارش‌های تحویل‌گرفته و پرداخت‌شده‌تان به {{ loyalty.goal|toman }} تومان برسد، ماه بعد {{ loyalty.discount|toman }} تومان تخفیف می‌گیرید.</p>
+            {% endif %}
+
+            {% if loyalty.started %}
+            <div class="mt-3">
+                <div class="flex items-center justify-between gap-2 text-[10px] font-bold text-gray-500 mb-1.5">
+                    <span>خرید این دوره: <b class="text-gray-800">{{ loyalty.spent|toman }}</b> از {{ loyalty.goal|toman }} تومان</span>
+                    <span class="whitespace-nowrap">{{ loyalty.days_left|fa_digits }} روز مانده</span>
+                </div>
+                <div class="loyalty-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ loyalty.progress }}" aria-label="پیشرفت تا تخفیف ماه بعد"><i style="width: {{ loyalty.progress }}%"></i></div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}

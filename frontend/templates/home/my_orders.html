@@ -59,7 +59,7 @@
                                 </div>
                                 <div class="order-mini-stat">
                                     <span>پرداخت</span>
-                                    <strong class="{% if order.is_paid %}paid{% else %}unpaid{% endif %}">{% if order.is_paid %}پرداخت شده{% elif order.price_pending and not order.payment_open %}پس از آماده شدن{% else %}پرداخت نشده{% endif %}</strong>
+                                    <strong class="{% if order.is_paid or order.covered_by_discount %}paid{% else %}unpaid{% endif %}">{% if order.is_paid %}پرداخت شده{% elif order.covered_by_discount %}با تخفیف{% elif order.price_pending and not order.payment_open %}پس از آماده شدن{% else %}پرداخت نشده{% endif %}</strong>
                                 </div>
                                 <div class="order-mini-stat">
                                     <span>اقلام</span>

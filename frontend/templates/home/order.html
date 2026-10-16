@@ -13,6 +13,8 @@
         </div>
     </div>
 
+    {% if loyalty %}<div class="enter mb-5">{% include "components/loyalty_card.html" %}</div>{% endif %}
+
     <form id="order-form" class="panel enter rounded-3xl p-5 sm:p-8" onsubmit="return false;">
         {% csrf_token %}
 

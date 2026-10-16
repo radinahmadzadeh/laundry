@@ -757,6 +757,28 @@ function updateCartUI(){
                 '</li>';
     });
     listEl.innerHTML = keys.length ? html : '<li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکرده‌اید.</li>';
+
+    // Loyalty discount: at most the order's own amount; with unpriced items it comes off the final price.
+    var discountEl = document.getElementById('use-discount');
+    var discountOn = !!(discountEl && discountEl.checked && LOYALTY_DISCOUNT > 0);
+    var discount = discountOn ? (hasUnknown ? LOYALTY_DISCOUNT : Math.min(LOYALTY_DISCOUNT, total)) : 0;
+    var itemsTotal = total;
+    total = Math.max(total - (discountOn ? LOYALTY_DISCOUNT : 0), 0);
+    var discountRow = document.getElementById('cart-discount-row');
+    if (discountRow){
+        discountRow.classList.toggle('hidden', !discountOn);
+        document.getElementById('cart-discount').textContent = (hasUnknown ? 'تا ' : '−') + faNumber(discount) + ' تومان';
+    }
+    var discountHint = document.getElementById('discount-hint');
+    if (discountHint){
+        var hintText = '';
+        if (discountOn && hasUnknown) hintText = 'تخفیف از مبلغ نهایی کم می‌شود، بعد از اینکه قیمت همه اقلام مشخص شد.';
+        else if (discountOn && keys.length && itemsTotal < LOYALTY_DISCOUNT)
+            hintText = 'مبلغ این سفارش از تخفیف کمتر است؛ ' + faNumber(LOYALTY_DISCOUNT - itemsTotal) + ' تومان باقی‌مانده‌ی تخفیف از بین می‌رود. می‌توانید آن را برای سفارش بزرگ‌تری نگه دارید.';
+        discountHint.textContent = hintText;
+        discountHint.classList.toggle('hidden', !hintText);
+    }
+
     document.getElementById('cart-total').innerHTML = faNumber(total) + ' تومان' +
         (hasUnknown ? '<span class="block text-[11px] font-bold text-amber-600 mt-0.5">+ اقلام پس از بررسی</span>' : '');
     if (noteEl) noteEl.classList.toggle('hidden', !hasUnknown);
@@ -956,7 +978,11 @@ function submitOrder(){
 
     var courierActive = document.getElementById('btn-courier-neworder').classList.contains('active');
     var useWalletEl = document.getElementById('use-wallet');
-    var payload = { items: items, delivery_method: courierActive ? 'courier' : 'pickup', use_wallet: !!(useWalletEl && useWalletEl.checked) };
+    var useDiscountEl = document.getElementById('use-discount');
+    var payload = {
+        items: items, delivery_method: courierActive ? 'courier' : 'pickup',
+        use_wallet: !!(useWalletEl && useWalletEl.checked), use_discount: !!(useDiscountEl && useDiscountEl.checked)
+    };
 
     if (courierActive){
         var lat = document.getElementById('lat-neworder').value;
@@ -994,14 +1020,18 @@ function submitOrder(){
             : (data.wallet_insufficient
                 ? 'موجودی کیف پول کافی نبود؛ می‌توانید از صفحه سفارش، آنلاین یا بعد از شارژ کیف پول پرداخت کنید.'
                 : 'برای پرداخت، روی «مشاهده و پرداخت سفارش» بزنید.');
-        var successText = data.price_pending
-            ? 'قیمت برخی اقلام بعد از بررسی لباس مشخص می‌شود؛ وقتی سفارش آماده تحویل شد، مبلغ نهایی اعلام می‌شود و می‌توانید پرداخت کنید.'
-            : 'مبلغ فاکتور: ' + faNumber(data.total) + ' تومان. ' + paymentText;
+        var discountText = data.discount > 0 ? 'تخفیف باشگاه مشتریان (' + faNumber(data.discount) + ' تومان) اعمال شد. ' : '';
+        var successText = data.covered_by_discount
+            ? 'کل مبلغ سفارش با تخفیف باشگاه مشتریان پوشش داده شد؛ پرداختی لازم نیست.'
+            : (data.price_pending
+                ? (data.discount > 0 ? 'تخفیف باشگاه مشتریان برای این سفارش ثبت شد و از مبلغ نهایی کم می‌شود. ' : '') +
+                  'قیمت برخی اقلام بعد از بررسی لباس مشخص می‌شود؛ وقتی سفارش آماده تحویل شد، مبلغ نهایی اعلام می‌شود و می‌توانید پرداخت کنید.'
+                : discountText + 'مبلغ فاکتور: ' + faNumber(data.total) + ' تومان. ' + paymentText);
         document.getElementById('order-success-invoice').textContent = 'شماره فاکتور: ' + faNumber(data.invoice_number || data.order_id);
         document.getElementById('order-success-msg').textContent = successText + ' وضعیت سفارش را همیشه در بخش «سفارش‌های من» می‌بینید.';
         var trackLink = document.getElementById('order-success-track');
         trackLink.href = data.track_url;
-        if (data.price_pending) trackLink.textContent = 'مشاهده سفارش';
+        if (data.price_pending || data.covered_by_discount) trackLink.textContent = 'مشاهده سفارش';
         document.getElementById('order-form').querySelectorAll('input, textarea, .qty-btn, .item-note-toggle, .cat-tag, .delivery-tab, #submit-order-btn').forEach(function(el){ el.disabled = true; });
         btn.innerHTML = '✓ سفارش ثبت شد';
         btn.classList.remove('opacity-75');

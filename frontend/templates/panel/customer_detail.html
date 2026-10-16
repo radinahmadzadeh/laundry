@@ -21,6 +21,18 @@
     <div class="panel rounded-2xl p-4"><p class="text-[10px] text-gray-500">مجموع پرداخت‌ها</p><p class="text-sm font-black text-violet-300 mt-3"><span class="money-auto">{{ total_spent }}</span> تومان</p></div>
 </div>
 
+<div class="panel rounded-2xl p-4 mb-5 text-xs leading-6 text-gray-300">
+    <p class="text-[10px] font-black text-violet-300 mb-1">باشگاه مشتریان</p>
+    {% if not loyalty.started %}
+    هنوز سفارشی به این مشتری تحویل نشده؛ دوره‌های {{ loyalty.period_days }} روزه از اولین تحویل شروع می‌شوند.
+    {% else %}
+    دوره {{ loyalty.period_number }} (تا {{ loyalty.ends_on }}، {{ loyalty.days_left }} روز مانده):
+    <b class="text-white"><span class="money-auto">{{ loyalty.spent }}</span></b> از <span class="money-auto">{{ loyalty.goal }}</span> تومان.
+    {% if loyalty.available %}<span class="text-emerald-300 font-bold">تخفیف <span class="money-auto">{{ loyalty.discount }}</span> تومانی این دوره را دارد و هنوز استفاده نکرده.</span>
+    {% elif loyalty.used_order_id %}<span class="text-emerald-300">تخفیف این دوره روی <a class="underline" href="{% url 'panel_order_detail' loyalty.used_order_id %}">فاکتور #{{ loyalty.used_order_id }}</a> استفاده شده.</span>{% endif %}
+    {% endif %}
+</div>
+
 <div class="panel rounded-2xl p-5 mb-5 motion-card">
     <div class="flex items-center justify-between mb-4"><h2 class="font-black text-white">ویرایش اطلاعات مشتری</h2><span class="text-[10px] text-cyan-300">قابل ویرایش توسط مدیریت</span></div>
     <form method="post" action="{% url 'panel_customer_update' customer.id %}" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">

@@ -25,6 +25,8 @@ class Customer(models.Model):
     address_latitude = models.CharField(max_length=50, blank=True, default='', verbose_name='عرض جغرافیایی آدرس')
     address_longitude = models.CharField(max_length=50, blank=True, default='', verbose_name='طول جغرافیایی آدرس')
     address_postal_code = models.CharField(max_length=10, blank=True, default='', verbose_name='کد پستی آدرس')
+    # Set once, at the customer's first delivered order; the 30-day loyalty periods count from here.
+    loyalty_started_at = models.DateTimeField(null=True, blank=True, verbose_name='شروع باشگاه مشتریان (اولین تحویل)')
 
     class Meta:
         indexes = [models.Index(fields=['name'], name='customer_name_idx')]
@@ -99,6 +101,10 @@ class Order(models.Model):
     is_paid = models.BooleanField(default=False, verbose_name='پرداخت شده')
     # مشتری اقلامی انتخاب کرده که قیمتشان بعد از دیدن لباس مشخص می‌شود؛ پرداخت تا «آماده تحویل» بسته است
     price_pending = models.BooleanField(default=False, verbose_name='قیمت‌گذاری پس از بررسی')
+    delivered_at = models.DateTimeField(null=True, blank=True, verbose_name='زمان تحویل به مشتری')
+    # Loyalty discount used on this order, and the loyalty period it belongs to (one discount per period).
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=0, default=0, verbose_name='تخفیف باشگاه مشتریان')
+    discount_period = models.DateTimeField(null=True, blank=True, verbose_name='دوره تخفیف باشگاه')
 
     # پیک دریافت: وقتی سفارش جدید ثبت می‌شه و مشتری می‌خواد پیک لباس‌های کثیف رو از خونه‌اش تحویل بگیره
     courier_requested = models.BooleanField(default=False, verbose_name='درخواست پیک (دریافت لباس)')
@@ -128,7 +134,32 @@ class Order(models.Model):
             models.Index(fields=['status', '-created_at'], name='order_status_created_idx'),
             models.Index(fields=['courier_requested', 'courier_dispatched'], name='order_pickup_courier_idx'),
             models.Index(fields=['delivery_courier_requested', 'delivery_courier_dispatched'], name='order_delivery_courier_idx'),
+            models.Index(fields=['customer', 'delivered_at'], name='order_customer_delivered_idx'),
         ]
+        constraints = [
+            # A customer can use the loyalty discount on only one order per period, even with parallel requests.
+            models.UniqueConstraint(
+                fields=['customer', 'discount_period'], condition=models.Q(discount_period__isnull=False),
+                name='order_one_discount_per_period',
+            ),
+        ]
+
+    def save(self, *args, **kwargs):
+        # Remember when the order was handed over: loyalty periods and spending count from that moment.
+        update_fields = kwargs.get('update_fields')
+        status_saved = update_fields is None or 'status' in update_fields
+        if status_saved:
+            if self.status == 'delivered' and not self.delivered_at:
+                self.delivered_at = timezone.now()
+            elif self.status != 'delivered':
+                self.delivered_at = None
+            if update_fields is not None:
+                kwargs['update_fields'] = {*update_fields, 'delivered_at'}
+        super().save(*args, **kwargs)
+        if status_saved and self.delivered_at:
+            Customer.objects.filter(pk=self.customer_id, loyalty_started_at__isnull=True).update(
+                loyalty_started_at=self.delivered_at
+            )
 
     @property
     def shamsi_date(self):
@@ -226,9 +257,25 @@ class Order(models.Model):
         return sum(item.price * item.quantity for item in self.orderitem_set.all())
 
     @property
+    def discount_applied(self):
+        """The part of the loyalty discount this order actually uses (never more than its items)."""
+        return min(int(self.discount_amount), int(self.subtotal_amount))
+
+    def recalculate_total(self):
+        self.total_price = max(int(self.subtotal_amount) - int(self.discount_amount), 0)
+
+    @property
+    def covered_by_discount(self):
+        """Everything is priced and the loyalty discount pays all of it: nothing left to pay."""
+        return (self.discount_amount > 0 and self.total_price <= 0 and self.subtotal_amount > 0
+                and not self.has_unpriced_items)
+
+    @property
     def tax_amount(self):
         """Tax is no longer charged; only orders paid back when it was still added carry it in their total."""
-        return max(int(self.total_price) - int(self.subtotal_amount), 0) if self.is_paid else 0
+        if not self.is_paid or self.discount_amount:
+            return 0
+        return max(int(self.total_price) - int(self.subtotal_amount), 0)
 
     @property
     def has_unpriced_items(self):
@@ -260,13 +307,13 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        self.order.total_price = sum(item.price * item.quantity for item in self.order.orderitem_set.all())
+        self.order.recalculate_total()
         self.order.save()
 
     def delete(self, *args, **kwargs):
         order = self.order
         super().delete(*args, **kwargs)
-        order.total_price = sum(item.price * item.quantity for item in order.orderitem_set.all())
+        order.recalculate_total()
         order.save()
 
     def __str__(self):

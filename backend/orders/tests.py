@@ -1,11 +1,14 @@
 import json
 import re
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
+from .loyalty import loyalty_status
 from .models import Customer, Order, OrderItem, Wallet, WalletTransaction
 
 
@@ -542,6 +545,166 @@ class PricePendingPaymentTests(TestCase):
         staff.force_login(get_user_model().objects.create_user('pending-staff', password='x', is_staff=True))
         response = staff.post(reverse('panel_order_status', args=[order.id]), {'status': 'ready'}, follow=True)
         self.assertContains(response, 'مشتری نمی‌تواند این فاکتور را پرداخت کند')
+
+
+class LoyaltyTests(TestCase):
+    """5,000,000 toman delivered and paid in one 30-day period -> 500,000 off one order in the next period."""
+
+    def setUp(self):
+        from .models import PriceCategory, PriceItem
+        self.customer = Customer.objects.create(name='وفادار', phone='09120000041')
+        men = PriceCategory.objects.create(name='مردانه')
+        self.shirt = PriceItem.objects.create(category=men, name='پیراهن', dry_clean_price='220000')
+        self.coat = PriceItem.objects.create(category=men, name='کاپشن', dry_clean_price='')
+        self.suit = PriceItem.objects.create(category=men, name='کت', dry_clean_price='600000')
+        self.client = login_customer(Client(), self.customer)
+        self.now = timezone.now()
+
+    def delivered_order(self, amount, days_ago, paid=True):
+        order = Order.objects.create(customer=self.customer)
+        OrderItem.objects.create(order=order, item_name='کت', quantity=1, price=amount)
+        Order.objects.filter(pk=order.pk).update(
+            status='delivered', delivered_at=self.now - timedelta(days=days_ago), is_paid=paid)
+        return order
+
+    def start_club(self, days_ago):
+        Customer.objects.filter(pk=self.customer.pk).update(loyalty_started_at=self.now - timedelta(days=days_ago))
+        self.customer.refresh_from_db()
+
+    def earn_discount(self):
+        # Period 1 began 35 days ago, so period 2 (now) began 5 days ago.
+        self.start_club(35)
+        self.delivered_order(3_000_000, 30)
+        self.delivered_order(2_000_000, 10)
+
+    def place(self, *items, **extra):
+        payload = {'items': [{'line_id': p.id, 'quantity': 1} for p in items], **extra}
+        return self.client.post(reverse('place_order'), json.dumps(payload), content_type='application/json')
+
+    def test_first_delivery_starts_the_club_once(self):
+        first = Order.objects.create(customer=self.customer)
+        first.status = 'delivered'
+        first.save()
+        self.customer.refresh_from_db()
+        started = self.customer.loyalty_started_at
+        self.assertIsNotNone(first.delivered_at)
+        self.assertEqual(started, first.delivered_at)
+        second = Order.objects.create(customer=self.customer, status='delivered')
+        self.customer.refresh_from_db()
+        self.assertEqual(self.customer.loyalty_started_at, started)
+        # Moving an order back out of «delivered» clears its delivery time.
+        second.status = 'ready'
+        second.save()
+        self.assertIsNone(second.delivered_at)
+
+    def test_no_discount_before_it_is_earned(self):
+        self.assertFalse(loyalty_status(self.customer)['available'])
+        response = self.place(self.suit, use_discount=True)
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(Order.objects.count(), 0)
+
+    def test_unpaid_or_short_spending_does_not_qualify(self):
+        self.start_club(35)
+        self.delivered_order(4_000_000, 30)
+        self.delivered_order(900_000, 20)
+        self.delivered_order(3_000_000, 15, paid=False)
+        status = loyalty_status(self.customer)
+        self.assertTrue(status['started'])
+        self.assertFalse(status['available'])
+
+    def test_earned_discount_is_used_once(self):
+        self.earn_discount()
+        self.assertTrue(loyalty_status(self.customer)['available'])
+        data = self.place(self.suit, self.suit, use_discount=True).json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['discount'], 500_000)
+        order = Order.objects.get(id=data['order_id'])
+        self.assertEqual(order.total_price, Decimal('700000'))
+        # A second try (double tap, another tab) is refused, and nothing is created.
+        count = Order.objects.count()
+        self.assertEqual(self.place(self.suit, use_discount=True).status_code, 409)
+        self.assertEqual(Order.objects.count(), count)
+        status = loyalty_status(self.customer)
+        self.assertEqual((status['available'], status['used_order_id']), (False, order.id))
+        # Orders without the discount still work.
+        self.assertEqual(self.place(self.suit).json()['total'], 600000)
+
+    def test_only_true_counts_as_asking_for_the_discount(self):
+        self.earn_discount()
+        data = self.place(self.suit, use_discount='true').json()
+        self.assertEqual((data['total'], data['discount']), (600000, 0))
+
+    def test_parallel_orders_cannot_both_get_it(self):
+        from unittest import mock
+        self.earn_discount()
+        status = loyalty_status(self.customer)
+        Order.objects.create(customer=self.customer, discount_amount=500_000, discount_period=status['period_start'])
+        # The other request had already checked and still saw the discount as available.
+        with mock.patch('orders.views.loyalty_status', return_value=status):
+            response = self.place(self.suit, use_discount=True)
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(Order.objects.filter(discount_amount__gt=0).count(), 1)
+
+    def test_discount_does_not_carry_over(self):
+        # Earned in period 1, never used in period 2, nothing bought in period 2: nothing in period 3.
+        self.start_club(65)
+        self.delivered_order(5_000_000, 60)
+        self.assertFalse(loyalty_status(self.customer)['available'])
+
+    def test_deleted_order_gives_the_discount_back(self):
+        self.earn_discount()
+        order = Order.objects.get(id=self.place(self.suit, use_discount=True).json()['order_id'])
+        order.delete()
+        self.assertTrue(loyalty_status(self.customer)['available'])
+
+    def test_small_order_is_fully_covered_and_never_negative(self):
+        self.earn_discount()
+        Wallet.objects.create(customer=self.customer, balance=Decimal('1000000'))
+        data = self.place(self.shirt, use_discount=True, use_wallet=True).json()
+        order = Order.objects.get(id=data['order_id'])
+        self.assertEqual((order.total_price, order.discount_applied), (0, 220000))
+        self.assertTrue(data['covered_by_discount'])
+        self.assertFalse(data['paid_by_wallet'])
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('1000000'))
+        page = self.client.get(reverse('home'), {'order_id': order.id}).content.decode()
+        self.assertIn('کل مبلغ با تخفیف باشگاه پوشش داده شد', page)
+        self.assertNotIn(f'href="{reverse("request_payment", args=[order.id])}"', page)
+
+    def test_discount_comes_off_the_final_price_of_unpriced_items(self):
+        self.earn_discount()
+        order = Order.objects.get(id=self.place(self.shirt, self.coat, use_discount=True).json()['order_id'])
+        self.assertTrue(order.has_unpriced_items)
+        self.assertFalse(order.covered_by_discount)
+        coat = order.orderitem_set.get(price=0)
+        coat.price = 600000
+        coat.save()
+        order.refresh_from_db()
+        self.assertEqual(order.total_price, Decimal('320000'))
+
+    def test_paid_discounted_order_counts_what_was_paid(self):
+        self.earn_discount()
+        order = Order.objects.get(id=self.place(self.suit, use_discount=True).json()['order_id'])
+        Order.objects.filter(pk=order.pk).update(status='delivered', delivered_at=self.now, is_paid=True)
+        self.assertEqual(loyalty_status(self.customer)['spent'], 100000)
+
+    def test_staff_moving_the_order_to_someone_else_drops_the_discount(self):
+        self.earn_discount()
+        order = Order.objects.get(id=self.place(self.suit, use_discount=True).json()['order_id'])
+        other = Customer.objects.create(name='دیگری', phone='09120000042')
+        staff = Client()
+        staff.force_login(get_user_model().objects.create_user('loyal-staff', password='x', is_staff=True))
+        staff.post(reverse('panel_order_update', args=[order.id]), {'customer_id': other.id, 'status': order.status})
+        order.refresh_from_db()
+        self.assertEqual((order.customer_id, order.discount_amount, order.total_price), (other.id, 0, Decimal('600000')))
+
+    def test_customer_sees_the_club(self):
+        page = self.client.get(reverse('home')).content.decode()
+        self.assertIn('باشگاه مشتریان', page)
+        self.assertNotIn('id="use-discount"', page)
+        self.earn_discount()
+        page = self.client.get(reverse('home')).content.decode()
+        self.assertIn('id="use-discount"', page)
+        self.assertIn('باشگاه مشتریان', self.client.get(reverse('account')).content.decode())
 
 
 class HomeMessagesTests(TestCase):

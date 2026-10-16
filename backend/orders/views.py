@@ -9,13 +9,14 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.views import redirect_to_login
 from django.core.cache import cache
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.db import transaction
+from django.db import IntegrityError, transaction
 import re
 from django.utils import timezone
 from .models import Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 from .templatetags.fa_format import fa_digits, toman
 from .postal import lookup_postal_code, normalize_postal, postal_format_error
 from .insights import customer_insights
+from .loyalty import loyalty_status
 from django.db.models import Avg, Count, F
 
 
@@ -42,6 +43,7 @@ def home(request):
     orders = None
     customer_orders = None
     wallet = None
+    loyalty = None
     tracking_error = None
 
     if customer_logged_in:
@@ -50,6 +52,7 @@ def home(request):
             phone_number = customer.phone
             customer_name = customer.name
             wallet, _ = Wallet.objects.get_or_create(customer=customer)
+            loyalty = loyalty_status(customer)
             customer_orders = list(
                 Order.objects.filter(customer=customer)
                 .select_related('review')
@@ -98,6 +101,7 @@ def home(request):
         'shop_map_point': shop.map_point,
         'categories': categories,
         'wallet': wallet,
+        'loyalty': loyalty,
         'tracking_error': tracking_error,
         'saved_address': customer if customer_logged_in and customer.has_saved_address else None,
         'courier_watch': courier_watch,
@@ -186,7 +190,9 @@ def account_page(request):
         return redirect('account')
 
     wallet, _ = Wallet.objects.get_or_create(customer=customer)
-    return render(request, 'account.html', {'customer': customer, 'wallet': wallet, 'insights': customer_insights(customer)})
+    return render(request, 'account.html', {
+        'customer': customer, 'wallet': wallet, 'insights': customer_insights(customer), 'loyalty': loyalty_status(customer),
+    })
 
 
 def wallet_page(request):
@@ -841,7 +847,8 @@ def place_order(request):
         "items": [{"line_id": 12, "quantity": 2, "iron_only": false, "price_numeric": 220000, "description": "..."}],
         "delivery_method": "pickup" | "courier",
         "lat": "...", "lng": "...", "postal": "...", "address": "...", "save_address": true,  # فقط برای پیک
-        "use_wallet": false
+        "use_wallet": false,
+        "use_discount": false  # تخفیف باشگاه مشتریان؛ سرور خودش بررسی می‌کند که مشتری واقعاً آن را دارد
     }
     همه‌چیز قبل از ساختن سفارش بررسی می‌شود و سفارش در یک تراکنش ساخته می‌شود؛ پس هیچ خطایی
     سفارش نیمه‌کاره یا خالی باقی نمی‌گذارد. اقلامی که قیمتشان «در حال هماهنگی» است با قیمت صفر
@@ -908,8 +915,46 @@ def place_order(request):
         if error:
             return order_error(error)
 
+    loyalty = None
+    if data.get('use_discount') is True:
+        # Never trust the page: the discount must really be available to this customer right now.
+        loyalty = loyalty_status(logged_customer)
+        if not loyalty['available']:
+            return order_error(LOYALTY_UNAVAILABLE, status=409)
+
+    try:
+        order = create_online_order(logged_customer, lines, total, courier, location, data, loyalty)
+    except IntegrityError:
+        # Two orders with the discount at the same moment (double tap, two tabs): only one may have it.
+        return order_error(LOYALTY_UNAVAILABLE, status=409)
+
+    payment = None
+    if data.get('use_wallet') is True and order.payment_open:
+        payment = pay_order_from_wallet(order, logged_customer.id)
+
+    return JsonResponse({
+        'status': 'success',
+        'order_id': order.id,
+        'invoice_number': order.id,
+        'total': int(order.total_price),
+        'discount': order.discount_applied,
+        'paid_by_wallet': payment == 'paid',
+        'wallet_insufficient': payment == 'insufficient',
+        'price_pending': order.price_pending,
+        'covered_by_discount': order.covered_by_discount,
+        'track_url': f"{reverse('home')}?order_id={order.id}#track-section",
+    })
+
+
+LOYALTY_UNAVAILABLE = 'تخفیف باشگاه مشتریان برای این سفارش در دسترس نیست (یا قبلاً استفاده شده است)؛ صفحه را تازه کنید.'
+
+
+def create_online_order(customer, lines, total, courier, location, data, loyalty):
     with transaction.atomic():
-        order = Order(customer=logged_customer, price_pending=any(price <= 0 for _, _, _, price, _ in lines))
+        order = Order(customer=customer, price_pending=any(price <= 0 for _, _, _, price, _ in lines))
+        if loyalty:
+            order.discount_amount = loyalty['discount']
+            order.discount_period = loyalty['period_start']
         if courier:
             # لباس‌ها هنوز دست ما نرسیده؛ تا وقتی پیک آن‌ها را بیاورد سفارش در مرحله «جمع‌آوری» است
             order.status = 'collecting'
@@ -922,25 +967,10 @@ def place_order(request):
                       quantity=quantity, price=price, description=description)
             for price_item, iron_only, quantity, price, description in lines
         ])
-        order.total_price = total
+        order.total_price = max(total - int(order.discount_amount), 0)
         order.save(update_fields=['total_price'])
         if courier and data.get('save_address') is True:
-            (logged_customer.address_latitude, logged_customer.address_longitude,
-             logged_customer.address_postal_code) = location
-            logged_customer.address = order.address[:1000]
-            logged_customer.save(update_fields=['address', 'address_latitude', 'address_longitude', 'address_postal_code'])
-
-    payment = None
-    if data.get('use_wallet') is True and order.payment_open:
-        payment = pay_order_from_wallet(order, logged_customer.id)
-
-    return JsonResponse({
-        'status': 'success',
-        'order_id': order.id,
-        'invoice_number': order.id,
-        'total': int(order.total_price),
-        'paid_by_wallet': payment == 'paid',
-        'wallet_insufficient': payment == 'insufficient',
-        'price_pending': order.price_pending,
-        'track_url': f"{reverse('home')}?order_id={order.id}#track-section",
-    })
+            (customer.address_latitude, customer.address_longitude, customer.address_postal_code) = location
+            customer.address = order.address[:1000]
+            customer.save(update_fields=['address', 'address_latitude', 'address_longitude', 'address_postal_code'])
+    return order

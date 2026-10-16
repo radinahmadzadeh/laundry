@@ -190,6 +190,11 @@
             <div class="flex justify-between"><span>جمع اقلام:</span><span class="text-white money-auto">{{ order.subtotal_amount }}</span></div>
             <div class="flex justify-between"><span>مالیات (سفارش قدیمی):</span><span class="text-white money-auto">{{ order.tax_amount }}</span></div>
             {% endif %}
+            {% if order.discount_amount %}
+            <div class="flex justify-between"><span>جمع اقلام:</span><span class="text-white money-auto">{{ order.subtotal_amount }}</span></div>
+            <div class="flex justify-between text-emerald-300"><span>تخفیف باشگاه مشتریان:</span><span>−<span class="money-auto">{{ order.discount_applied }}</span></span></div>
+            {% if order.covered_by_discount %}<p class="text-[11px] text-emerald-300 font-bold">کل مبلغ با تخفیف پوشش داده شده؛ پرداختی لازم نیست.</p>{% endif %}
+            {% endif %}
             <div class="flex justify-between font-bold text-sm pt-2 border-t border-white/10"><span>مبلغ نهایی:</span><span class="text-[var(--cyan)] money-auto">{{ order.total_price }}</span></div>
         </div>
     </div>
