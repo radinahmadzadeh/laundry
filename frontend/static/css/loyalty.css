@@ -1,0 +1,44 @@
+/* Loyalty club card (components/loyalty_card.html) and the discount option in the order summary. */
+.loyalty-card{position:relative;overflow:hidden;isolation:isolate;background:linear-gradient(135deg,#f5f3ff,#ecfeff);border-color:#e9e3ff}
+.loyalty-card.is-ready{background:linear-gradient(135deg,#ecfdf5,#f5f3ff);border-color:#a7f3d0;box-shadow:0 18px 40px -28px rgba(16,185,129,.55)}
+.loyalty-ico{background:#fff;border:1px solid #e9e3ff;color:#7c3aed}
+.loyalty-card.is-ready .loyalty-ico{color:#059669;border-color:#a7f3d0}
+.loyalty-bar{height:8px;border-radius:999px;background:rgba(124,58,237,.1);overflow:hidden}
+.loyalty-bar i{position:relative;display:block;height:100%;border-radius:inherit;overflow:hidden;background:linear-gradient(270deg,#22d3ee,#8b5cf6)}
+
+/* Motion: js/loyalty-motion.js adds .loyalty-anim, then .is-live once the card is in view. */
+.loyalty-anim .loyalty-bar i{transition:width 1.2s cubic-bezier(.16,1,.3,1) .25s}
+.loyalty-anim:not(.is-live) .loyalty-bar i{width:0!important}
+.loyalty-anim .loyalty-bar i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);transform:translateX(120%)}
+.loyalty-anim.is-live .loyalty-bar i::after{animation:loyaltyShine 1s ease-in-out 1.5s both}
+.loyalty-anim.is-live .loyalty-ico svg{animation:loyaltyGift .9s cubic-bezier(.3,1.6,.5,1) .2s both}
+/* A card with a discount waiting: a light sweeps across it, and the gift keeps a soft glow. */
+.loyalty-anim.is-ready::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%);transform:translateX(110%)}
+.loyalty-anim.is-ready.is-live::before{animation:loyaltySweep 1.6s ease-in-out .6s both}
+.loyalty-anim.is-ready.is-live .loyalty-ico{animation:loyaltyGlow 2.4s ease-in-out 1.4s 3}
+@keyframes loyaltyShine{to{transform:translateX(-120%)}}
+@keyframes loyaltySweep{to{transform:translateX(-110%)}}
+@keyframes loyaltyGift{0%{transform:scale(.4) rotate(-25deg);opacity:0}60%{transform:scale(1.15) rotate(8deg);opacity:1}80%{transform:rotate(-6deg)}100%{transform:none}}
+@keyframes loyaltyGlow{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}50%{box-shadow:0 0 0 6px rgba(16,185,129,.16)}}
+
+@media (hover:hover) and (pointer:fine){
+    .loyalty-card{transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s ease}
+    .loyalty-card:hover{transform:translateY(-2px);box-shadow:0 22px 44px -30px rgba(124,58,237,.5)}
+    .loyalty-ico{transition:transform .35s cubic-bezier(.3,1.6,.5,1)}
+    .loyalty-card:hover .loyalty-ico{transform:rotate(-8deg) scale(1.08)}
+}
+
+/* Order summary: the discount option lights up when ticked, its row slides in and the total bumps. */
+#discount-option{transition:background-color .25s ease,border-color .25s ease,box-shadow .25s ease}
+#discount-option:has(input:checked){background:#f5f3ff;border-color:#a78bfa;box-shadow:0 12px 26px -20px rgba(124,58,237,.6)}
+#discount-option input:checked{animation:loyaltyTick .35s cubic-bezier(.3,1.8,.5,1)}
+.loyalty-slide{animation:loyaltySlide .4s cubic-bezier(.2,.8,.2,1) both}
+.loyalty-bump{animation:loyaltyBump .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes loyaltyTick{0%{transform:scale(.6)}100%{transform:none}}
+@keyframes loyaltySlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@keyframes loyaltyBump{0%{transform:scale(1)}40%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+@media (prefers-reduced-motion:reduce){
+    .loyalty-card,.loyalty-card:hover,.loyalty-bar i,#discount-option{transition:none;transform:none}
+    .loyalty-card *,.loyalty-card::before,.loyalty-bar i::after,#discount-option input,.loyalty-slide,.loyalty-bump{animation:none!important}
+}

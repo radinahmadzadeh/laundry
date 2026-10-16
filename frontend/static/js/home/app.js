@@ -798,6 +798,15 @@ function updateCartUI(){
     }
 }
 
+// Ticking the loyalty discount: its row slides in and the total gives a little bump.
+function toggleDiscount(input){
+    updateCartUI();
+    if (!input.checked) return;
+    var row = document.getElementById('cart-discount-row');
+    if (row) replayClass(row, 'loyalty-slide');
+    replayClass(document.getElementById('cart-total'), 'loyalty-bump');
+}
+
 function toggleIronOnly(itemId, checked){
     itemIronOnly[itemId] = checked;
     var cardEl = document.getElementById('item-card-' + itemId);

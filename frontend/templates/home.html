@@ -17,7 +17,8 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.css" media="print" onload="this.media='all'" />
     <script src="https://unpkg.com/leaflet-gesture-handling@1.2.2/dist/leaflet-gesture-handling.min.js" defer></script>
-    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/home.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/loyalty.css' %}?v=1">
     <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=3">
 </head>
 <body class="min-h-screen">
@@ -49,8 +50,9 @@
     {# Overlays and scripts. #}
     {% include "home/review_modal.html" %}
     {% include "home/page_data.html" %}
-    <script src="{% static 'js/home/app.js' %}?v=4"></script>
+    <script src="{% static 'js/home/app.js' %}?v=5"></script>
     <script src="{% static 'js/home/scroll-motion.js' %}?v=1"></script>
+    <script src="{% static 'js/loyalty-motion.js' %}?v=1"></script>
     <script src="{% static 'js/home/services-motion.js' %}?v=1"></script>
     <script src="{% static 'js/form-errors.js' %}?v=1" defer></script>
     <script src="{% static 'js/neshan-links.js' %}?v=1" defer></script>

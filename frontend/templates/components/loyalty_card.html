@@ -28,7 +28,7 @@
             {% if loyalty.started %}
             <div class="mt-3">
                 <div class="flex items-center justify-between gap-2 text-[10px] font-bold text-gray-500 mb-1.5">
-                    <span>خرید این دوره: <b class="text-gray-800">{{ loyalty.spent|toman }}</b> از {{ loyalty.goal|toman }} تومان</span>
+                    <span>خرید این دوره: <b class="text-gray-800" data-loyalty-count="{{ loyalty.spent }}">{{ loyalty.spent|toman }}</b> از {{ loyalty.goal|toman }} تومان</span>
                     <span class="whitespace-nowrap">{{ loyalty.days_left|fa_digits }} روز مانده</span>
                 </div>
                 <div class="loyalty-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ loyalty.progress }}" aria-label="پیشرفت تا تخفیف ماه بعد"><i style="width: {{ loyalty.progress }}%"></i></div>

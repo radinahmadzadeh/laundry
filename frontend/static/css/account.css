@@ -206,12 +206,3 @@ body{font-family:Vazirmatn,sans-serif;position:relative;isolation:isolate;color:
   .ac-hero,.ac-hero::before,.ac-hero::after,.ac-avatar,.ac-hello,.ac-name,.ac-phone,.ac-wallet,.ac-wallet::after,.ac-chip,.ac-chip.live i,.ac-bar i::after{animation:none !important}
   .ac-stat::before{transform:scaleX(1);transition:none}
 }
-
-/* Loyalty club card (components/loyalty_card.html) */
-.loyalty-card{background:linear-gradient(135deg,#f5f3ff,#ecfeff);border-color:#e9e3ff}
-.loyalty-card.is-ready{background:linear-gradient(135deg,#ecfdf5,#f5f3ff);border-color:#a7f3d0;box-shadow:0 18px 40px -28px rgba(16,185,129,.55)}
-.loyalty-ico{background:#fff;border:1px solid #e9e3ff;color:#7c3aed}
-.loyalty-card.is-ready .loyalty-ico{color:#059669;border-color:#a7f3d0}
-.loyalty-bar{height:8px;border-radius:999px;background:rgba(124,58,237,.1);overflow:hidden}
-.loyalty-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(270deg,#22d3ee,#8b5cf6);transition:width .8s cubic-bezier(.16,1,.3,1)}
-@media (prefers-reduced-motion:reduce){.loyalty-bar i{transition:none}}
