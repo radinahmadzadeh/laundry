@@ -25,11 +25,15 @@ class Customer(models.Model):
     address_latitude = models.CharField(max_length=50, blank=True, default='', verbose_name='عرض جغرافیایی آدرس')
     address_longitude = models.CharField(max_length=50, blank=True, default='', verbose_name='طول جغرافیایی آدرس')
     address_postal_code = models.CharField(max_length=10, blank=True, default='', verbose_name='کد پستی آدرس')
-    # Set once, at the customer's first delivered order; the 30-day loyalty periods count from here.
-    loyalty_started_at = models.DateTimeField(null=True, blank=True, verbose_name='شروع باشگاه مشتریان (اولین تحویل)')
+    # Set once, at the customer's first payment or delivery; the 30-day loyalty periods count from here.
+    loyalty_started_at = models.DateTimeField(null=True, blank=True, verbose_name='شروع باشگاه مشتریان')
 
     class Meta:
         indexes = [models.Index(fields=['name'], name='customer_name_idx')]
+
+    @staticmethod
+    def start_loyalty(customer_id, moment):
+        Customer.objects.filter(pk=customer_id, loyalty_started_at__isnull=True).update(loyalty_started_at=moment)
 
     @property
     def has_saved_address(self):
@@ -102,6 +106,7 @@ class Order(models.Model):
     # مشتری اقلامی انتخاب کرده که قیمتشان بعد از دیدن لباس مشخص می‌شود؛ پرداخت تا «آماده تحویل» بسته است
     price_pending = models.BooleanField(default=False, verbose_name='قیمت‌گذاری پس از بررسی')
     delivered_at = models.DateTimeField(null=True, blank=True, verbose_name='زمان تحویل به مشتری')
+    paid_at = models.DateTimeField(null=True, blank=True, verbose_name='زمان پرداخت')
     # Loyalty discount used on this order, and the loyalty period it belongs to (one discount per period).
     discount_amount = models.DecimalField(max_digits=10, decimal_places=0, default=0, verbose_name='تخفیف باشگاه مشتریان')
     discount_period = models.DateTimeField(null=True, blank=True, verbose_name='دوره تخفیف باشگاه')
@@ -135,6 +140,7 @@ class Order(models.Model):
             models.Index(fields=['courier_requested', 'courier_dispatched'], name='order_pickup_courier_idx'),
             models.Index(fields=['delivery_courier_requested', 'delivery_courier_dispatched'], name='order_delivery_courier_idx'),
             models.Index(fields=['customer', 'delivered_at'], name='order_customer_delivered_idx'),
+            models.Index(fields=['customer', 'paid_at'], name='order_customer_paid_idx'),
         ]
         constraints = [
             # A customer can use the loyalty discount on only one order per period, even with parallel requests.
@@ -145,21 +151,37 @@ class Order(models.Model):
         ]
 
     def save(self, *args, **kwargs):
-        # Remember when the order was handed over: loyalty periods and spending count from that moment.
+        # Remember when the order was paid and handed over: loyalty spending counts by payment time,
+        # and the customer's loyalty periods start at their first payment or delivery.
         update_fields = kwargs.get('update_fields')
-        status_saved = update_fields is None or 'status' in update_fields
-        if status_saved:
+        extra = set()
+        if update_fields is None or 'status' in update_fields:
             if self.status == 'delivered' and not self.delivered_at:
                 self.delivered_at = timezone.now()
             elif self.status != 'delivered':
                 self.delivered_at = None
-            if update_fields is not None:
-                kwargs['update_fields'] = {*update_fields, 'delivered_at'}
+            extra.add('delivered_at')
+        if update_fields is None or 'is_paid' in update_fields:
+            if self.is_paid and not self.paid_at:
+                self.paid_at = timezone.now()
+            elif not self.is_paid:
+                self.paid_at = None
+            extra.add('paid_at')
+        if update_fields is not None:
+            kwargs['update_fields'] = {*update_fields, *extra}
         super().save(*args, **kwargs)
-        if status_saved and self.delivered_at:
-            Customer.objects.filter(pk=self.customer_id, loyalty_started_at__isnull=True).update(
-                loyalty_started_at=self.delivered_at
-            )
+        moments = [m for m in (self.paid_at, self.delivered_at) if m]
+        if moments:
+            Customer.start_loyalty(self.customer_id, min(moments))
+
+    @classmethod
+    def mark_paid(cls, order_id, customer_id):
+        """Mark an unpaid order paid exactly once (safe against parallel requests). True if this call did it."""
+        now = timezone.now()
+        if not cls.objects.filter(pk=order_id, is_paid=False).update(is_paid=True, paid_at=now):
+            return False
+        Customer.start_loyalty(customer_id, now)
+        return True
 
     @property
     def shamsi_date(self):

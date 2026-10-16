@@ -591,7 +591,7 @@ def verify(request):
     # 100 = verified now. 101 = verified before; only trust it for the order this authority was issued for,
     # otherwise one payment could settle any other order with the same amount.
     if status_code == 200 and (code == 100 or (code == 101 and issued_here)):
-        Order.objects.filter(pk=order.pk, is_paid=False).update(is_paid=True)
+        Order.mark_paid(order.pk, order.customer_id)
         ref_id = str(data.get('ref_id') or '')
         messages.success(request, f'پرداخت فاکتور شماره {fa_digits(order.id)} با موفقیت انجام شد.'
                          + (f' کد پیگیری: {fa_digits(ref_id)}' if ref_id else ''))
@@ -820,7 +820,7 @@ def pay_order_from_wallet(order, customer_id):
         return 'not_ready'
     with transaction.atomic():
         wallet, _ = Wallet.objects.get_or_create(customer_id=customer_id)
-        if not Order.objects.filter(pk=order.pk, is_paid=False).update(is_paid=True):
+        if not Order.mark_paid(order.pk, customer_id):
             return 'already_paid'
         debited = Wallet.objects.filter(pk=wallet.pk, balance__gte=order.total_price).update(
             balance=F('balance') - order.total_price, updated_at=timezone.now()
@@ -837,6 +837,27 @@ def pay_order_from_wallet(order, customer_id):
         )
     order.is_paid = True
     return 'paid'
+
+
+def refund_wallet_payment(order):
+    """Give back what the customer paid for this order from their wallet and not yet got back. Returns the amount.
+
+    Called when staff mark a paid order as unpaid: otherwise the customer could pay for it a second time.
+    """
+    with transaction.atomic():
+        moves = WalletTransaction.objects.filter(order=order).select_for_update()
+        paid = sum(t.amount for t in moves if t.transaction_type == 'debit')
+        returned = sum(t.amount for t in moves if t.transaction_type == 'credit')
+        amount = paid - returned
+        if amount <= 0:
+            return 0
+        wallet = Wallet.objects.get(pk=moves.filter(transaction_type='debit').values_list('wallet_id', flat=True).first())
+        Wallet.objects.filter(pk=wallet.pk).update(balance=F('balance') + amount, updated_at=timezone.now())
+        WalletTransaction.objects.create(
+            wallet=wallet, transaction_type='credit', amount=amount, order=order,
+            description=f'بازگشت وجه فاکتور شماره {order.id} (لغو پرداخت توسط فروشگاه)',
+        )
+    return amount
 
 
 def place_order(request):

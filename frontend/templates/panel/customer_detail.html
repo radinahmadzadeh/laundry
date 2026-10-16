@@ -24,7 +24,7 @@
 <div class="panel rounded-2xl p-4 mb-5 text-xs leading-6 text-gray-300">
     <p class="text-[10px] font-black text-violet-300 mb-1">باشگاه مشتریان</p>
     {% if not loyalty.started %}
-    هنوز سفارشی به این مشتری تحویل نشده؛ دوره‌های {{ loyalty.period_days }} روزه از اولین تحویل شروع می‌شوند.
+    این مشتری هنوز سفارشی پرداخت یا تحویل نگرفته؛ دوره‌های {{ loyalty.period_days }} روزه از اولین پرداخت یا تحویل شروع می‌شوند.
     {% else %}
     دوره {{ loyalty.period_number }} (تا {{ loyalty.ends_on }}، {{ loyalty.days_left }} روز مانده):
     <b class="text-white"><span class="money-auto">{{ loyalty.spent }}</span></b> از <span class="money-auto">{{ loyalty.goal }}</span> تومان.

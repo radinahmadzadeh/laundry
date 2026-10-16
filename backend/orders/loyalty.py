@@ -1,9 +1,10 @@
 """Customer loyalty: spend enough in one 30-day period and get a discount in the next one.
 
-Periods are counted from the customer's first delivered order (Customer.loyalty_started_at), so they never
-shift when staff later change an order. Only orders that were both delivered and paid in a period count,
-at the amount actually paid. The discount can be used on one order, only in the period right after it was
-earned, and never stacks or carries over.
+Periods are counted from the customer's first payment or delivery (Customer.loyalty_started_at), so they
+never shift when staff later change an order. What counts is what the customer paid in a period (online, from
+the wallet or marked paid in the shop), by the moment it was paid, at the amount actually paid; an order that
+staff mark unpaid again stops counting. The discount can be used on one order, only in the period right after
+it was earned, and never stacks or carries over.
 """
 from datetime import timedelta
 
@@ -23,9 +24,9 @@ def shamsi(moment):
 
 
 def paid_in(customer, start, end):
-    """Toman paid for orders delivered between start and end."""
+    """Toman paid for orders between start and end."""
     total = Order.objects.filter(
-        customer=customer, is_paid=True, delivered_at__gte=start, delivered_at__lt=end,
+        customer=customer, is_paid=True, paid_at__gte=start, paid_at__lt=end,
     ).aggregate(total=Sum('total_price'))['total']
     return int(total or 0)
 

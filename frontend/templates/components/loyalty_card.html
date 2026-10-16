@@ -10,19 +10,19 @@
             <p class="text-[10px] font-black text-violet-600">باشگاه مشتریان</p>
             {% if loyalty.available %}
             <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">{{ loyalty.discount|toman }} تومان تخفیف دارید</h3>
-            <p class="text-xs text-gray-600 leading-6 mt-1">چون در دوره قبل بیش از {{ loyalty.goal|toman }} تومان سفارش تحویل‌گرفته داشتید، تا <b class="text-gray-800">{{ loyalty.ends_on|fa_digits }}</b> می‌توانید آن را روی یک سفارش آنلاین اعمال کنید.</p>
+            <p class="text-xs text-gray-600 leading-6 mt-1">چون در دوره قبل بیش از {{ loyalty.goal|toman }} تومان سفارش پرداخت کردید، تا <b class="text-gray-800">{{ loyalty.ends_on|fa_digits }}</b> می‌توانید آن را روی یک سفارش آنلاین اعمال کنید.</p>
             {% elif loyalty.used_order_id %}
             <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">تخفیف این دوره استفاده شد</h3>
             <p class="text-xs text-gray-600 leading-6 mt-1">تخفیف {{ loyalty.discount|toman }} تومانی روی فاکتور #{{ loyalty.used_order_id|fa_digits }} اعمال شد.</p>
             {% elif not loyalty.started %}
             <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">هر ماه {{ loyalty.goal|toman }}، ماه بعد {{ loyalty.discount|toman }} تومان تخفیف</h3>
-            <p class="text-xs text-gray-600 leading-6 mt-1">از اولین تحویل سفارش‌تان، هر {{ loyalty.period_days|fa_digits }} روز که جمع سفارش‌های تحویل‌گرفته و پرداخت‌شده‌تان به {{ loyalty.goal|toman }} تومان برسد، در {{ loyalty.period_days|fa_digits }} روز بعد {{ loyalty.discount|toman }} تومان تخفیف برای یک سفارش می‌گیرید.</p>
+            <p class="text-xs text-gray-600 leading-6 mt-1">از اولین پرداخت سفارش‌تان، هر {{ loyalty.period_days|fa_digits }} روز که جمع سفارش‌های پرداخت‌شده‌تان (آنلاین، کیف پول یا حضوری) به {{ loyalty.goal|toman }} تومان برسد، در {{ loyalty.period_days|fa_digits }} روز بعد {{ loyalty.discount|toman }} تومان تخفیف برای یک سفارش می‌گیرید.</p>
             {% elif loyalty.reached %}
             <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">تخفیف ماه بعد را گرفتید!</h3>
             <p class="text-xs text-gray-600 leading-6 mt-1">از <b class="text-gray-800">{{ loyalty.next_starts_on|fa_digits }}</b> به مدت {{ loyalty.period_days|fa_digits }} روز، {{ loyalty.discount|toman }} تومان تخفیف برای یک سفارش دارید.</p>
             {% else %}
             <h3 class="font-black text-sm sm:text-base text-gray-900 mt-0.5">{{ loyalty.remaining|toman }} تومان تا تخفیف ماه بعد</h3>
-            <p class="text-xs text-gray-600 leading-6 mt-1">اگر تا <b class="text-gray-800">{{ loyalty.ends_on|fa_digits }}</b> جمع سفارش‌های تحویل‌گرفته و پرداخت‌شده‌تان به {{ loyalty.goal|toman }} تومان برسد، ماه بعد {{ loyalty.discount|toman }} تومان تخفیف می‌گیرید.</p>
+            <p class="text-xs text-gray-600 leading-6 mt-1">اگر تا <b class="text-gray-800">{{ loyalty.ends_on|fa_digits }}</b> جمع سفارش‌های پرداخت‌شده‌تان به {{ loyalty.goal|toman }} تومان برسد، ماه بعد {{ loyalty.discount|toman }} تومان تخفیف می‌گیرید.</p>
             {% endif %}
 
             {% if loyalty.started %}

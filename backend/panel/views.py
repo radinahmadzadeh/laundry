@@ -14,7 +14,8 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 
 from orders.loyalty import loyalty_status
-from orders.views import FA_TO_EN_DIGITS, MAX_ORDER_TOTAL, normalize_phone, valid_password, valid_phone
+from orders.templatetags.fa_format import toman
+from orders.views import FA_TO_EN_DIGITS, MAX_ORDER_TOTAL, normalize_phone, refund_wallet_payment, valid_password, valid_phone
 from orders.models import (
     Customer,
     OrderReview,
@@ -223,12 +224,23 @@ def order_update_status(request, order_id):
     return redirect_back(request, 'panel_order_detail', order_id=order.id)
 
 
+def set_paid(request, order, paid):
+    """Mark an order paid or unpaid; unpaying gives wallet money back so the customer never pays twice."""
+    if paid == order.is_paid:
+        return
+    with transaction.atomic():
+        refunded = refund_wallet_payment(order) if not paid else 0
+        order.is_paid = paid
+        order.save(update_fields=['is_paid'])
+    if refunded:
+        messages.warning(request, f'این فاکتور از کیف پول پرداخت شده بود؛ {toman(refunded)} تومان به کیف پول مشتری برگشت.')
+
+
 @staff_required
 def order_toggle_paid(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     if request.method == 'POST':
-        order.is_paid = not order.is_paid
-        order.save()
+        set_paid(request, order, not order.is_paid)
         messages.success(request, 'وضعیت پرداخت بروزرسانی شد.')
 
     return redirect_back(request, 'panel_order_detail', order_id=order.id)
@@ -469,7 +481,11 @@ def order_update(request, order_id):
         status = request.POST.get('status')
         if status in dict(Order.STATUS_CHOICES):
             order.status = status
-        order.is_paid = request.POST.get('is_paid') == 'on'
+        # Only when staff actually ticked or unticked the box: a page left open from before the customer
+        # paid must not quietly mark the order unpaid again.
+        was_paid = request.POST.get('is_paid_was')
+        wants_paid = request.POST.get('is_paid') == 'on'
+        change_paid = was_paid in ('0', '1') and (was_paid == '1') != wants_paid
         locations = {}
         for prefix, label in (('', 'دریافت'), ('delivery_', 'تحویل')):
             lat = request.POST.get(f'{prefix}latitude', '').strip()
@@ -485,6 +501,8 @@ def order_update(request, order_id):
         order.latitude, order.longitude, order.postal_code = locations['']
         order.delivery_latitude, order.delivery_longitude, order.delivery_postal_code = locations['delivery_']
         order.save()
+        if change_paid:
+            set_paid(request, order, wants_paid)
         messages.success(request, 'اطلاعات سفارش با موفقیت ویرایش شد.')
         warn_if_ready_unpriced(request, order)
     return redirect('panel_order_detail', order_id=order.id)

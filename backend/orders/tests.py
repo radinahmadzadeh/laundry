@@ -564,7 +564,8 @@ class LoyaltyTests(TestCase):
         order = Order.objects.create(customer=self.customer)
         OrderItem.objects.create(order=order, item_name='کت', quantity=1, price=amount)
         Order.objects.filter(pk=order.pk).update(
-            status='delivered', delivered_at=self.now - timedelta(days=days_ago), is_paid=paid)
+            status='delivered', delivered_at=self.now - timedelta(days=days_ago), is_paid=paid,
+            paid_at=self.now - timedelta(days=days_ago) if paid else None)
         return order
 
     def start_club(self, days_ago):
@@ -684,7 +685,7 @@ class LoyaltyTests(TestCase):
     def test_paid_discounted_order_counts_what_was_paid(self):
         self.earn_discount()
         order = Order.objects.get(id=self.place(self.suit, use_discount=True).json()['order_id'])
-        Order.objects.filter(pk=order.pk).update(status='delivered', delivered_at=self.now, is_paid=True)
+        Order.objects.filter(pk=order.pk).update(status='delivered', delivered_at=self.now, is_paid=True, paid_at=self.now)
         self.assertEqual(loyalty_status(self.customer)['spent'], 100000)
 
     def test_staff_moving_the_order_to_someone_else_drops_the_discount(self):
@@ -696,6 +697,79 @@ class LoyaltyTests(TestCase):
         staff.post(reverse('panel_order_update', args=[order.id]), {'customer_id': other.id, 'status': order.status})
         order.refresh_from_db()
         self.assertEqual((order.customer_id, order.discount_amount, order.total_price), (other.id, 0, Decimal('600000')))
+
+    def wallet_pay(self, order):
+        return self.client.post(reverse('wallet_pay_order', args=[order.id]))
+
+    def test_wallet_payment_counts_before_delivery(self):
+        # The reported case: 4,095,000 paid from the wallet on a «ready» order that is not delivered yet.
+        self.start_club(7)
+        self.delivered_order(1_446_500, 5)
+        Wallet.objects.create(customer=self.customer, balance=Decimal('5000000'))
+        order = Order.objects.create(customer=self.customer, status='ready')
+        OrderItem.objects.create(order=order, item_name='کت', quantity=1, price=4_095_000)
+        self.wallet_pay(order)
+        order.refresh_from_db()
+        self.assertTrue(order.is_paid)
+        self.assertIsNotNone(order.paid_at)
+        status = loyalty_status(self.customer)
+        self.assertEqual((status['spent'], status['progress'], status['reached']), (5_541_500, 100, True))
+        # And the next period has the discount waiting.
+        later = loyalty_status(self.customer, now=status['period_end'] + timedelta(hours=1))
+        self.assertTrue(later['available'])
+
+    def test_first_wallet_payment_starts_the_club(self):
+        Wallet.objects.create(customer=self.customer, balance=Decimal('1000000'))
+        order = Order.objects.create(customer=self.customer, status='washing')
+        OrderItem.objects.create(order=order, item_name='کت', quantity=1, price=600_000)
+        self.wallet_pay(order)
+        self.customer.refresh_from_db()
+        self.assertIsNotNone(self.customer.loyalty_started_at)
+        self.assertEqual(loyalty_status(self.customer)['spent'], 600_000)
+
+    def staff_client(self):
+        staff = Client()
+        staff.force_login(get_user_model().objects.get_or_create(username='pay-staff', defaults={'is_staff': True})[0])
+        return staff
+
+    def test_unpaying_a_wallet_order_gives_the_money_back_and_stops_counting(self):
+        Wallet.objects.create(customer=self.customer, balance=Decimal('1000000'))
+        order = Order.objects.create(customer=self.customer, status='ready')
+        OrderItem.objects.create(order=order, item_name='کت', quantity=1, price=600_000)
+        self.wallet_pay(order)
+        response = self.staff_client().post(reverse('panel_order_toggle_paid', args=[order.id]), follow=True)
+        self.assertContains(response, 'به کیف پول مشتری برگشت')
+        order.refresh_from_db()
+        self.assertEqual((order.is_paid, order.paid_at), (False, None))
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('1000000'))
+        self.customer.refresh_from_db()
+        self.assertEqual(loyalty_status(self.customer)['spent'], 0)
+        # Paying again charges once more, and the wallet ends up charged exactly once.
+        self.wallet_pay(order)
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('400000'))
+        # Toggling twice more never returns more than was paid.
+        staff = self.staff_client()
+        staff.post(reverse('panel_order_toggle_paid', args=[order.id]))
+        staff.post(reverse('panel_order_toggle_paid', args=[order.id]))
+        staff.post(reverse('panel_order_toggle_paid', args=[order.id]))
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('1000000'))
+
+    def test_stale_panel_form_does_not_unpay_an_order(self):
+        Wallet.objects.create(customer=self.customer, balance=Decimal('1000000'))
+        order = Order.objects.create(customer=self.customer, status='ready')
+        OrderItem.objects.create(order=order, item_name='کت', quantity=1, price=600_000)
+        staff = self.staff_client()
+        # Staff opened the edit form while the order was unpaid; the customer pays; staff then save it.
+        self.wallet_pay(order)
+        staff.post(reverse('panel_order_update', args=[order.id]), {'status': 'ready', 'is_paid_was': '0'})
+        order.refresh_from_db()
+        self.assertTrue(order.is_paid)
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('400000'))
+        # Unticking the box on purpose does unpay it, with the wallet money returned.
+        staff.post(reverse('panel_order_update', args=[order.id]), {'status': 'ready', 'is_paid_was': '1'})
+        order.refresh_from_db()
+        self.assertFalse(order.is_paid)
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('1000000'))
 
     def test_customer_sees_the_club(self):
         page = self.client.get(reverse('home')).content.decode()
@@ -791,6 +865,9 @@ class GatewayPaymentTests(TestCase):
         self.assertNotContains(done, 'phone=')
         self.order.refresh_from_db()
         self.assertTrue(self.order.is_paid)
+        self.assertIsNotNone(self.order.paid_at)
+        self.customer.refresh_from_db()
+        self.assertEqual(self.customer.loyalty_started_at, self.order.paid_at)
 
     def test_reused_authority_cannot_pay_another_order(self):
         with self.zarinpal({'code': 100, 'authority': 'AUTH-2'}):

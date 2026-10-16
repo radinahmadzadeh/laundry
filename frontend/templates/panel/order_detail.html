@@ -23,7 +23,7 @@
                 <div class="text-[10px] text-gray-500"><span class="block mb-1">مشتری</span>{% include 'components/customer_picker.html' with selected=order.customer empty_text='اگر مشتری دیگری انتخاب نکنید، مشتری فعلی می‌ماند.' %}</div>
                 <label class="text-[10px] text-gray-500">تاریخ تحویل<input type="date" name="delivery_date" value="{{ order.delivery_date|date:'Y-m-d' }}" class="mt-1 w-full rounded-xl px-3 py-2"></label>
                 <label class="text-[10px] text-gray-500">وضعیت<select name="status" class="mt-1 w-full rounded-xl px-3 py-2">{% for code,label in status_choices %}<option value="{{ code }}" {% if code == order.status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-                <div class="sm:col-span-2 flex flex-wrap gap-4 pt-2 text-xs"><label><input type="checkbox" name="is_paid" {% if order.is_paid %}checked{% endif %}> پرداخت شده</label></div>
+                <div class="sm:col-span-2 flex flex-wrap gap-4 pt-2 text-xs"><input type="hidden" name="is_paid_was" value="{{ order.is_paid|yesno:'1,0' }}"><label><input type="checkbox" name="is_paid" {% if order.is_paid %}checked{% endif %}> پرداخت شده</label></div>
                 <div class="sm:col-span-2 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <p class="sm:col-span-2 text-[11px] font-black text-amber-300">پیک دریافت — دریافت لباس کثیف از مشتری (شروع سفارش)</p>
                     <label class="text-[10px] text-gray-500">کد پستی دریافت<input name="postal_code" value="{{ order.postal_code|default:'' }}" class="mt-1 w-full rounded-xl px-3 py-2 dir-ltr text-right"></label>
