@@ -59,4 +59,5 @@
     <div class="panel rounded-2xl p-10 text-center text-gray-500 text-sm">هنوز نظری ثبت نشده است.</div>
     {% endfor %}
 </div>
+{% if reviews.has_other_pages %}<div class="panel rounded-2xl mt-4">{% include 'components/pagination.html' with page=reviews %}</div>{% endif %}
 {% endblock %}

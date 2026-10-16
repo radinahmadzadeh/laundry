@@ -69,3 +69,18 @@ main,aside,.admin-content,.panel{min-width:0;}
     h1{font-size:20px!important;}
 }
 @media(prefers-reduced-motion:reduce){.admin-bubble,.nav-link,.btn-primary{animation:none!important;transition:none!important}}
+/* Customer picker on the order pages */
+.customer-picker{position:relative}
+/* Cards blur their background, which makes each one its own layer: lift the picker's card so its result list is not hidden under the next card. */
+.panel:has(.customer-picker){position:relative;z-index:20}
+.picker-chosen{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:8px 12px;border-radius:12px;background:rgba(73,224,214,.08);border:1px solid rgba(73,224,214,.25);color:#e8f0f7;font-size:13px;font-weight:700}
+.picker-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.picker-clear{flex-shrink:0;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#cbd5e1;font-size:11px;font-weight:700}
+.picker-clear:hover{background:rgba(255,255,255,.12)}
+.picker-results{position:absolute;inset-inline:0;top:46px;z-index:30;max-height:260px;overflow-y:auto;padding:4px;border-radius:12px;background:#0b1a2a;border:1px solid rgba(148,163,184,.2);box-shadow:0 16px 40px rgba(0,0,0,.45)}
+.picker-results button{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border-radius:8px;color:#e8f0f7;font-size:13px;text-align:right}
+.picker-results button:hover,.picker-results button:focus{background:rgba(73,224,214,.1);outline:none}
+.picker-phone{direction:ltr;color:#94a3b8;font-size:12px;flex-shrink:0}
+.picker-empty{padding:10px;color:#64748b;font-size:12px;text-align:center}
+.picker-hint{margin-top:6px;color:#64748b;font-size:11px}
+.picker-results.hidden,.picker-chosen.hidden,.picker-search.hidden{display:none}

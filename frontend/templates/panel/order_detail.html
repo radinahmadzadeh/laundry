@@ -15,12 +15,12 @@
 </div>
 
 <div class="grid md:grid-cols-3 gap-5">
-    <div class="md:col-span-2 space-y-5">
+    <div class="md:col-span-2 space-y-5 min-w-0">
         <div class="panel rounded-2xl p-5 motion-card">
             <h2 class="font-bold text-sm mb-4">ویرایش اطلاعات سفارش</h2>
             <form method="post" action="{% url 'panel_order_update' order.id %}" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {% csrf_token %}
-                <label class="text-[10px] text-gray-500">مشتری<select name="customer_id" class="mt-1 w-full rounded-xl px-3 py-2">{% for c in customers %}<option value="{{ c.id }}" {% if c.id == order.customer_id %}selected{% endif %}>{{ c.name }} — {{ c.phone }}</option>{% endfor %}</select></label>
+                <div class="text-[10px] text-gray-500"><span class="block mb-1">مشتری</span>{% include 'components/customer_picker.html' with selected=order.customer empty_text='اگر مشتری دیگری انتخاب نکنید، مشتری فعلی می‌ماند.' %}</div>
                 <label class="text-[10px] text-gray-500">تاریخ تحویل<input type="date" name="delivery_date" value="{{ order.delivery_date|date:'Y-m-d' }}" class="mt-1 w-full rounded-xl px-3 py-2"></label>
                 <label class="text-[10px] text-gray-500">وضعیت<select name="status" class="mt-1 w-full rounded-xl px-3 py-2">{% for code,label in status_choices %}<option value="{{ code }}" {% if code == order.status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
                 <div class="sm:col-span-2 flex flex-wrap gap-4 pt-2 text-xs"><label><input type="checkbox" name="is_paid" {% if order.is_paid %}checked{% endif %}> پرداخت شده</label></div>
@@ -183,5 +183,6 @@
     </div>
 </div>
 
+<script src="{% static 'js/panel/customer-picker.js' %}?v=1"></script>
 <script src="{% static 'js/panel/order-detail.js' %}?v=1"></script>
 {% endblock %}

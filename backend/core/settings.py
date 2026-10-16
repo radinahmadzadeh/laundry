@@ -80,12 +80,38 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# SQLite by default. Busy customers and staff write at the same time (orders, wallet top-ups), so writers
+# wait up to 20s for each other instead of failing with "database is locked", and every transaction takes
+# the write lock up front (IMMEDIATE) so two of them cannot deadlock half-way through.
+# To move to a server database later, set DJANGO_DB_ENGINE=mysql or postgresql plus DJANGO_DB_NAME,
+# DJANGO_DB_USER, DJANGO_DB_PASSWORD and DJANGO_DB_HOST (needs mysqlclient or psycopg installed).
+DB_ENGINE = os.environ.get('DJANGO_DB_ENGINE', 'sqlite3')
+if DB_ENGINE == 'sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+                'timeout': 20,
+                'transaction_mode': 'IMMEDIATE',
+                'init_command': 'PRAGMA cache_size=-20000; PRAGMA temp_store=MEMORY;',
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': f'django.db.backends.{DB_ENGINE}',
+            'NAME': os.environ.get('DJANGO_DB_NAME', ''),
+            'USER': os.environ.get('DJANGO_DB_USER', ''),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', ''),
+            'HOST': os.environ.get('DJANGO_DB_HOST', ''),
+            'PORT': os.environ.get('DJANGO_DB_PORT', ''),
+            'CONN_MAX_AGE': 60,
+            'CONN_HEALTH_CHECKS': True,
+            'OPTIONS': {'charset': 'utf8mb4'} if DB_ENGINE == 'mysql' else {},
+        }
+    }
 
 
 AUTH_PASSWORD_VALIDATORS = [

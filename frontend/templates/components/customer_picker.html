@@ -1,0 +1,14 @@
+{% comment %}Search-as-you-type customer picker (instead of a dropdown of every customer).
+Posts customer_id; pass selected (a Customer) to start with one chosen, and empty_text for the hint shown when none is.{% endcomment %}
+<div class="customer-picker" data-url="{% url 'panel_customer_search' %}">
+    <input type="hidden" name="customer_id" id="customer_select" value="{{ selected.id|default:'' }}">
+    <div class="picker-chosen{% if not selected %} hidden{% endif %}">
+        <span class="picker-label">{% if selected %}{{ selected.name }} — {{ selected.phone }}{% endif %}</span>
+        <button type="button" class="picker-clear">تغییر</button>
+    </div>
+    <div class="picker-search{% if selected %} hidden{% endif %}">
+        <input type="search" class="picker-input w-full border rounded-xl px-3 py-2.5 text-sm" placeholder="جستجوی نام یا شماره مشتری..." autocomplete="off" aria-label="جستجوی مشتری">
+        <ul class="picker-results hidden" role="listbox"></ul>
+        {% if empty_text %}<p class="picker-hint">{{ empty_text }}</p>{% endif %}
+    </div>
+</div>

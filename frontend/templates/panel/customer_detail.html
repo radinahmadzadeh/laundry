@@ -76,6 +76,7 @@
             </tbody>
         </table>
     </div>
+    {% include 'components/pagination.html' with page=orders %}
 </div>
 
 <div class="panel rounded-2xl overflow-hidden">
@@ -97,5 +98,6 @@
             </tbody>
         </table>
     </div>
+    {% include 'components/pagination.html' with page=wallet_transactions param='tx_page' %}
 </div>
 {% endblock %}

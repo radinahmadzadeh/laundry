@@ -14,7 +14,7 @@
     </div>
     <div class="panel rounded-2xl p-5">
         <p class="text-xs text-gray-400 mb-2">آماده تحویل</p>
-        <p class="text-3xl font-black text-[var(--amber)]">{{ ready_orders.count }}</p>
+        <p class="text-3xl font-black text-[var(--amber)]">{{ ready_count }}</p>
     </div>
     <div class="panel rounded-2xl p-5">
         <p class="text-xs text-gray-400 mb-2">درخواست پیک معلق</p>
@@ -47,6 +47,9 @@
                     </a>
                 {% endfor %}
             </div>
+            {% if ready_count > ready_orders|length %}
+                <a href="{% url 'panel_orders' %}?status=ready" class="block mt-3 text-center text-xs font-bold text-[var(--cyan)] hover:underline">نمایش همه {{ ready_count }} سفارش آماده</a>
+            {% endif %}
         {% else %}
             <p class="text-gray-500 text-sm">سفارشی در این وضعیت نیست.</p>
         {% endif %}

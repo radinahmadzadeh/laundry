@@ -1,11 +1,14 @@
 import re
-from datetime import timedelta
+from datetime import datetime, time, timedelta
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import user_passes_test
+from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Q, Sum, Count, Avg
+from django.db.models import Avg, Count, IntegerField, OuterRef, Q, Subquery, Sum
+from django.db.models.functions import Coalesce
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -28,6 +31,15 @@ staff_required = user_passes_test(lambda u: u.is_authenticated and u.is_staff, l
 
 MAX_PANEL_QUANTITY = 1000
 MAX_ITEM_PRICE = 100_000_000
+
+# Page sizes for the panel lists, so a page stays light however many customers and orders there are.
+ORDERS_PER_PAGE = 50
+CUSTOMERS_PER_PAGE = 50
+CUSTOMER_ORDERS_PER_PAGE = 20
+REVIEWS_PER_PAGE = 30
+COURIER_HISTORY_LIMIT = 40
+DASHBOARD_READY_LIMIT = 15
+CUSTOMER_SEARCH_LIMIT = 10
 ITEM_INPUT_ERROR = 'تعداد باید عدد صحیح بین ۱ تا ۱۰۰۰ و قیمت عدد صحیح (تومان) باشد.'
 
 
@@ -46,6 +58,11 @@ def clean_item_numbers(qty, price):
 def total_within_limit(subtotal):
     # Order.total_price stores at most 10 digits; a larger total breaks every page that lists the order.
     return subtotal + order_tax(subtotal) <= MAX_ORDER_TOTAL
+
+
+def paginate(request, queryset, per_page, param='page'):
+    """One page of a list; a bad or too-high ?page= shows the nearest real page."""
+    return Paginator(queryset, per_page).get_page(request.GET.get(param))
 
 
 def redirect_back(request, fallback, **kwargs):
@@ -86,28 +103,32 @@ def panel_logout(request):
 
 @staff_required
 def dashboard(request):
-    today = timezone.localdate()
-    orders_today = Order.objects.filter(created_at__date=today)
-    revenue_today = orders_today.filter(is_paid=True).aggregate(total=Sum('total_price'))['total'] or 0
+    # A time range (not created_at__date) so the created_at index is used.
+    start = timezone.make_aware(datetime.combine(timezone.localdate(), time.min))
+    today = Order.objects.filter(created_at__gte=start, created_at__lt=start + timedelta(days=1)).aggregate(
+        count=Count('id'), revenue=Sum('total_price', filter=Q(is_paid=True)),
+    )
 
+    counts = dict(Order.objects.values_list('status').annotate(n=Count('id')).order_by())
     status_summary = [
-        {'code': code, 'label': label, 'count': Order.objects.filter(status=code).count()}
+        {'code': code, 'label': label, 'count': counts.get(code, 0)}
         for code, label in Order.STATUS_CHOICES
     ]
 
-    ready_orders = Order.objects.filter(status='ready').select_related('customer')
-    pending_pickup = Order.objects.filter(courier_requested=True, courier_dispatched=False)
-    pending_delivery = Order.objects.filter(delivery_courier_requested=True, delivery_courier_dispatched=False)
+    ready_orders = Order.objects.filter(status='ready').select_related('customer').order_by('-created_at')[:DASHBOARD_READY_LIMIT]
+    pending_pickup = Order.objects.filter(courier_requested=True, courier_dispatched=False).count()
+    pending_delivery = Order.objects.filter(delivery_courier_requested=True, delivery_courier_dispatched=False).count()
 
     context = {
         'active': 'dashboard',
-        'orders_today_count': orders_today.count(),
-        'revenue_today': revenue_today,
+        'orders_today_count': today['count'],
+        'revenue_today': today['revenue'] or 0,
         'status_summary': status_summary,
         'ready_orders': ready_orders,
-        'pending_pickup_count': pending_pickup.count(),
-        'pending_delivery_count': pending_delivery.count(),
-        'pending_courier_count': pending_pickup.count() + pending_delivery.count(),
+        'ready_count': counts.get('ready', 0),
+        'pending_pickup_count': pending_pickup,
+        'pending_delivery_count': pending_delivery,
+        'pending_courier_count': pending_pickup + pending_delivery,
     }
     return render(request, 'panel/dashboard.html', context)
 
@@ -128,7 +149,7 @@ def orders_list(request):
 
     context = {
         'active': 'orders',
-        'orders': orders,
+        'orders': paginate(request, orders, ORDERS_PER_PAGE),
         'status_choices': Order.STATUS_CHOICES,
         'current_status': status,
         'q': q,
@@ -138,7 +159,7 @@ def orders_list(request):
 
 @staff_required
 def order_detail(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+    order = get_object_or_404(Order.objects.select_related('customer'), id=order_id)
 
     if request.method == 'POST':
         item_name = request.POST.get('item_name_manual', '').strip() or request.POST.get('item_name', '').strip()
@@ -162,7 +183,6 @@ def order_detail(request, order_id):
     context = {
         'active': 'orders',
         'order': order,
-        'customers': Customer.objects.order_by('name'),
         'status_choices': Order.STATUS_CHOICES,
         'price_items': PriceItem.objects.select_related('category').all(),
     }
@@ -214,7 +234,6 @@ def order_delete(request, order_id):
 
 @staff_required
 def order_create(request):
-    customers = Customer.objects.order_by('name')
     price_items = PriceItem.objects.select_related('category').order_by('category__order', 'order')
 
     if request.method == 'POST':
@@ -273,7 +292,6 @@ def order_create(request):
 
     context = {
         'active': 'order_create',
-        'customers': customers,
         'price_items': price_items,
     }
     return render(request, 'panel/order_form.html', context)
@@ -282,21 +300,29 @@ def order_create(request):
 @staff_required
 def customers_list(request):
     q = request.GET.get('q', '').strip()
-    customers = (
-        Customer.objects.select_related('wallet')
-        .annotate(order_count=Count('order', distinct=True), total_spent=Sum('order__total_price'))
-        .all().order_by('name')
-    )
+    customers = Customer.objects.order_by('name', 'id')
     if q:
         customers = customers.filter(Q(name__icontains=q) | Q(phone__icontains=q))
 
-    customer_ids = customers.values('pk')
-    summary = Order.objects.filter(customer_id__in=customer_ids).aggregate(total_orders=Count('id'), total_spent=Sum('total_price'))
+    summary = Order.objects.filter(customer_id__in=customers.values('pk')).aggregate(total_orders=Count('id'), total_spent=Sum('total_price'))
+    page = paginate(request, customers, CUSTOMERS_PER_PAGE)
+    # Order totals only for the customers on this page (a GROUP BY over every customer gets slow).
+    customer_orders = Order.objects.filter(customer=OuterRef('pk')).order_by().values('customer')
+    page.object_list = list(
+        Customer.objects.filter(pk__in=[c.pk for c in page.object_list])
+        .select_related('wallet')
+        .annotate(
+            order_count=Coalesce(Subquery(customer_orders.annotate(n=Count('id')).values('n')), 0),
+            total_spent=Coalesce(Subquery(customer_orders.annotate(t=Sum('total_price')).values('t')), 0,
+                                 output_field=IntegerField()),
+        )
+        .order_by('name', 'id')
+    )
     context = {
         'active': 'customers',
-        'customers': customers,
+        'customers': page,
         'q': q,
-        'customer_count': customers.count(),
+        'customer_count': page.paginator.count,
         'active_count': customers.exclude(password_hash='').count(),
         'total_orders': summary['total_orders'] or 0,
         'total_spent': summary['total_spent'] or 0,
@@ -305,23 +331,35 @@ def customers_list(request):
 
 
 @staff_required
+def customer_search(request):
+    """A few customers matching a name or phone, for the customer picker on the order pages."""
+    q = request.GET.get('q', '').strip()
+    if not q:
+        return JsonResponse({'results': []})
+    phone = q.translate(FA_TO_EN_DIGITS)
+    customers = Customer.objects.filter(Q(name__icontains=q) | Q(phone__contains=phone)).order_by('name', 'id')
+    results = [{'id': c.id, 'name': c.name, 'phone': c.phone} for c in customers[:CUSTOMER_SEARCH_LIMIT]]
+    return JsonResponse({'results': results})
+
+
+@staff_required
 def customer_detail(request, customer_id):
     customer = get_object_or_404(Customer.objects.select_related('wallet'), id=customer_id)
     wallet, _ = Wallet.objects.get_or_create(customer=customer)
     orders = customer.order_set.order_by('-created_at')
-    wallet_transactions = wallet.transactions.select_related('order').all()
-    total_spent = orders.filter(is_paid=True).aggregate(total=Sum('total_price'))['total'] or 0
-    total_orders = orders.count()
-    paid_orders = orders.filter(is_paid=True).count()
+    totals = orders.aggregate(
+        total_orders=Count('id'), paid_orders=Count('id', filter=Q(is_paid=True)),
+        total_spent=Sum('total_price', filter=Q(is_paid=True)),
+    )
     context = {
         'active': 'customers',
         'customer': customer,
         'wallet': wallet,
-        'orders': orders,
-        'wallet_transactions': wallet_transactions,
-        'total_spent': total_spent,
-        'total_orders': total_orders,
-        'paid_orders': paid_orders,
+        'orders': paginate(request, orders, CUSTOMER_ORDERS_PER_PAGE),
+        'wallet_transactions': paginate(request, wallet.transactions.select_related('order'), CUSTOMER_ORDERS_PER_PAGE, 'tx_page'),
+        'total_spent': totals['total_spent'] or 0,
+        'total_orders': totals['total_orders'],
+        'paid_orders': totals['paid_orders'],
     }
     return render(request, 'panel/customer_detail.html', context)
 
@@ -545,13 +583,19 @@ def order_courier_state(request, order_id):
 @staff_required
 def courier_requests(request):
     """Both courier request kinds, each tagged so pickup (dirty clothes) and delivery (clean clothes) are never mixed up."""
+    # Every request still waiting for a courier, plus the latest ones already sent (not the whole history).
+    pickups = Order.objects.filter(courier_requested=True).select_related('customer')
+    deliveries = Order.objects.filter(delivery_courier_requested=True).select_related('customer')
+    pickups = [*pickups.filter(courier_dispatched=False), *pickups.filter(courier_dispatched=True).order_by('-id')[:COURIER_HISTORY_LIMIT]]
+    deliveries = [*deliveries.filter(delivery_courier_dispatched=False),
+                  *deliveries.filter(delivery_courier_dispatched=True).order_by('-id')[:COURIER_HISTORY_LIMIT]]
     requests_list = []
-    for order in Order.objects.filter(courier_requested=True).select_related('customer'):
+    for order in pickups:
         requests_list.append({
             'kind': 'pickup', 'order': order, 'postal': order.postal_code, 'address': order.address,
             'point': order.pickup_map_point, 'dispatched': order.courier_dispatched,
         })
-    for order in Order.objects.filter(delivery_courier_requested=True).select_related('customer'):
+    for order in deliveries:
         requests_list.append({
             'kind': 'delivery', 'order': order, 'postal': order.delivery_postal_code, 'address': order.delivery_address,
             'point': order.delivery_map_point, 'dispatched': order.delivery_courier_dispatched,
@@ -590,15 +634,18 @@ def reviews_list(request):
     rating = request.GET.get('rating', '')
     if rating.isdigit():
         reviews = reviews.filter(rating=int(rating))
-    stats = OrderReview.objects.aggregate(avg=Avg('rating'), count=Count('id'))
+    stats = OrderReview.objects.aggregate(
+        avg=Avg('rating'), count=Count('id'), low=Count('id', filter=Q(rating__lte=2)),
+        featured=Count('id', filter=Q(is_hidden=False, rating__gte=OrderReview.FEATURE_MIN_RATING) & ~Q(comment='')),
+    )
     return render(request, 'panel/reviews_list.html', {
         'active': 'reviews',
-        'reviews': reviews,
+        'reviews': paginate(request, reviews, REVIEWS_PER_PAGE),
         'current_rating': rating,
         'review_avg': round(stats['avg'] or 0, 1),
         'review_count': stats['count'],
-        'featured_count': OrderReview.objects.filter(is_hidden=False, rating__gte=OrderReview.FEATURE_MIN_RATING).exclude(comment='').count(),
-        'low_count': OrderReview.objects.filter(rating__lte=2).count(),
+        'featured_count': stats['featured'],
+        'low_count': stats['low'],
     })
 
 

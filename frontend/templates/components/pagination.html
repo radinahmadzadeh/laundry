@@ -1,0 +1,26 @@
+{% comment %}Page links for a panel list. Pass page (a Django Page) and optionally param (default "page"); other filters in the URL are kept.{% endcomment %}
+{% load panel_pages %}
+{% with param=param|default:"page" %}
+{% if page.has_other_pages %}
+<nav class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-xs" aria-label="صفحه‌بندی">
+    <span class="text-gray-500">{{ page.start_index }} تا {{ page.end_index }} از {{ page.paginator.count }}</span>
+    <div class="flex flex-wrap items-center gap-1.5">
+        {% if page.has_previous %}
+            <a href="?{% page_query param page.previous_page_number %}" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-bold hover:bg-white/10">قبلی</a>
+        {% endif %}
+        {% for n in page.paginator|page_range:page.number %}
+            {% if n == page.paginator.ELLIPSIS %}
+                <span class="px-1.5 text-gray-500">…</span>
+            {% elif n == page.number %}
+                <span class="min-w-[2.25rem] text-center px-2.5 py-2 rounded-lg bg-cyan-400/15 border border-cyan-400/30 text-cyan-300 font-black" aria-current="page">{{ n }}</span>
+            {% else %}
+                <a href="?{% page_query param n %}" class="min-w-[2.25rem] text-center px-2.5 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-bold hover:bg-white/10">{{ n }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page.has_next %}
+            <a href="?{% page_query param page.next_page_number %}" class="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300 font-bold hover:bg-white/10">بعدی</a>
+        {% endif %}
+    </div>
+</nav>
+{% endif %}
+{% endwith %}

@@ -31,6 +31,9 @@ class Customer(models.Model):
     address_longitude = models.CharField(max_length=50, blank=True, default='', verbose_name='طول جغرافیایی آدرس')
     address_postal_code = models.CharField(max_length=10, blank=True, default='', verbose_name='کد پستی آدرس')
 
+    class Meta:
+        indexes = [models.Index(fields=['name'], name='customer_name_idx')]
+
     @property
     def has_saved_address(self):
         return bool(self.address_latitude and self.address_longitude)
@@ -69,6 +72,7 @@ class WalletTransaction(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [models.Index(fields=['wallet', '-created_at'], name='wallettx_wallet_created_idx')]
 
     @property
     def gateway_state(self):
@@ -117,6 +121,17 @@ class Order(models.Model):
     delivery_postal_code = models.CharField(max_length=10, null=True, blank=True, verbose_name='کد پستی تحویل')
     delivery_address = models.CharField(max_length=500, blank=True, default='', verbose_name='آدرس تحویل')
     delivery_courier_declined = models.BooleanField(default=False, verbose_name='پیک تحویل: بدون درخواست')
+
+    class Meta:
+        # The lists people open all the time: newest orders, one customer's orders, orders by status,
+        # and courier requests still waiting for a courier.
+        indexes = [
+            models.Index(fields=['-created_at'], name='order_created_idx'),
+            models.Index(fields=['customer', '-created_at'], name='order_customer_created_idx'),
+            models.Index(fields=['status', '-created_at'], name='order_status_created_idx'),
+            models.Index(fields=['courier_requested', 'courier_dispatched'], name='order_pickup_courier_idx'),
+            models.Index(fields=['delivery_courier_requested', 'delivery_courier_dispatched'], name='order_delivery_courier_idx'),
+        ]
 
     @property
     def shamsi_date(self):
@@ -331,6 +346,10 @@ class OrderReview(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at'], name='review_created_idx'),
+            models.Index(fields=['is_hidden', 'rating'], name='review_visible_rating_idx'),
+        ]
         verbose_name = 'نظر مشتری'
         verbose_name_plural = 'نظرات مشتریان'
 
