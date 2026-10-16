@@ -31,7 +31,7 @@ pricing, customers, couriers — from a dedicated admin panel.
   postal code; staff see and dispatch pending courier requests from the
   panel.
 - **Printable receipts** — a clean, print-ready invoice per order, with
-  subtotal, 10% tax, and totals.
+  item prices and the total.
 - **Shamsi (Jalali) dates** — all customer-facing dates are shown in the
   Persian calendar via `jdatetime`.
 - **Installable PWA** — manifest, icons, and RTL/Farsi config via
@@ -99,7 +99,7 @@ template that links it, so browsers and the offline cache fetch the new copy.
 - **`Order`** — status, total price, payment state, delivery date, courier
   request/dispatch flags, pickup latitude/longitude/postal code
 - **`OrderItem`** — item name, description, quantity, price; automatically
-  recalculates the parent order's total (including 10% tax) on save/delete
+  recalculates the parent order's total on save/delete
 - **`PriceCategory`** / **`PriceItem`** — the service catalog shown on the
   public pricing page and managed from the panel
 - **`ShopSettings`** — singleton model for shop name, tagline, phone, address

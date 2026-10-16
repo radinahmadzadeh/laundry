@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from .models import Customer, Order, Wallet, WalletTransaction
+from .models import Customer, Order, OrderItem, Wallet, WalletTransaction
 
 
 class WalletPaymentFlowTests(TestCase):
@@ -385,8 +385,9 @@ class PlaceOrderTests(TestCase):
         data = response.json()
         self.assertEqual(data['status'], 'success')
         order = Order.objects.get(id=data['order_id'])
-        self.assertEqual(order.total_price, Decimal('660000'))
-        self.assertEqual(data['total'], 660000)
+        self.assertEqual(order.total_price, Decimal('600000'))
+        self.assertEqual(data['total'], 600000)
+        self.assertEqual(order.tax_amount, 0)
         names = sorted(order.orderitem_set.values_list('item_name', flat=True))
         self.assertEqual(names, ['شلوار مردانه (فقط اتو)', 'پیراهن مردانه (خشکشویی + اتو)'])
 
@@ -434,12 +435,25 @@ class PlaceOrderTests(TestCase):
         Wallet.objects.create(customer=self.customer, balance=Decimal('300000'))
         data = self.post({'items': [{'line_id': self.shirt.id, 'quantity': 1}], 'use_wallet': True}).json()
         self.assertTrue(data['paid_by_wallet'])
-        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('58000'))
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('80000'))
         data = self.post({'items': [{'line_id': self.shirt.id, 'quantity': 1}], 'use_wallet': True}).json()
         self.assertTrue(data['wallet_insufficient'])
         self.assertFalse(Order.objects.get(id=data['order_id']).is_paid)
-        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('58000'))
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('80000'))
         self.assertEqual(WalletTransaction.objects.filter(transaction_type='debit').count(), 1)
+
+    def test_no_tax_on_new_orders_but_old_paid_receipts_keep_it(self):
+        data = self.post({'items': [{'line_id': self.shirt.id, 'quantity': 1}]}).json()
+        page = self.client.get(reverse('home'), {'order_id': data['order_id']}).content.decode()
+        self.assertNotIn('مالیات (۱۰٪)', page)
+        # Paid back when the 10% was still added: the receipt still explains the amount that was paid.
+        old = Order.objects.create(customer=self.customer, is_paid=True)
+        OrderItem.objects.create(order=old, item_name='کت', quantity=1, price=100000)
+        Order.objects.filter(pk=old.pk).update(total_price=110000)
+        old.refresh_from_db()
+        self.assertEqual(old.tax_amount, 10000)
+        receipt = self.client.get(reverse('print_receipt', args=[old.id])).content.decode()
+        self.assertIn('مالیات (۱۰٪)', receipt)
 
 
 class PricePendingPaymentTests(TestCase):
@@ -813,7 +827,7 @@ class PanelValidationTests(TestCase):
         self.assertEqual(self.order.orderitem_set.count(), 0)
         self.client.post(url, {'item_name': 'کت', 'item_qty': '۲', 'item_price': '۱۰۰٬۰۰۰'})
         self.order.refresh_from_db()
-        self.assertEqual(self.order.total_price, Decimal('220000'))
+        self.assertEqual(self.order.total_price, Decimal('200000'))
         self.assertEqual(self.client.get(reverse('panel_orders')).status_code, 200)
 
     def test_create_order_rejects_bad_rows_without_leftovers(self):

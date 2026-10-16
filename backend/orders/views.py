@@ -12,7 +12,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
 import re
 from django.utils import timezone
-from .models import order_tax, Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
+from .models import Order, OrderItem, OrderReview, Customer, ShopSettings, PriceCategory, PriceItem, Wallet, WalletTransaction
 from .templatetags.fa_format import fa_digits, toman
 from .postal import lookup_postal_code, normalize_postal, postal_format_error
 from .insights import customer_insights
@@ -897,8 +897,8 @@ def place_order(request):
         description = description.strip()[:500] if isinstance(description, str) else ''
         lines.append((price_item, iron_only, quantity, price, description))
 
-    subtotal = sum(price * quantity for _, _, quantity, price, _ in lines)
-    if subtotal + order_tax(subtotal) > MAX_ORDER_TOTAL:
+    total = sum(price * quantity for _, _, quantity, price, _ in lines)
+    if total > MAX_ORDER_TOTAL:
         return order_error('مبلغ سفارش بیش از حد مجاز است؛ لطفاً با فروشگاه تماس بگیرید.')
 
     courier = data.get('delivery_method') == 'courier'
@@ -922,7 +922,7 @@ def place_order(request):
                       quantity=quantity, price=price, description=description)
             for price_item, iron_only, quantity, price, description in lines
         ])
-        order.total_price = subtotal + order_tax(subtotal)
+        order.total_price = total
         order.save(update_fields=['total_price'])
         if courier and data.get('save_address') is True:
             (logged_customer.address_latitude, logged_customer.address_longitude,

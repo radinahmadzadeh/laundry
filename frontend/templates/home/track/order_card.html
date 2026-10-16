@@ -68,6 +68,7 @@
                                     </ul>
 
                                     <div class="border-t border-gray-200 pt-4 mt-2 space-y-3">
+                                        {% if order.tax_amount %}
                                         <div class="flex justify-between items-center text-gray-500 text-sm">
                                             <span>جمع اقلام:</span>
                                             <span>{{ order.subtotal_amount|toman }} تومان</span>
@@ -76,12 +77,13 @@
                                             <span>مالیات (۱۰٪):</span>
                                             <span>{{ order.tax_amount|toman }} تومان</span>
                                         </div>
-                                        <div class="flex justify-between items-center mt-3 pt-3 border-t border-gray-100 group">
-                                            <span class="text-gray-700 font-medium">مبلغ نهایی پرداخت:</span>
+                                        {% endif %}
+                                        <div class="flex justify-between items-center gap-3 group{% if order.tax_amount %} mt-3 pt-3 border-t border-gray-100{% endif %}">
+                                            <span class="text-gray-700 font-medium whitespace-nowrap">مبلغ نهایی پرداخت:</span>
                                             {% if order.has_unpriced_items %}
                                             <span class="text-sm font-black text-amber-600 whitespace-nowrap">پس از بررسی</span>
                                             {% else %}
-                                            <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block">{{ order.total_price|toman }} <span class="text-sm font-light text-gray-400">تومان</span></span>
+                                            <span class="text-xl sm:text-2xl font-black whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)] transition-transform duration-300 group-hover:scale-105 inline-block">{{ order.total_price|toman }} <span class="text-sm font-light text-gray-400">تومان</span></span>
                                             {% endif %}
                                         </div>
                                     </div>

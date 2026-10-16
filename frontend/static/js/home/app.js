@@ -710,8 +710,6 @@ var orderSubmitting = false;
 function escapeHtml(text){
     return String(text).replace(/[&<>"']/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
 }
-// Integer tax, same rule as the server: 10% rounded down.
-function orderTax(subtotal){ return Math.floor(subtotal / 10); }
 
 // قیمت‌ها در دیتابیس متنی هستند (مثلاً "520,000" یا "۳ تا ۷ میلیون").
 // اگر عدد خالص نبود null برمی‌گردد یعنی «قیمت پس از بررسی».
@@ -742,7 +740,7 @@ function updateCartUI(){
     var listEl = document.getElementById('cart-list');
     var noteEl = document.getElementById('cart-note');
     var keys = Object.keys(cart);
-    var subtotal = 0, html = '', hasUnknown = false;
+    var total = 0, html = '', hasUnknown = false;
     keys.forEach(function(id){
         var it = cart[id];
         var lineText;
@@ -750,7 +748,7 @@ function updateCartUI(){
             hasUnknown = true;
             lineText = 'پس از بررسی';
         } else {
-            subtotal += it.price * it.qty;
+            total += it.price * it.qty;
             lineText = faNumber(it.price * it.qty) + ' تومان';
         }
         html += '<li class="flex justify-between items-center gap-3 text-sm">' +
@@ -759,9 +757,6 @@ function updateCartUI(){
                 '</li>';
     });
     listEl.innerHTML = keys.length ? html : '<li class="text-gray-400 text-xs" id="cart-empty">هنوز قلمی انتخاب نکرده‌اید.</li>';
-    var tax = orderTax(subtotal), total = subtotal + tax;
-    document.getElementById('cart-subtotal').textContent = faNumber(subtotal) + ' تومان';
-    document.getElementById('cart-tax').textContent = faNumber(tax) + ' تومان';
     document.getElementById('cart-total').innerHTML = faNumber(total) + ' تومان' +
         (hasUnknown ? '<span class="block text-[11px] font-bold text-amber-600 mt-0.5">+ اقلام پس از بررسی</span>' : '');
     if (noteEl) noteEl.classList.toggle('hidden', !hasUnknown);

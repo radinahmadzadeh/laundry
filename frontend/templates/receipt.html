@@ -100,8 +100,10 @@
                 <div class="track-box">کد پیگیری سفارش: <strong class="num">{{ order.id|fa_digits }}</strong></div>
             </div>
             <div class="totals">
+                {% if order.tax_amount %}
                 <div class="row"><span class="k">جمع اقلام</span><span class="v num">{{ order.subtotal_amount|toman }} تومان</span></div>
                 <div class="row"><span class="k">مالیات (۱۰٪)</span><span class="v num">{{ order.tax_amount|toman }} تومان</span></div>
+                {% endif %}
                 {% if order.has_unpriced_items %}
                 <div class="grand"><span>مبلغ نهایی</span><span><strong>پس از بررسی</strong></span></div>
                 {% else %}

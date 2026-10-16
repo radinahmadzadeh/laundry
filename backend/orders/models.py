@@ -7,11 +7,6 @@ from datetime import timedelta
 from django.utils import timezone
 
 
-def order_tax(subtotal):
-    """10% tax on an order subtotal, rounded down to a whole toman."""
-    return int(subtotal) * 10 // 100
-
-
 # Steps of the order tracker: (status, short label, colour tone, headline, what is happening now).
 TRACKING_STEPS = (
     ('collecting', 'جمع‌آوری', 'cyan', 'در انتظار پیک', 'پیک به‌زودی برای تحویل گرفتن لباس‌ها به آدرس شما می‌آید.'),
@@ -232,7 +227,8 @@ class Order(models.Model):
 
     @property
     def tax_amount(self):
-        return order_tax(self.subtotal_amount)
+        """Tax is no longer charged; only orders paid back when it was still added carry it in their total."""
+        return max(int(self.total_price) - int(self.subtotal_amount), 0) if self.is_paid else 0
 
     @property
     def has_unpriced_items(self):
@@ -264,15 +260,13 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        subtotal = sum(item.price * item.quantity for item in self.order.orderitem_set.all())
-        self.order.total_price = subtotal + order_tax(subtotal)
+        self.order.total_price = sum(item.price * item.quantity for item in self.order.orderitem_set.all())
         self.order.save()
 
     def delete(self, *args, **kwargs):
         order = self.order
         super().delete(*args, **kwargs)
-        subtotal = sum(item.price * item.quantity for item in order.orderitem_set.all())
-        order.total_price = subtotal + order_tax(subtotal)
+        order.total_price = sum(item.price * item.quantity for item in order.orderitem_set.all())
         order.save()
 
     def __str__(self):

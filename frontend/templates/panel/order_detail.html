@@ -186,8 +186,10 @@
             {% if order.shamsi_delivery_date %}
             <div class="flex justify-between"><span>تاریخ تحویل:</span><span class="text-white">{{ order.shamsi_delivery_date }}</span></div>
             {% endif %}
+            {% if order.tax_amount %}
             <div class="flex justify-between"><span>جمع اقلام:</span><span class="text-white money-auto">{{ order.subtotal_amount }}</span></div>
-            <div class="flex justify-between"><span>مالیات:</span><span class="text-white money-auto">{{ order.tax_amount }}</span></div>
+            <div class="flex justify-between"><span>مالیات (سفارش قدیمی):</span><span class="text-white money-auto">{{ order.tax_amount }}</span></div>
+            {% endif %}
             <div class="flex justify-between font-bold text-sm pt-2 border-t border-white/10"><span>مبلغ نهایی:</span><span class="text-[var(--cyan)] money-auto">{{ order.total_price }}</span></div>
         </div>
     </div>

@@ -15,7 +15,6 @@ from django.utils.http import url_has_allowed_host_and_scheme
 
 from orders.views import FA_TO_EN_DIGITS, MAX_ORDER_TOTAL, normalize_phone, valid_password, valid_phone
 from orders.models import (
-    order_tax,
     Customer,
     OrderReview,
     Wallet,
@@ -55,9 +54,9 @@ def clean_item_numbers(qty, price):
     return qty, price
 
 
-def total_within_limit(subtotal):
+def total_within_limit(total):
     # Order.total_price stores at most 10 digits; a larger total breaks every page that lists the order.
-    return subtotal + order_tax(subtotal) <= MAX_ORDER_TOTAL
+    return total <= MAX_ORDER_TOTAL
 
 
 UNPRICED_READY_WARNING = (
