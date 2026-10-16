@@ -13,7 +13,7 @@
       <span class="ac-order-no">#{{ o.id|fa_digits }}</span>
       <span class="ac-order-date">{{ o.shamsi_date|fa_digits }}</span>
       <span class="ac-order-state">{{ now.label }}</span>
-      <span class="ac-order-sum">{% if o.total_price %}{{ o.total_price|toman }} تومان{% else %}پس از بررسی{% endif %}</span>
+      <span class="ac-order-sum">{% if o.total_price and not o.has_unpriced_items %}{{ o.total_price|toman }} تومان{% else %}پس از بررسی{% endif %}</span>
     </a>
     {% endwith %}
     {% endfor %}

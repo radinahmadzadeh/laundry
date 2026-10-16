@@ -102,6 +102,8 @@ class Order(models.Model):
     delivery_date = models.DateField(null=True, blank=True, verbose_name='تاریخ تحویل')
     total_price = models.DecimalField(max_digits=10, decimal_places=0, default=0)
     is_paid = models.BooleanField(default=False, verbose_name='پرداخت شده')
+    # مشتری اقلامی انتخاب کرده که قیمتشان بعد از دیدن لباس مشخص می‌شود؛ پرداخت تا «آماده تحویل» بسته است
+    price_pending = models.BooleanField(default=False, verbose_name='قیمت‌گذاری پس از بررسی')
 
     # پیک دریافت: وقتی سفارش جدید ثبت می‌شه و مشتری می‌خواد پیک لباس‌های کثیف رو از خونه‌اش تحویل بگیره
     courier_requested = models.BooleanField(default=False, verbose_name='درخواست پیک (دریافت لباس)')
@@ -231,6 +233,24 @@ class Order(models.Model):
     @property
     def tax_amount(self):
         return order_tax(self.subtotal_amount)
+
+    @property
+    def has_unpriced_items(self):
+        """Some lines of a price-pending order still wait for the shop to set their price."""
+        return self.price_pending and any(item.price <= 0 for item in self.orderitem_set.all())
+
+    @property
+    def payment_open(self):
+        """Can the customer pay now?
+
+        Fully priced orders can be paid any time. Orders with items priced after inspection only once
+        they are ready and every line has a price, so nobody pays a partial total.
+        """
+        if self.is_paid or self.total_price <= 0:
+            return False
+        if not self.price_pending:
+            return True
+        return self.status in ('ready', 'delivered') and not self.has_unpriced_items
 
     def __str__(self):
         return f"فاکتور {self.id} - {self.customer.name}"

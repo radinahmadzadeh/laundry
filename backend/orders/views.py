@@ -216,6 +216,8 @@ def wallet_pay_order(request, order_id):
         messages.info(request, 'این فاکتور قبلاً پرداخت شده است.')
     elif result == 'invalid':
         messages.error(request, 'مبلغ این فاکتور هنوز مشخص نشده است؛ پس از اعلام قیمت می‌توانید آن را پرداخت کنید.')
+    elif result == 'not_ready':
+        messages.info(request, PRICE_PENDING_MESSAGE)
     else:
         balance = Wallet.objects.filter(customer_id=customer_id).values_list('balance', flat=True).first() or 0
         messages.error(
@@ -504,6 +506,12 @@ def zarinpal_post(url, payload):
     return response.status_code, data, body.get('errors') or {}
 
 
+PRICE_PENDING_MESSAGE = (
+    'قیمت برخی اقلام این سفارش پس از بررسی لباس مشخص می‌شود؛ '
+    'وقتی سفارش آماده تحویل شد، مبلغ نهایی اعلام می‌شود و می‌توانید آن را پرداخت کنید.'
+)
+
+
 def order_track_url(order_id):
     return f"{reverse('home')}?order_id={order_id}#track-section"
 
@@ -520,6 +528,9 @@ def send_request(request, order_id):
         return redirect(track_url)
     if order.total_price <= 0:
         messages.error(request, 'مبلغ این فاکتور هنوز مشخص نشده است؛ پس از اعلام قیمت می‌توانید آن را پرداخت کنید.')
+        return redirect(track_url)
+    if not order.payment_open:
+        messages.info(request, PRICE_PENDING_MESSAGE)
         return redirect(track_url)
 
     shop = ShopSettings.load()
@@ -795,10 +806,12 @@ def order_item_label(price_item, iron_only):
 def pay_order_from_wallet(order, customer_id):
     """Pay an unpaid order from the customer's wallet. Safe against double taps and parallel requests.
 
-    Returns 'paid', 'already_paid', 'insufficient' or 'invalid'.
+    Returns 'paid', 'already_paid', 'insufficient', 'invalid' or 'not_ready' (priced after inspection, not ready yet).
     """
     if order.total_price <= 0:
         return 'invalid'
+    if not order.is_paid and not order.payment_open:
+        return 'not_ready'
     with transaction.atomic():
         wallet, _ = Wallet.objects.get_or_create(customer_id=customer_id)
         if not Order.objects.filter(pk=order.pk, is_paid=False).update(is_paid=True):
@@ -832,7 +845,7 @@ def place_order(request):
     }
     همه‌چیز قبل از ساختن سفارش بررسی می‌شود و سفارش در یک تراکنش ساخته می‌شود؛ پس هیچ خطایی
     سفارش نیمه‌کاره یا خالی باقی نمی‌گذارد. اقلامی که قیمتشان «در حال هماهنگی» است با قیمت صفر
-    ثبت می‌شوند تا فروشگاه بعداً قیمت را مشخص کند.
+    ثبت می‌شوند تا فروشگاه بعداً قیمت را مشخص کند؛ چنین سفارشی تا «آماده تحویل» قابل پرداخت نیست.
     """
     customer_id = session_customer_id(request)
     logged_customer = Customer.objects.filter(id=customer_id).first() if customer_id else None
@@ -896,7 +909,7 @@ def place_order(request):
             return order_error(error)
 
     with transaction.atomic():
-        order = Order(customer=logged_customer)
+        order = Order(customer=logged_customer, price_pending=any(price <= 0 for _, _, _, price, _ in lines))
         if courier:
             # لباس‌ها هنوز دست ما نرسیده؛ تا وقتی پیک آن‌ها را بیاورد سفارش در مرحله «جمع‌آوری» است
             order.status = 'collecting'
@@ -918,7 +931,7 @@ def place_order(request):
             logged_customer.save(update_fields=['address', 'address_latitude', 'address_longitude', 'address_postal_code'])
 
     payment = None
-    if data.get('use_wallet') is True and order.total_price > 0:
+    if data.get('use_wallet') is True and order.payment_open:
         payment = pay_order_from_wallet(order, logged_customer.id)
 
     return JsonResponse({
@@ -928,5 +941,6 @@ def place_order(request):
         'total': int(order.total_price),
         'paid_by_wallet': payment == 'paid',
         'wallet_insufficient': payment == 'insufficient',
+        'price_pending': order.price_pending,
         'track_url': f"{reverse('home')}?order_id={order.id}#track-section",
     })

@@ -15,15 +15,15 @@
             <span>مالیات (۱۰٪):</span>
             <span id="cart-tax">۰ تومان</span>
         </div>
-        <div class="flex justify-between items-center pt-2 border-t border-gray-100">
-            <span class="text-gray-700 font-bold">مبلغ قابل پرداخت:</span>
-            <span id="cart-total" class="text-xl font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">۰ تومان</span>
+        <div class="flex justify-between items-center gap-3 pt-2 border-t border-gray-100">
+            <span id="cart-total-label" class="text-gray-700 font-bold whitespace-nowrap">مبلغ قابل پرداخت:</span>
+            <span id="cart-total" class="text-left text-lg sm:text-xl whitespace-nowrap font-black text-transparent bg-clip-text bg-gradient-to-l from-[var(--cyan)] to-[var(--violet)]">۰ تومان</span>
         </div>
     </div>
-    <p id="cart-note" class="hidden text-[11px] text-amber-600 mt-2 leading-6">قیمت برخی اقلام انتخابی پس از بررسی لباس مشخص می‌شود؛ مبلغ این اقلام بعداً به فاکتور اضافه و پیش از پرداخت به شما اطلاع داده می‌شود.</p>
+    <p id="cart-note" class="hidden text-[11px] text-amber-700 mt-3 leading-6 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2.5">قیمت برخی اقلام انتخابی بعد از بررسی جنس لباس مشخص می‌شود؛ برای همین الان پرداختی لازم نیست. وقتی سفارش «آماده تحویل» شد، مبلغ نهایی در «سفارش‌های من» اعلام می‌شود و همان‌جا می‌توانید آنلاین یا با کیف پول پرداخت کنید.</p>
 </div>
 
-<label class="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 cursor-pointer select-none">
+<label id="wallet-option" class="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3.5 cursor-pointer select-none">
     <input type="checkbox" id="use-wallet" class="w-4 h-4 accent-emerald-600" onchange="updateCartUI()">
     <span class="min-w-0 flex-1">
         <span class="block text-xs font-black text-emerald-800">پرداخت از کیف پول</span>

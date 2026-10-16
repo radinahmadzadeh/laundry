@@ -76,8 +76,13 @@
                         {% if item.description %}<div class="note"><bdi>توضیحات: {{ item.description|linebreaksbr }}</bdi></div>{% endif %}
                     </td>
                     <td class="c num">{{ item.quantity|fa_digits }}</td>
+                    {% if order.price_pending and item.price <= 0 %}
+                    <td class="l price">پس از بررسی</td>
+                    <td class="l">—</td>
+                    {% else %}
                     <td class="l num price">{{ item.price|toman }}</td>
                     <td class="l num"><b>{% widthratio item.price 1 item.quantity as line_total %}{{ line_total|toman }}</b></td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>
@@ -97,7 +102,11 @@
             <div class="totals">
                 <div class="row"><span class="k">جمع اقلام</span><span class="v num">{{ order.subtotal_amount|toman }} تومان</span></div>
                 <div class="row"><span class="k">مالیات (۱۰٪)</span><span class="v num">{{ order.tax_amount|toman }} تومان</span></div>
+                {% if order.has_unpriced_items %}
+                <div class="grand"><span>مبلغ نهایی</span><span><strong>پس از بررسی</strong></span></div>
+                {% else %}
                 <div class="grand"><span>مبلغ نهایی</span><span class="num"><strong>{{ order.total_price|toman }}</strong> <small>تومان</small></span></div>
+                {% endif %}
             </div>
         </section>
 

@@ -442,6 +442,94 @@ class PlaceOrderTests(TestCase):
         self.assertEqual(WalletTransaction.objects.filter(transaction_type='debit').count(), 1)
 
 
+class PricePendingPaymentTests(TestCase):
+    """Items priced after inspection: no payment until the order is ready and fully priced."""
+
+    def setUp(self):
+        from .models import PriceCategory, PriceItem
+        self.customer = Customer.objects.create(name='قیمت بعدی', phone='09120000031')
+        men = PriceCategory.objects.create(name='مردانه')
+        self.shirt = PriceItem.objects.create(category=men, name='پیراهن', dry_clean_price='220000')
+        self.coat = PriceItem.objects.create(category=men, name='کاپشن', dry_clean_price='')
+        Wallet.objects.create(customer=self.customer, balance=Decimal('5000000'))
+        self.client = login_customer(Client(), self.customer)
+
+    def place(self, *price_items, use_wallet=False):
+        payload = {'items': [{'line_id': p.id, 'quantity': 1} for p in price_items], 'use_wallet': use_wallet}
+        data = self.client.post(reverse('place_order'), json.dumps(payload), content_type='application/json').json()
+        return data, Order.objects.get(id=data['order_id'])
+
+    def card(self, order):
+        return self.client.get(reverse('home'), {'order_id': order.id}).content.decode()
+
+    def pay_link(self, order):
+        return f'href="{reverse("request_payment", args=[order.id])}"'
+
+    def test_fully_priced_order_can_be_paid_right_away(self):
+        data, order = self.place(self.shirt)
+        self.assertFalse(data['price_pending'])
+        self.assertTrue(order.payment_open)
+        self.assertIn(self.pay_link(order), self.card(order))
+
+    def test_mixed_order_is_not_paid_from_wallet_at_checkout(self):
+        data, order = self.place(self.shirt, self.coat, use_wallet=True)
+        self.assertTrue(data['price_pending'])
+        self.assertFalse(data['paid_by_wallet'])
+        order.refresh_from_db()
+        self.assertFalse(order.is_paid)
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('5000000'))
+
+    def test_payment_locked_until_ready_and_priced(self):
+        _, order = self.place(self.shirt, self.coat)
+        self.assertFalse(order.payment_open)
+        page = self.card(order)
+        self.assertNotIn(self.pay_link(order), page)
+        self.assertIn('پرداخت بعد از قیمت‌گذاری', page)
+
+        # Neither payment route works before the order is ready.
+        self.client.post(reverse('wallet_pay_order', args=[order.id]))
+        response = self.client.get(reverse('request_payment', args=[order.id]))
+        self.assertRedirects(response, f"{reverse('home')}?order_id={order.id}#track-section", fetch_redirect_response=False)
+        order.refresh_from_db()
+        self.assertFalse(order.is_paid)
+
+        # Priced while washing: the total is known but payment still waits for «ready».
+        coat_line = order.orderitem_set.get(price=0)
+        coat_line.price = 400000
+        coat_line.save()
+        order.refresh_from_db()
+        self.assertFalse(order.payment_open)
+        self.assertIn('مبلغ نهایی مشخص شد', self.card(order))
+
+        order.status = 'ready'
+        order.save()
+        self.assertTrue(order.payment_open)
+        self.assertIn(self.pay_link(order), self.card(order))
+        self.client.post(reverse('wallet_pay_order', args=[order.id]))
+        order.refresh_from_db()
+        self.assertTrue(order.is_paid)
+        self.assertEqual(Wallet.objects.get(customer=self.customer).balance, Decimal('5000000') - order.total_price)
+
+    def test_ready_order_with_a_line_still_unpriced_stays_locked(self):
+        _, order = self.place(self.shirt, self.coat)
+        order.status = 'ready'
+        order.save()
+        self.assertTrue(order.has_unpriced_items)
+        self.assertFalse(order.payment_open)
+        self.assertIn('فروشگاه در حال ثبت قیمت نهایی', self.card(order))
+        self.client.post(reverse('wallet_pay_order', args=[order.id]))
+        order.refresh_from_db()
+        self.assertFalse(order.is_paid)
+
+    def test_panel_warns_when_unpriced_order_is_marked_ready(self):
+        from django.contrib.auth import get_user_model
+        _, order = self.place(self.shirt, self.coat)
+        staff = Client()
+        staff.force_login(get_user_model().objects.create_user('pending-staff', password='x', is_staff=True))
+        response = staff.post(reverse('panel_order_status', args=[order.id]), {'status': 'ready'}, follow=True)
+        self.assertContains(response, 'مشتری نمی‌تواند این فاکتور را پرداخت کند')
+
+
 class HomeMessagesTests(TestCase):
     def test_flash_messages_render_on_home(self):
         customer = Customer.objects.create(name='پیام', phone='09120000018')

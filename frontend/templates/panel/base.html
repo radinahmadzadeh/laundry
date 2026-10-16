@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/vazirmatn.css' %}">
     <link rel="stylesheet" href="{% static 'css/panel.css' %}?v=3">
     {% block extra_head %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/tailwind.css' %}?v=2">
 </head>
 <body class="min-h-screen md:flex">
 <div class="admin-bg" aria-hidden="true">
@@ -40,7 +40,7 @@
     <form method="post" action="{% url 'panel_logout' %}" class="md:mt-auto md:pt-4 md:border-t border-white/10 shrink-0">{% csrf_token %}<button type="submit" class="nav-link w-full rounded-xl px-3 py-2.5 text-sm font-bold flex items-center gap-2 text-red-400">خروج</button></form>
 </aside>
 <main class="flex-1 p-5 sm:p-8 relative z-[1]">
-    {% if messages %}<div class="mb-5 space-y-2">{% for message in messages %}<div class="px-4 py-3 rounded-xl text-sm font-bold {% if message.tags == 'error' %}bg-red-500/10 border border-red-400/20 text-red-300{% else %}bg-emerald-500/10 border border-emerald-400/20 text-emerald-300{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% if messages %}<div class="mb-5 space-y-2">{% for message in messages %}<div class="px-4 py-3 rounded-xl text-sm font-bold {% if message.tags == 'error' %}bg-red-500/10 border border-red-400/20 text-red-300{% elif message.tags == 'warning' %}bg-amber-500/10 border border-amber-400/20 text-amber-300{% else %}bg-emerald-500/10 border border-emerald-400/20 text-emerald-300{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}
     {% block content %}{% endblock %}
 </main>
 </div>

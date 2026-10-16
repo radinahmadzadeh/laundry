@@ -762,10 +762,17 @@ function updateCartUI(){
     var tax = orderTax(subtotal), total = subtotal + tax;
     document.getElementById('cart-subtotal').textContent = faNumber(subtotal) + ' تومان';
     document.getElementById('cart-tax').textContent = faNumber(tax) + ' تومان';
-    document.getElementById('cart-total').textContent = faNumber(total) + ' تومان' + (hasUnknown ? ' + اقلام پس از بررسی' : '');
+    document.getElementById('cart-total').innerHTML = faNumber(total) + ' تومان' +
+        (hasUnknown ? '<span class="block text-[11px] font-bold text-amber-600 mt-0.5">+ اقلام پس از بررسی</span>' : '');
     if (noteEl) noteEl.classList.toggle('hidden', !hasUnknown);
+    var totalLabel = document.getElementById('cart-total-label');
+    if (totalLabel) totalLabel.textContent = hasUnknown ? 'مبلغ تا این لحظه:' : 'مبلغ قابل پرداخت:';
 
+    // Orders with items priced after inspection are paid once ready, so no wallet payment now.
     var useWallet = document.getElementById('use-wallet');
+    var walletOption = document.getElementById('wallet-option');
+    if (walletOption) walletOption.classList.toggle('hidden', hasUnknown);
+    if (useWallet && hasUnknown) useWallet.checked = false;
     var hint = document.getElementById('wallet-hint');
     if (useWallet && hint){
         var short = useWallet.checked && total > 0 && WALLET_BALANCE < total;
@@ -991,11 +998,15 @@ function submitOrder(){
             ? 'مبلغ سفارش از کیف پول شما پرداخت شد.'
             : (data.wallet_insufficient
                 ? 'موجودی کیف پول کافی نبود؛ می‌توانید از صفحه سفارش، آنلاین یا بعد از شارژ کیف پول پرداخت کنید.'
-                : (data.total > 0 ? 'برای پرداخت، روی «مشاهده و پرداخت سفارش» بزنید.' : 'مبلغ نهایی پس از بررسی لباس‌ها اعلام می‌شود.'));
+                : 'برای پرداخت، روی «مشاهده و پرداخت سفارش» بزنید.');
+        var successText = data.price_pending
+            ? 'قیمت برخی اقلام بعد از بررسی لباس مشخص می‌شود؛ وقتی سفارش آماده تحویل شد، مبلغ نهایی اعلام می‌شود و می‌توانید پرداخت کنید.'
+            : 'مبلغ فاکتور: ' + faNumber(data.total) + ' تومان. ' + paymentText;
         document.getElementById('order-success-invoice').textContent = 'شماره فاکتور: ' + faNumber(data.invoice_number || data.order_id);
-        document.getElementById('order-success-msg').textContent =
-            'مبلغ فاکتور: ' + faNumber(data.total) + ' تومان. ' + paymentText + ' وضعیت سفارش را همیشه در بخش «سفارش‌های من» می‌بینید.';
-        document.getElementById('order-success-track').href = data.track_url;
+        document.getElementById('order-success-msg').textContent = successText + ' وضعیت سفارش را همیشه در بخش «سفارش‌های من» می‌بینید.';
+        var trackLink = document.getElementById('order-success-track');
+        trackLink.href = data.track_url;
+        if (data.price_pending) trackLink.textContent = 'مشاهده سفارش';
         document.getElementById('order-form').querySelectorAll('input, textarea, .qty-btn, .item-note-toggle, .cat-tag, .delivery-tab, #submit-order-btn').forEach(function(el){ el.disabled = true; });
         btn.innerHTML = '✓ سفارش ثبت شد';
         btn.classList.remove('opacity-75');

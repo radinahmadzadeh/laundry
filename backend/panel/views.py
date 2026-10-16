@@ -60,6 +60,17 @@ def total_within_limit(subtotal):
     return subtotal + order_tax(subtotal) <= MAX_ORDER_TOTAL
 
 
+UNPRICED_READY_WARNING = (
+    'سفارش آماده تحویل شد، ولی قیمت برخی اقلام هنوز صفر است؛ '
+    'تا قیمت آن‌ها را وارد نکنید، مشتری نمی‌تواند این فاکتور را پرداخت کند.'
+)
+
+
+def warn_if_ready_unpriced(request, order):
+    if order.status == 'ready' and order.has_unpriced_items:
+        messages.warning(request, UNPRICED_READY_WARNING)
+
+
 def paginate(request, queryset, per_page, param='page'):
     """One page of a list; a bad or too-high ?page= shows the nearest real page."""
     return Paginator(queryset, per_page).get_page(request.GET.get(param))
@@ -207,6 +218,7 @@ def order_update_status(request, order_id):
             order.status = new_status
             order.save()
             messages.success(request, 'وضعیت سفارش بروزرسانی شد.')
+            warn_if_ready_unpriced(request, order)
 
     return redirect_back(request, 'panel_order_detail', order_id=order.id)
 
@@ -467,6 +479,7 @@ def order_update(request, order_id):
         order.delivery_latitude, order.delivery_longitude, order.delivery_postal_code = locations['delivery_']
         order.save()
         messages.success(request, 'اطلاعات سفارش با موفقیت ویرایش شد.')
+        warn_if_ready_unpriced(request, order)
     return redirect('panel_order_detail', order_id=order.id)
 
 

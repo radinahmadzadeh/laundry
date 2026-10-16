@@ -44,6 +44,16 @@
 
         <div class="panel rounded-2xl p-5 motion-card">
             <div class="flex items-center justify-between mb-4"><h2 class="font-bold text-sm">اقلام سفارش</h2><span class="text-[10px] text-cyan-300">ویرایش مستقیم</span></div>
+            {% if order.has_unpriced_items %}
+            <p class="mb-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5 text-[11px] leading-6 text-amber-200 font-bold">
+                مشتری اقلامی انتخاب کرده که قیمتشان بعد از دیدن لباس مشخص می‌شود. قیمت این اقلام را وارد کنید؛
+                مشتری وقتی سفارش «آماده تحویل» شد و همه اقلام قیمت داشتند می‌تواند پرداخت کند.
+            </p>
+            {% elif order.price_pending and not order.is_paid and order.status != 'ready' and order.status != 'delivered' %}
+            <p class="mb-4 rounded-xl border border-cyan-400/20 bg-cyan-400/5 px-3 py-2.5 text-[11px] leading-6 text-cyan-200">
+                قیمت همه اقلام ثبت شده؛ پرداخت برای مشتری از مرحله «آماده تحویل» باز می‌شود.
+            </p>
+            {% endif %}
             <div class="overflow-x-auto w-full mb-4"><table class="w-full text-sm mb-0 min-w-[700px]">
                 <thead class="text-gray-400 text-xs border-b border-white/10">
                     <tr><th class="p-2 text-right">شرح</th><th class="p-2 text-center">تعداد</th><th class="p-2 text-center">فی</th><th class="p-2"></th></tr>
@@ -56,7 +66,7 @@
                             <input form="edit-item-{{ item.id }}" name="description" value="{{ item.description }}" placeholder="توضیحات لباس" class="w-full rounded-lg px-2 py-1.5 text-xs mt-1">
                         </td>
                         <td class="p-2 text-center"><input form="edit-item-{{ item.id }}" name="quantity" type="number" min="1" value="{{ item.quantity }}" class="w-20 rounded-lg px-2 py-1.5 text-xs text-center"></td>
-                        <td class="p-2 text-center"><input form="edit-item-{{ item.id }}" name="price" value="{{ item.price }}" class="w-28 rounded-lg px-2 py-1.5 text-xs text-center dir-ltr"></td>
+                        <td class="p-2 text-center"><input form="edit-item-{{ item.id }}" name="price" value="{{ item.price }}" class="w-28 rounded-lg px-2 py-1.5 text-xs text-center dir-ltr{% if order.price_pending and item.price <= 0 %} ring-2 ring-amber-400/70{% endif %}"{% if order.price_pending and item.price <= 0 %} title="قیمت این قلم هنوز مشخص نشده"{% endif %}></td>
                         <td class="p-2 text-left whitespace-nowrap">
                             <form id="edit-item-{{ item.id }}" method="post" action="{% url 'panel_order_item_update' order.id item.id %}" class="inline">{% csrf_token %}</form>
                             <button form="edit-item-{{ item.id }}" class="text-cyan-300 text-xs font-bold hover:underline">ذخیره</button>
